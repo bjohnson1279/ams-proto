@@ -1,0 +1,37 @@
+{
+  "systemSource": "FORMAT_C",
+  "exportedAt": "2026-07-29T10:10:00Z",
+  "data": {
+    "ClientNum": "FMT-C-44820",
+    "FileID": "FILE-901",
+    "IsCommercial": false,
+    "ContactPerson": {
+      "First": "Eleanor",
+      "Last": "Vance"
+    },
+    "TaxIdentifier": "319-88-1029",
+    "Location": {
+      "Street": "812 Willowbrook Lane",
+      "City": "Evanston",
+      "State": "IL",
+      "ZipCode": "60201"
+    },
+    "Contact": {
+      "Email": "eleanor.vance@gmail.com",
+      "Phone": "847-555-7720"
+    },
+    "ClientStatus": "Active",
+    "PolicyList": [
+      {
+        "PolicyId": "FMT-C-POL-109",
+        "PolicyNumber": "FMT-C-AUTO-8812",
+        "LOB": "Personal Auto",
+        "EffectiveDate": "2026-02-15",
+        "ExpirationDate": "2027-02-15",
+        "TotalPremium": 2400.00,
+        "WritingCarrierNAIC": "25658",
+        "PolicyState": "Active"
+      }
+    ]
+  }
+}

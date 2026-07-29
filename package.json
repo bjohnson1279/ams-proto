@@ -1,0 +1,39 @@
+{
+  "name": "ams-proto",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Lightweight Agency Management System Prototype with Legacy Crosswalk Transformer Engine",
+  "main": "dist/server.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server.js",
+    "dev": "tsx watch src/server.ts",
+    "test:import": "tsx src/scripts/testImport.ts"
+  },
+  "keywords": [
+    "insurtech",
+    "agency-management-system",
+    "express",
+    "typescript",
+    "crosswalk",
+    "acord",
+    "data-migration"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "helmet": "^7.1.0",
+    "uuid": "^9.0.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.9",
+    "@types/uuid": "^9.0.8",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.2"
+  }
+}

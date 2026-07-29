@@ -1,0 +1,41 @@
+{
+  "systemSource": "FORMAT_A",
+  "exportedAt": "2026-07-29T10:00:00Z",
+  "data": {
+    "Client_PK": 89402,
+    "ClientCode": "FMT-A-89402",
+    "Insured_Type": "BUS",
+    "Entity_Name": "Midwest Fleet & Cold Storage Inc",
+    "FEIN_SSN": "36-9912048",
+    "Address_Line_1": "1400 Industrial Way",
+    "Address_Line_2": "Building B",
+    "City": "Oak Brook",
+    "State": "IL",
+    "Postal_Code": "60523",
+    "Email_Addr": "risk@midwestfleet.com",
+    "Phone_Num": "630-555-9012",
+    "Status_Code": "ACT",
+    "Policies": [
+      {
+        "Policy_ID_FK": "90214",
+        "Policy_Num": "FMT-A-AUTO-2026-99",
+        "Line_Of_Business_Code": "AUTOC",
+        "Effective_Dt": "01/01/2026",
+        "Expiration_Dt": "01/01/2027",
+        "Premium_Amt": 62400.00,
+        "Carrier_NAIC": "25658",
+        "Status": "Active"
+      },
+      {
+        "Policy_ID_FK": "90215",
+        "Policy_Num": "FMT-A-GL-2026-44",
+        "Line_Of_Business_Code": "GL",
+        "Effective_Dt": "03/15/2026",
+        "Expiration_Dt": "03/15/2027",
+        "Premium_Amt": 18500.00,
+        "Carrier_NAIC": "19682",
+        "Status": "Active"
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+services:
+  ams-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: development
+    container_name: ams_prototype_api
+    restart: unless-stopped
+    ports:
+      - "6000:6000"
+    environment:
+      - NODE_ENV=development
+      - PORT=6000
+    volumes:
+      - ./src:/app/src
+      - ./sample_payloads:/app/sample_payloads
+      - /app/node_modules
+    healthcheck:
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost:6000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3

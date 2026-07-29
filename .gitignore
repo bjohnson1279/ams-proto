@@ -141,3 +141,7 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+
+# Legacy commercial system crosswalk reference notes
+.commercial_crosswalk_reference.notes
+

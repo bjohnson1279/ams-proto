@@ -1,0 +1,29 @@
+{
+  "systemSource": "FORMAT_B",
+  "exportedAt": "2026-07-29T10:05:00Z",
+  "data": {
+    "CUST_ID": "FMT-B-9921",
+    "CLIENT_NO": 9921,
+    "CUST_TYPE": "B",
+    "BUS_NAME": "Heritage Timber & Lumber Co",
+    "SSN_FEIN": "41-0089123",
+    "ADDR1": "500 Sawmill Road",
+    "CITY": "Rockford",
+    "ST": "IL",
+    "ZIP": "61101",
+    "E_MAIL": "admin@heritagetimber.com",
+    "TELEPHONE": "815-555-3000",
+    "POLICIES": [
+      {
+        "POL_ID": "FMT-B-POL-771",
+        "POL_NUM": "FMT-B-WC-2026-11",
+        "LOB_CD": "WORKCOMP",
+        "EFF_DT": "20260401",
+        "EXP_DT": "20270401",
+        "PREM_AMT": 41200.00,
+        "NAIC_CD": "23046",
+        "STATUS_CD": "ACT"
+      }
+    ]
+  }
+}
