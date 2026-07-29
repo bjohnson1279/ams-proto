@@ -39,7 +39,9 @@ export class AmsService {
 
     if (filter?.policyNumber) {
       const pNum = filter.policyNumber.toLowerCase();
-      const matchingPolicies = this.policies.filter(p => p.policyNumber.toLowerCase().includes(pNum));
+      const matchingPolicies = this.policies.filter(p =>
+        p.policyNumber.toLowerCase().includes(pNum) || p.policyId.toLowerCase().includes(pNum)
+      );
       const customerIdsWithPolicy = new Set(matchingPolicies.map(p => p.customerId));
       result = result.filter(c => customerIdsWithPolicy.has(c.customerId));
     }

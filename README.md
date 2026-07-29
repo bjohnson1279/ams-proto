@@ -216,11 +216,24 @@ curl -s -X POST http://localhost:6000/api/v1/integration/import \
 
 ---
 
-## 🛠 Local CLI Testing (Without Docker)
+## 🛠 Local CLI Testing & Unit Test Suite
 
-You can also run the migration test suite locally using Node.js:
-
+### Run Jest Unit Tests & Route Coverage
 ```bash
-cmd /c npm run build
-cmd /c npm run test:import
+# Run 24 unit tests across all routes and controllers
+cmd /c npm test
+
+# Generate full code coverage report (100% Route Coverage)
+cmd /c npm run test:coverage
 ```
+
+## ⚙️ Continuous Integration (GitHub Actions)
+
+A GitHub Actions workflow is configured in [.github/workflows/ci.yml](file:///c:/Users/johns/DEV/ams-proto/.github/workflows/ci.yml) to automatically validate every push or pull request targeting the `main` branch.
+
+The CI pipeline executes:
+1. Clean dependency installation (`npm ci`).
+2. TypeScript compilation build check (`npm run build`).
+3. Jest unit test suite (`npm test`).
+4. Standalone legacy migration integration runner (`npm run test:import`).
+
