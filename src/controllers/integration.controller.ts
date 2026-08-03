@@ -16,13 +16,12 @@ export class IntegrationController {
       if (!payload || !payload.data) {
         res.status(400).json({
           status: 'error',
-          message: 'Invalid legacy ingestion payload. Missing "data" field.'
+          message: 'Invalid legacy ingestion payload. Missing "data" field.',
         });
         return;
       }
 
       const crosswalkResult = this.amsService.importLegacyPayload(payload);
-
       const hasCriticalExceptions = crosswalkResult.exceptions.some(e => e.severity === 'CRITICAL');
 
       res.status(hasCriticalExceptions ? 207 : 200).json({
@@ -34,9 +33,58 @@ export class IntegrationController {
           successfullyTransformedCustomers: crosswalkResult.successfullyTransformedCustomers,
           successfullyTransformedPolicies: crosswalkResult.successfullyTransformedPolicies,
           totalLogs: crosswalkResult.logs.length,
-          totalExceptions: crosswalkResult.exceptions.length
+          totalExceptions: crosswalkResult.exceptions.length,
+          totalDeduplicationMatches: crosswalkResult.deduplicationMatches?.length || 0,
         },
-        result: crosswalkResult
+        result: crosswalkResult,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  public dryRunImport = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const payload = req.body as IngestionPayload;
+
+      if (!payload || !payload.data) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Invalid legacy ingestion payload. Missing "data" field.',
+        });
+        return;
+      }
+
+      const crosswalkResult = this.amsService.dryRunImport(payload);
+      const hasCriticalExceptions = crosswalkResult.exceptions.some(e => e.severity === 'CRITICAL');
+
+      res.status(hasCriticalExceptions ? 207 : 200).json({
+        status: hasCriticalExceptions ? 'partial_success' : 'success',
+        message: `Dry-Run preview analysis for ${crosswalkResult.systemSource} completed. No changes committed to Core AMS.`,
+        summary: {
+          systemSource: crosswalkResult.systemSource,
+          dryRun: true,
+          totalRecordsProcessed: crosswalkResult.totalRecordsProcessed,
+          successfullyTransformedCustomers: crosswalkResult.successfullyTransformedCustomers,
+          successfullyTransformedPolicies: crosswalkResult.successfullyTransformedPolicies,
+          totalLogs: crosswalkResult.logs.length,
+          totalExceptions: crosswalkResult.exceptions.length,
+          totalDeduplicationMatches: crosswalkResult.deduplicationMatches?.length || 0,
+        },
+        result: crosswalkResult,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  public getCrosswalkMatrix = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const matrix = this.amsService.getCrosswalkMatrix();
+      res.status(200).json({
+        status: 'success',
+        count: matrix.length,
+        matrix,
       });
     } catch (err) {
       next(err);

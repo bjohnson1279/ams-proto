@@ -1,0 +1,45 @@
+{
+  "systemSource": "FORMAT_D",
+  "exportedAt": "2026-08-02T18:00:00.000Z",
+  "data": {
+    "account_uuid": "acc-cloud-99182",
+    "entity_kind": "ORGANIZATION",
+    "display_name": "Zenith Logistics & Transport",
+    "legal_name": "Zenith Logistics & Transport Inc",
+    "tax_id": "47-9021844",
+    "primary_address": {
+      "line1": "500 Cloud Commerce Way",
+      "line2": "Suite 400",
+      "city_name": "Austin",
+      "state_code": "TX",
+      "postal_code": "78701"
+    },
+    "primary_contact": {
+      "email_address": "fleet@zenithlogistics.com",
+      "telephone_number": "512-555-8800"
+    },
+    "account_status": "ACTIVE",
+    "active_policies": [
+      {
+        "policy_uuid": "pol-cloud-101",
+        "policy_num": "FMT-D-AUTO-2026",
+        "product_line_code": "COMM_AUTO",
+        "start_date": "2026-03-01",
+        "end_date": "2027-03-01",
+        "annual_premium_cents": 4500000,
+        "carrier_naic_code": "25674",
+        "billing_method": "AGENCY_BILL"
+      },
+      {
+        "policy_uuid": "pol-cloud-102",
+        "policy_num": "FMT-D-GL-2026",
+        "product_line_code": "GEN_LIABILITY",
+        "start_date": "2026-03-01",
+        "end_date": "2027-03-01",
+        "annual_premium_cents": 1850000,
+        "carrier_naic_code": "25674",
+        "billing_method": "AGENCY_BILL"
+      }
+    ]
+  }
+}

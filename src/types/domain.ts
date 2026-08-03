@@ -18,7 +18,7 @@ export interface ContactInfo {
 }
 
 export interface LegacyCrosswalkRef {
-  systemSource: 'FORMAT_A' | 'FORMAT_B' | 'FORMAT_C';
+  systemSource: 'FORMAT_A' | 'FORMAT_B' | 'FORMAT_C' | 'FORMAT_D';
   legacyId: string;
   importedAt: string;
 }
@@ -69,6 +69,36 @@ export interface CoverageItem {
   premiumAmount: number;
 }
 
+export interface VehicleSchedule {
+  vehicleId: string;
+  policyId: string;
+  vin: string;
+  year: number;
+  make: string;
+  model: string;
+  garagingZip: string;
+  statedValue: number;
+}
+
+export interface PropertySchedule {
+  propertyId: string;
+  policyId: string;
+  buildingAddress: string;
+  buildingLimit: number;
+  contentsLimit: number;
+  constructionType: string;
+}
+
+export interface DriverSchedule {
+  driverId: string;
+  customerId: string;
+  firstName: string;
+  lastName: string;
+  licenseNumber: string;
+  licenseState: string;
+  dateOfBirth: string;
+}
+
 export interface Policy {
   policyId: string;
   policyNumber: string;
@@ -99,6 +129,14 @@ export interface Claim {
   paidAmount: number;
   description: string;
   createdAt: string;
+}
+
+export interface DeduplicationMatch {
+  matchedCustomerId: string;
+  matchedCustomerName: string;
+  confidenceScore: number; // 0 to 100
+  matchedFields: Array<'FEIN' | 'NAME' | 'ADDRESS'>;
+  recommendation: 'LINK_TO_EXISTING' | 'CREATE_NEW';
 }
 
 export interface AcordDecPagePayload {

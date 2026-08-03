@@ -1,6 +1,6 @@
-import { Customer, Policy } from './domain.js';
+import { Customer, Policy, DeduplicationMatch } from './domain.js';
 
-export type LegacySystemType = 'FORMAT_A' | 'FORMAT_B' | 'FORMAT_C';
+export type LegacySystemType = 'FORMAT_A' | 'FORMAT_B' | 'FORMAT_C' | 'FORMAT_D';
 
 // Legacy Export Schema Format A (Enterprise Relational SQL JSON Export)
 export interface FormatAClientPayload {
@@ -92,10 +92,47 @@ export interface FormatCClientPayload {
   }>;
 }
 
+// Legacy Export Schema Format D (Cloud-Native API JSON Stream Export)
+export interface FormatDClientPayload {
+  account_uuid: string;
+  entity_kind: 'ORGANIZATION' | 'PERSON';
+  display_name: string;
+  legal_name?: string;
+  tax_id?: string;
+  primary_address: {
+    line1: string;
+    line2?: string;
+    city_name: string;
+    state_code: string;
+    postal_code: string;
+  };
+  primary_contact?: {
+    email_address: string;
+    telephone_number: string;
+  };
+  account_status: 'ACTIVE' | 'INACTIVE';
+  active_policies?: Array<{
+    policy_uuid: string;
+    policy_num: string;
+    product_line_code: string; // e.g., 'COMM_AUTO', 'GEN_LIABILITY', 'WORKERS_COMP'
+    start_date: string; // YYYY-MM-DD
+    end_date: string;
+    annual_premium_cents: number; // Stored in cents (e.g. 500000 = $5,000.00)
+    carrier_naic_code?: string;
+    billing_method: 'DIRECT_BILL' | 'AGENCY_BILL';
+  }>;
+}
+
 export interface IngestionPayload {
   systemSource: LegacySystemType;
   exportedAt: string;
-  data: FormatAClientPayload | FormatBClientPayload | FormatCClientPayload | Array<FormatAClientPayload | FormatBClientPayload | FormatCClientPayload>;
+  dryRun?: boolean;
+  data:
+    | FormatAClientPayload
+    | FormatBClientPayload
+    | FormatCClientPayload
+    | FormatDClientPayload
+    | Array<FormatAClientPayload | FormatBClientPayload | FormatCClientPayload | FormatDClientPayload>;
 }
 
 export interface MappingLogEntry {
@@ -118,9 +155,11 @@ export interface MappingException {
 export interface CrosswalkResult {
   systemSource: LegacySystemType;
   ingestedAt: string;
+  dryRun?: boolean;
   totalRecordsProcessed: number;
   successfullyTransformedCustomers: number;
   successfullyTransformedPolicies: number;
+  deduplicationMatches?: DeduplicationMatch[];
   customers: Customer[];
   policies: Policy[];
   logs: MappingLogEntry[];

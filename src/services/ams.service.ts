@@ -228,26 +228,106 @@ export class AmsService {
   // LEGACY INGESTION & CROSSWALK
   public importLegacyPayload(ingestionPayload: IngestionPayload): CrosswalkResult {
     this.crosswalkEngine.updateCarrierMap(this.carriers);
+    this.crosswalkEngine.updateExistingCustomers(this.customers);
     const result = this.crosswalkEngine.processIngestion(ingestionPayload);
 
-    for (const newCust of result.customers) {
-      const existingIdx = this.customers.findIndex(c => c.customerId === newCust.customerId);
-      if (existingIdx >= 0) {
-        this.customers[existingIdx] = { ...this.customers[existingIdx], ...newCust };
-      } else {
-        this.customers.push(newCust);
+    if (!ingestionPayload.dryRun) {
+      for (const newCust of result.customers) {
+        const existingIdx = this.customers.findIndex(c => c.customerId === newCust.customerId);
+        if (existingIdx >= 0) {
+          this.customers[existingIdx] = { ...this.customers[existingIdx], ...newCust };
+        } else {
+          this.customers.push(newCust);
+        }
       }
-    }
 
-    for (const newPol of result.policies) {
-      const existingIdx = this.policies.findIndex(p => p.policyId === newPol.policyId);
-      if (existingIdx >= 0) {
-        this.policies[existingIdx] = newPol;
-      } else {
-        this.policies.push(newPol);
+      for (const newPol of result.policies) {
+        const existingIdx = this.policies.findIndex(p => p.policyId === newPol.policyId);
+        if (existingIdx >= 0) {
+          this.policies[existingIdx] = newPol;
+        } else {
+          this.policies.push(newPol);
+        }
       }
     }
 
     return result;
+  }
+
+  public dryRunImport(ingestionPayload: IngestionPayload): CrosswalkResult {
+    return this.importLegacyPayload({ ...ingestionPayload, dryRun: true });
+  }
+
+  public getClaims(): Claim[] {
+    return this.claims;
+  }
+
+  public getCrosswalkMatrix() {
+    return [
+      {
+        format: 'FORMAT_A',
+        systemType: 'Enterprise SQL Relational Schema',
+        sourceField: 'Client_PK / ClientCode',
+        canonicalField: 'customerId',
+        transformRule: "Prefix with 'CUST-FMT-A-'",
+        example: '89402 -> CUST-FMT-A-89402',
+      },
+      {
+        format: 'FORMAT_A',
+        systemType: 'Enterprise SQL Relational Schema',
+        sourceField: 'Line_Of_Business_Code',
+        canonicalField: 'lineOfBusiness',
+        transformRule: "Enum Map: AUTOC -> 'Commercial Auto', GL -> 'General Liability', WORK -> 'Workers Comp'",
+        example: "AUTOC -> 'Commercial Auto'",
+      },
+      {
+        format: 'FORMAT_A',
+        systemType: 'Enterprise SQL Relational Schema',
+        sourceField: 'Effective_Dt',
+        canonicalField: 'effectiveDate',
+        transformRule: 'Normalize MM/DD/YYYY to ISO YYYY-MM-DD',
+        example: '03/15/2026 -> 2026-03-15',
+      },
+      {
+        format: 'FORMAT_B',
+        systemType: 'Legacy Flat-File DB Schema',
+        sourceField: 'CUST_ID / CLIENT_NO',
+        canonicalField: 'customerId',
+        transformRule: "Prefix with 'CUST-FMT-B-'",
+        example: 'FMT-B-9921 -> CUST-FMT-B-FMT-B-9921',
+      },
+      {
+        format: 'FORMAT_B',
+        systemType: 'Legacy Flat-File DB Schema',
+        sourceField: 'EFF_DT',
+        canonicalField: 'effectiveDate',
+        transformRule: 'Parse YYYYMMDD compact string to YYYY-MM-DD',
+        example: '20260401 -> 2026-04-01',
+      },
+      {
+        format: 'FORMAT_C',
+        systemType: 'Desktop CMS XML Schema',
+        sourceField: 'ClientNum / FileID',
+        canonicalField: 'customerId',
+        transformRule: "Prefix with 'CUST-FMT-C-'",
+        example: 'FMT-C-44820 -> CUST-FMT-C-FMT-C-44820',
+      },
+      {
+        format: 'FORMAT_D',
+        systemType: 'Cloud JSON REST Schema',
+        sourceField: 'account_uuid',
+        canonicalField: 'customerId',
+        transformRule: "Prefix with 'CUST-FMT-D-'",
+        example: 'acc-cloud-99182 -> CUST-FMT-D-acc-cloud-99182',
+      },
+      {
+        format: 'FORMAT_D',
+        systemType: 'Cloud JSON REST Schema',
+        sourceField: 'annual_premium_cents',
+        canonicalField: 'premiumAmount',
+        transformRule: 'Convert cents float to dollars (cents / 100)',
+        example: '4500000 -> 45000.00',
+      },
+    ];
   }
 }

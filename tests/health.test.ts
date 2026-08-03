@@ -11,7 +11,7 @@ describe('Health and System Routes', () => {
   });
 
   it('GET / should return root summary info', async () => {
-    const res = await request(app).get('/');
+    const res = await request(app).get('/').set('Accept', 'application/json');
     expect(res.status).toBe(200);
     expect(res.body.name).toBe('Agency Management System (AMS) Prototype');
     expect(res.body.version).toBe('1.0.0');

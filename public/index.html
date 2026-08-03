@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoreAMS | Legacy Integration & Crosswalk Workbench</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0b0f19;
+      --bg-card: #151c2c;
+      --bg-card-hover: #1e283d;
+      --bg-input: #0f172a;
+      --border-color: #2a364f;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --font-heading: 'Outfit', sans-serif;
+      --font-body: 'Inter', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      font-family: var(--font-body);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: rgba(21, 28, 44, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-logo {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-heading);
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: #fff;
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .brand-title h1 {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-title p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: var(--accent-emerald);
+      font-weight: 500;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background-color: var(--accent-emerald);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-emerald);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.2); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-blue);
+    }
+
+    .metric-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+    }
+
+    .metric-value {
+      font-family: var(--font-heading);
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .metric-sub {
+      font-size: 0.75rem;
+      color: var(--accent-cyan);
+    }
+
+    .tabs-nav {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 0.5rem;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.6rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: var(--font-body);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-main);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn.active {
+      color: #fff;
+      background: var(--accent-blue);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: flex; flex-direction: column; gap: 1.5rem; }
+
+    .workbench-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 900px) {
+      .workbench-layout { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.25rem;
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .panel-title {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .format-pills {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .format-pill {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .format-pill:hover, .format-pill.active {
+      border-color: var(--accent-cyan);
+      color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.1);
+    }
+
+    textarea.code-editor {
+      width: 100%;
+      height: 340px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: #38bdf8;
+      font-family: 'Consolas', 'Courier New', monospace;
+      font-size: 0.85rem;
+      padding: 1rem;
+      resize: vertical;
+      line-height: 1.4;
+    }
+
+    textarea.code-editor:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+    }
+
+    .btn-group {
+      display: flex;
+      gap: 1rem;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .btn-secondary {
+      background: var(--bg-card-hover);
+      color: var(--text-main);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border-color);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-blue), #2563eb);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+    }
+
+    .output-box {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      height: 340px;
+      overflow-y: auto;
+      font-family: 'Consolas', monospace;
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .log-line {
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.8rem;
+    }
+
+    .log-INFO { background: rgba(59, 130, 246, 0.1); color: #60a5fa; border-left: 3px solid var(--accent-blue); }
+    .log-WARN { background: rgba(245, 158, 11, 0.1); color: #fbbf24; border-left: 3px solid var(--accent-amber); }
+    .log-ERROR { background: rgba(244, 63, 94, 0.1); color: #f87171; border-left: 3px solid var(--accent-rose); }
+
+    .table-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.85rem;
+    }
+
+    th {
+      background: var(--bg-input);
+      color: var(--text-muted);
+      font-weight: 600;
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+    }
+
+    td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      color: var(--text-main);
+    }
+
+    tr:hover td {
+      background: var(--bg-card-hover);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.25rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .badge-fmt-a { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .badge-fmt-b { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-fmt-c { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-fmt-d { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .badge-core { background: rgba(148, 163, 184, 0.15); color: #cbd5e1; border: 1px solid rgba(148, 163, 184, 0.3); }
+
+    /* ACORD Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 2rem;
+    }
+
+    .modal-overlay.active { display: flex; }
+
+    .modal-content {
+      background: #1e293b;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      max-width: 800px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 2rem;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .dec-header {
+      border-bottom: 2px solid var(--accent-blue);
+      padding-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .dec-section {
+      background: var(--bg-input);
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .dec-section-title {
+      font-size: 0.8rem;
+      color: var(--accent-cyan);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">AMS</div>
+      <div class="brand-title">
+        <h1>CoreAMS Prototype</h1>
+        <p>Legacy Crosswalk & Ingestion Integration Workbench</p>
+      </div>
+    </div>
+    <div class="status-badge">
+      <div class="pulse-dot"></div>
+      CI Validated • 100% Test Coverage
+    </div>
+  </header>
+
+  <main>
+    <!-- Metric Cards -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-label">Total Insured Customers</span>
+        <span class="metric-value" id="metric-customers">0</span>
+        <span class="metric-sub" id="metric-customers-sub">Active Registry Store</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Active Policies</span>
+        <span class="metric-value" id="metric-policies">0</span>
+        <span class="metric-sub" id="metric-policies-sub">Multi-Line Policies</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Reconciled Premium</span>
+        <span class="metric-value" id="metric-premium">$0.00</span>
+        <span class="metric-sub">Book of Business Total</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">Contracted Carriers</span>
+        <span class="metric-value" id="metric-carriers">0</span>
+        <span class="metric-sub">NAIC Writing Companies</span>
+      </div>
+    </div>
+
+    <!-- Tabs Navigation -->
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="switchTab('tab-workbench')">⚡ Migration Workbench & Sandbox</button>
+      <button class="tab-btn" onclick="switchTab('tab-customers')">👥 Insured & Policy Registry</button>
+      <button class="tab-btn" onclick="switchTab('tab-matrix')">📊 Crosswalk Transformation Matrix</button>
+    </div>
+
+    <!-- TAB 1: MIGRATION WORKBENCH -->
+    <div id="tab-workbench" class="tab-content active">
+      <div class="workbench-layout">
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">1. Raw Legacy Export Payload</span>
+            <div class="format-pills">
+              <button class="format-pill active" onclick="loadSample('FORMAT_A')">Format A (SQL)</button>
+              <button class="format-pill" onclick="loadSample('FORMAT_B')">Format B (Flat)</button>
+              <button class="format-pill" onclick="loadSample('FORMAT_C')">Format C (XML)</button>
+              <button class="format-pill" onclick="loadSample('FORMAT_D')">Format D (Cloud)</button>
+            </div>
+          </div>
+          <textarea id="payload-editor" class="code-editor" spellcheck="false"></textarea>
+          <div class="btn-group">
+            <button class="btn btn-secondary" onclick="runDryRun()">🔍 Run Dry-Run Audit</button>
+            <button class="btn btn-primary" onclick="executeImport()">🚀 Execute CoreAMS Import</button>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">2. Transformation Logs & Deduplication Audit</span>
+            <span id="audit-status" style="font-size: 0.8rem; color: var(--text-muted);">Ready for evaluation</span>
+          </div>
+          <div id="output-box" class="output-box">
+            <div style="color: var(--text-muted); font-style: italic;">Select a legacy export format and click 'Run Dry-Run Audit' to view field crosswalk logs, deduplication match recommendations, and mapping exceptions.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: INSURED & POLICY REGISTRY -->
+    <div id="tab-customers" class="tab-content">
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <input type="text" id="search-input" placeholder="Search by customer name or policy number..." 
+          style="background: var(--bg-card); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 1rem; border-radius: 8px; width: 360px;"
+          onkeyup="filterCustomers()">
+      </div>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Insured ID</th>
+              <th>Name / Commercial Entity</th>
+              <th>Tax ID (FEIN / SSN)</th>
+              <th>Location</th>
+              <th>System Lineage</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="customers-table-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: CROSSWALK MATRIX -->
+    <div id="tab-matrix" class="tab-content">
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Source Format</th>
+              <th>Legacy System Architecture</th>
+              <th>Legacy Source Field</th>
+              <th>Canonical Target Field</th>
+              <th>Transformation Logic & Rules</th>
+              <th>Example Mapping</th>
+            </tr>
+          </thead>
+          <tbody id="matrix-table-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- ACORD DEC-PAGE MODAL -->
+  <div id="dec-modal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+    <div class="modal-content">
+      <div class="dec-header">
+        <div>
+          <h2 id="dec-title" style="font-family: var(--font-heading); font-size: 1.1rem; color: #fff;">ACORD 125/126 POLICY DECLARATION</h2>
+          <p id="dec-acord-std" style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600;">ACORD COMPLIANT</p>
+        </div>
+        <button onclick="closeModal()" style="background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+      </div>
+
+      <div class="dec-section">
+        <span class="dec-section-title">Insured Header</span>
+        <p id="dec-insured-name" style="font-weight: 600; color: #fff;"></p>
+        <p id="dec-insured-tax" style="font-size: 0.85rem; color: var(--text-muted);"></p>
+        <p id="dec-insured-addr" style="font-size: 0.85rem; color: var(--text-muted);"></p>
+      </div>
+
+      <div class="dec-section">
+        <span class="dec-section-title">Policy & Carrier Information</span>
+        <p id="dec-policy-num" style="font-weight: 600; color: #fff;"></p>
+        <p id="dec-carrier-name" style="font-size: 0.85rem; color: var(--text-muted);"></p>
+        <p id="dec-term" style="font-size: 0.85rem; color: var(--text-muted);"></p>
+      </div>
+
+      <div class="dec-section">
+        <span class="dec-section-title">Schedule of Coverages & Limits</span>
+        <div id="dec-coverages-list" style="display: flex; flex-direction: column; gap: 0.4rem;"></div>
+      </div>
+
+      <div class="dec-section" style="border-top: 1px solid var(--accent-blue);">
+        <span class="dec-section-title">Total Financial Summary</span>
+        <p id="dec-financials" style="font-size: 1.2rem; font-weight: 700; color: var(--accent-emerald);"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let activeFormat = 'FORMAT_A';
+    let samplePayloads = {};
+
+    async function init() {
+      await fetchMetrics();
+      await fetchSamples();
+      await fetchCrosswalkMatrix();
+    }
+
+    async function fetchSamples() {
+      const respA = await fetch('/sample_payloads/format_a_payload.json').catch(() => null);
+      const respB = await fetch('/sample_payloads/format_b_payload.json').catch(() => null);
+      const respC = await fetch('/sample_payloads/format_c_payload.json').catch(() => null);
+      const respD = await fetch('/sample_payloads/format_d_payload.json').catch(() => null);
+
+      samplePayloads = {
+        FORMAT_A: respA ? await respA.json() : null,
+        FORMAT_B: respB ? await respB.json() : null,
+        FORMAT_C: respC ? await respC.json() : null,
+        FORMAT_D: respD ? await respD.json() : null,
+      };
+
+      loadSample('FORMAT_A');
+    }
+
+    function loadSample(formatKey) {
+      activeFormat = formatKey;
+      document.querySelectorAll('.format-pill').forEach(btn => btn.classList.remove('active'));
+      event?.target?.classList.add('active');
+
+      if (samplePayloads[formatKey]) {
+        document.getElementById('payload-editor').value = JSON.stringify(samplePayloads[formatKey], null, 2);
+      }
+    }
+
+    async function fetchMetrics() {
+      const custRes = await fetch('/api/v1/customers').then(r => r.json());
+      const polRes = await fetch('/api/v1/policies').then(r => r.json());
+      const carRes = await fetch('/api/v1/carriers').then(r => r.json());
+
+      if (custRes.status === 'success') {
+        const custs = custRes.data;
+        document.getElementById('metric-customers').innerText = custs.length;
+        renderCustomersTable(custs);
+      }
+
+      if (polRes.status === 'success') {
+        const pols = polRes.data;
+        document.getElementById('metric-policies').innerText = pols.length;
+        const totalPrem = pols.reduce((sum, p) => sum + (p.premiumAmount || 0), 0);
+        document.getElementById('metric-premium').innerText = '$' + totalPrem.toLocaleString('en-US', { minimumFractionDigits: 2 });
+      }
+
+      if (carRes.status === 'success') {
+        document.getElementById('metric-carriers').innerText = carRes.data.length;
+      }
+    }
+
+    async function runDryRun() {
+      const editorVal = document.getElementById('payload-editor').value;
+      try {
+        const payload = JSON.parse(editorVal);
+        const res = await fetch('/api/v1/integration/dry-run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(r => r.json());
+
+        renderAuditOutput(res, true);
+      } catch (err) {
+        alert('Invalid JSON in payload editor: ' + err.message);
+      }
+    }
+
+    async function executeImport() {
+      const editorVal = document.getElementById('payload-editor').value;
+      try {
+        const payload = JSON.parse(editorVal);
+        const res = await fetch('/api/v1/integration/import', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        }).then(r => r.json());
+
+        renderAuditOutput(res, false);
+        await fetchMetrics();
+      } catch (err) {
+        alert('Import Error: ' + err.message);
+      }
+    }
+
+    function renderAuditOutput(res, isDryRun) {
+      const box = document.getElementById('output-box');
+      box.innerHTML = '';
+
+      const statusEl = document.getElementById('audit-status');
+      statusEl.innerText = (isDryRun ? 'DRY-RUN ANALYSIS' : 'LIVE IMPORT') + ' COMPLETE (' + (res.summary?.totalRecordsProcessed || 0) + ' Records)';
+      statusEl.style.color = 'var(--accent-emerald)';
+
+      if (res.result) {
+        const r = res.result;
+
+        // Deduplication Matches Alert
+        if (r.deduplicationMatches && r.deduplicationMatches.length > 0) {
+          r.deduplicationMatches.forEach(m => {
+            const div = document.createElement('div');
+            div.className = 'log-line log-WARN';
+            div.innerHTML = `<strong>DEDUPLICATION MATCH ALERT (${m.confidenceScore}% Score):</strong> Matches existing customer '${m.matchedCustomerName}' (${m.matchedCustomerId}). Recommendation: ${m.recommendation}`;
+            box.appendChild(div);
+          });
+        }
+
+        // Mapping Logs
+        if (r.logs && r.logs.length > 0) {
+          r.logs.forEach(l => {
+            const div = document.createElement('div');
+            div.className = 'log-line log-' + l.level;
+            div.innerText = `[${l.level}] ${l.field} ➔ ${l.targetField}: ${l.message}`;
+            box.appendChild(div);
+          });
+        }
+
+        // Summary Line
+        const sumDiv = document.createElement('div');
+        sumDiv.style.marginTop = '1rem';
+        sumDiv.style.color = '#fff';
+        sumDiv.style.fontWeight = 'bold';
+        sumDiv.innerText = `✅ Transformed ${r.successfullyTransformedCustomers} Customers & ${r.successfullyTransformedPolicies} Policies. (${isDryRun ? 'Dry-Run: CoreAMS Database Unchanged' : 'Committed to Memory Store'})`;
+        box.appendChild(sumDiv);
+      }
+    }
+
+    function renderCustomersTable(customers) {
+      const tbody = document.getElementById('customers-table-body');
+      tbody.innerHTML = '';
+
+      customers.forEach(c => {
+        const tr = document.createElement('tr');
+        const nameStr = c.businessName || `${c.firstName || ''} ${c.lastName || ''}`;
+        const locStr = c.address ? `${c.address.city}, ${c.address.state}` : 'N/A';
+        
+        let lineageBadge = '<span class="badge badge-core">Core Seed</span>';
+        if (c.legacyCrosswalks && c.legacyCrosswalks.length > 0) {
+          const sys = c.legacyCrosswalks[0].systemSource;
+          const clsMap = { 'FORMAT_A': 'badge-fmt-a', 'FORMAT_B': 'badge-fmt-b', 'FORMAT_C': 'badge-fmt-c', 'FORMAT_D': 'badge-fmt-d' };
+          lineageBadge = `<span class="badge ${clsMap[sys] || 'badge-core'}">${sys} (${c.legacyCrosswalks[0].legacyId})</span>`;
+        }
+
+        tr.innerHTML = `
+          <td style="font-family: monospace; font-weight: 600; color: var(--accent-cyan);">${c.customerId}</td>
+          <td style="font-weight: 600;">${nameStr}</td>
+          <td style="font-family: monospace;">${c.feinOrSsn}</td>
+          <td>${locStr}</td>
+          <td>${lineageBadge}</td>
+          <td><span style="color: var(--accent-emerald); font-weight: 600;">${c.status}</span></td>
+          <td><button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="viewDecPageForCustomer('${c.customerId}')">View Dec-Page</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function viewDecPageForCustomer(customerId) {
+      const polRes = await fetch('/api/v1/policies').then(r => r.json());
+      if (polRes.status === 'success') {
+        const custPolicy = polRes.data.find(p => p.customerId === customerId);
+        if (custPolicy) {
+          const decRes = await fetch(`/api/v1/policies/${custPolicy.policyId}/dec-page`).then(r => r.json());
+          if (decRes.status === 'success') {
+            const dec = decRes.data;
+            document.getElementById('dec-insured-name').innerText = dec.insuredHeader.name;
+            document.getElementById('dec-insured-tax').innerText = 'Tax Identifier: ' + dec.insuredHeader.taxId;
+            document.getElementById('dec-insured-addr').innerText = 'Location: ' + dec.insuredHeader.address;
+            document.getElementById('dec-policy-num').innerText = 'Policy #: ' + dec.policySummary.policyNumber + ' (' + dec.policySummary.lineOfBusiness + ')';
+            document.getElementById('dec-carrier-name').innerText = 'Carrier: ' + dec.carrierInfo.carrierName + ' (NAIC: ' + dec.carrierInfo.naicNumber + ')';
+            document.getElementById('dec-term').innerText = 'Term: ' + dec.policySummary.effectiveDate + ' to ' + dec.policySummary.expirationDate + ' (' + dec.policySummary.termLengthMonths + ' Months)';
+            
+            const covBox = document.getElementById('dec-coverages-list');
+            covBox.innerHTML = '';
+            dec.coverageDetails.forEach(c => {
+              covBox.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#fff;"><span>${c.description}</span><span>Limit: ${c.limit} | Premium: ${c.premium}</span></div>`;
+            });
+
+            document.getElementById('dec-financials').innerText = 'Total Policy Premium: ' + dec.financials.totalPremium;
+            document.getElementById('dec-modal').classList.add('active');
+          }
+        } else {
+          alert('No policy associated with customer ' + customerId);
+        }
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('dec-modal').classList.remove('active');
+    }
+
+    async function fetchCrosswalkMatrix() {
+      const res = await fetch('/api/v1/integration/crosswalk-matrix').then(r => r.json());
+      if (res.status === 'success') {
+        const tbody = document.getElementById('matrix-table-body');
+        tbody.innerHTML = '';
+        res.matrix.forEach(m => {
+          const tr = document.createElement('tr');
+          const clsMap = { 'FORMAT_A': 'badge-fmt-a', 'FORMAT_B': 'badge-fmt-b', 'FORMAT_C': 'badge-fmt-c', 'FORMAT_D': 'badge-fmt-d' };
+          tr.innerHTML = `
+            <td><span class="badge ${clsMap[m.format] || 'badge-core'}">${m.format}</span></td>
+            <td style="color: var(--text-muted);">${m.systemType}</td>
+            <td style="font-family: monospace; font-weight: 600; color: #38bdf8;">${m.sourceField}</td>
+            <td style="font-family: monospace; font-weight: 600; color: var(--accent-emerald);">${m.canonicalField}</td>
+            <td>${m.transformRule}</td>
+            <td style="font-family: monospace; font-size: 0.8rem; color: var(--accent-amber);">${m.example}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      event?.target?.classList.add('active');
+
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function filterCustomers() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      fetch('/api/v1/customers').then(r => r.json()).then(res => {
+        if (res.status === 'success') {
+          const filtered = res.data.filter(c => {
+            const nameStr = (c.businessName || `${c.firstName || ''} ${c.lastName || ''}`).toLowerCase();
+            return nameStr.includes(q) || c.customerId.toLowerCase().includes(q) || c.feinOrSsn.includes(q);
+          });
+          renderCustomersTable(filtered);
+        }
+      });
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>

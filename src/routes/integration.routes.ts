@@ -5,5 +5,7 @@ const router = Router();
 const controller = new IntegrationController();
 
 router.post('/import', controller.importLegacyPayload);
+router.post('/dry-run', controller.dryRunImport);
+router.get('/crosswalk-matrix', controller.getCrosswalkMatrix);
 
 export default router;

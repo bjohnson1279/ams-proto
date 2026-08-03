@@ -8,8 +8,8 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "dev": "tsx watch src/server.ts",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --no-cache",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --no-cache",
     "test:import": "tsx src/scripts/testImport.ts"
   },
   "keywords": [
