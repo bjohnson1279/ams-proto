@@ -110,10 +110,13 @@ export interface Policy {
   status: PolicyStatus;
   premiumAmount: number;
   billingType: 'Agency Bill' | 'Direct Bill';
+  billingStatus?: 'Unbilled' | 'Invoiced' | 'Paid' | 'Partially_Paid';
+  commissionRate?: number; // e.g. 15 for 15%
   coverages: CoverageItem[];
   createdAt: string;
   updatedAt: string;
 }
+
 
 export type ClaimStatus = 'Open' | 'Closed' | 'In_Review' | 'Reopened';
 
@@ -195,3 +198,89 @@ export interface AcordDecPagePayload {
     title: string;
   }>;
 }
+
+// GENERAL LEDGER & SUBSIDIARY LEDGER ACCOUNTING TYPES
+export type AccountCategory = 'Asset' | 'Liability' | 'Equity' | 'Revenue' | 'Expense';
+
+export interface GlAccount {
+  accountNumber: string; // e.g. "1000", "1010", "1200", "2000", "4000"
+  accountName: string;   // e.g. "Cash - Operating", "Cash - Premium Trust", "Accounts Receivable"
+  category: AccountCategory;
+  isTrustAccount?: boolean;
+  normalBalance: 'Debit' | 'Credit';
+  currentBalance: number;
+}
+
+export interface JournalLine {
+  accountNumber: string;
+  description?: string;
+  debit: number;
+  credit: number;
+}
+
+export interface JournalEntry {
+  entryId: string;
+  entryDate: string; // ISO YYYY-MM-DD
+  reference: string; // e.g. "INV-1001", "PAY-2001", "MANUAL-001"
+  memo: string;
+  lines: JournalLine[];
+  createdAt: string;
+}
+
+export interface InvoiceLineItem {
+  description: string;
+  amount: number;
+  accountNumber: string;
+}
+
+export interface Invoice {
+  invoiceId: string;
+  invoiceNumber: string;
+  customerId: string;
+  policyId: string;
+  issueDate: string;
+  dueDate: string;
+  grossPremium: number;
+  agencyCommissionRate: number; // e.g. 15 (%)
+  agencyCommissionAmount: number;
+  netCarrierPayable: number;
+  status: 'Draft' | 'Posted' | 'Paid' | 'Partially_Paid' | 'Cancelled';
+  amountPaid: number;
+  balanceDue: number;
+  lineItems: InvoiceLineItem[];
+  journalEntryId?: string;
+  createdAt: string;
+}
+
+export interface Payment {
+  paymentId: string;
+  invoiceId: string;
+  customerId: string;
+  paymentDate: string;
+  amount: number;
+  paymentMethod: 'Check' | 'ACH' | 'Credit_Card' | 'Wire';
+  referenceNumber: string;
+  depositedToAccount: string; // e.g. "1010" (Trust) or "1000" (Operating)
+  createdAt: string;
+}
+
+export interface FinancialSummary {
+  trialBalance: Array<{
+    accountNumber: string;
+    accountName: string;
+    category: AccountCategory;
+    debitBalance: number;
+    creditBalance: number;
+  }>;
+  totalDebits: number;
+  totalCredits: number;
+  isBalanced: boolean;
+  metrics: {
+    totalAccountsReceivable: number;
+    totalCarrierPayables: number;
+    operatingCashBalance: number;
+    trustCashBalance: number;
+    ytdCommissionRevenue: number;
+  };
+}
+

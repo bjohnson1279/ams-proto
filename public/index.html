@@ -481,8 +481,10 @@
     <div class="tabs-nav">
       <button class="tab-btn active" onclick="switchTab('tab-workbench')">⚡ Migration Workbench & Sandbox</button>
       <button class="tab-btn" onclick="switchTab('tab-customers')">👥 Insured & Policy Registry</button>
+      <button class="tab-btn" onclick="switchTab('tab-accounting')">💰 General Ledger & Accounting</button>
       <button class="tab-btn" onclick="switchTab('tab-matrix')">📊 Crosswalk Transformation Matrix</button>
     </div>
+
 
     <!-- TAB 1: MIGRATION WORKBENCH -->
     <div id="tab-workbench" class="tab-content active">
@@ -543,7 +545,83 @@
       </div>
     </div>
 
-    <!-- TAB 3: CROSSWALK MATRIX -->
+    <!-- TAB 3: GENERAL LEDGER & ACCOUNTING WORKBENCH -->
+    <div id="tab-accounting" class="tab-content">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div class="metric-card" style="padding: 1rem;">
+          <span class="metric-label">Operating Cash (1000)</span>
+          <span class="metric-value" id="gl-metric-op-cash" style="font-size: 1.4rem;">$0.00</span>
+        </div>
+        <div class="metric-card" style="padding: 1rem; border-color: var(--accent-cyan);">
+          <span class="metric-label">Trust Cash (1010)</span>
+          <span class="metric-value" id="gl-metric-trust-cash" style="font-size: 1.4rem; color: var(--accent-cyan);">$0.00</span>
+        </div>
+        <div class="metric-card" style="padding: 1rem;">
+          <span class="metric-label">Accounts Receivable (1200)</span>
+          <span class="metric-value" id="gl-metric-ar" style="font-size: 1.4rem; color: var(--accent-amber);">$0.00</span>
+        </div>
+        <div class="metric-card" style="padding: 1rem;">
+          <span class="metric-label">Carrier Payables (2000)</span>
+          <span class="metric-value" id="gl-metric-ap" style="font-size: 1.4rem; color: var(--accent-rose);">$0.00</span>
+        </div>
+        <div class="metric-card" style="padding: 1rem;">
+          <span class="metric-label">Commission Revenue (4000)</span>
+          <span class="metric-value" id="gl-metric-rev" style="font-size: 1.4rem; color: var(--accent-emerald);">$0.00</span>
+        </div>
+      </div>
+
+      <div class="workbench-layout">
+        <!-- Trial Balance Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Trial Balance Ledger</span>
+            <span id="trial-balance-status" class="badge badge-fmt-b">Balanced (Debits = Credits)</span>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Account #</th>
+                  <th>Account Name</th>
+                  <th>Category</th>
+                  <th>Debit Balance</th>
+                  <th>Credit Balance</th>
+                </tr>
+              </thead>
+              <tbody id="trial-balance-table-body">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Invoices & Billing Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">Agency Bill Invoices</span>
+            <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="openPaymentModal()">+ Receive Premium Payment</button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Invoice #</th>
+                  <th>Gross Premium</th>
+                  <th>Comm (15%)</th>
+                  <th>Carrier Net</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="invoices-table-body">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: CROSSWALK MATRIX -->
     <div id="tab-matrix" class="tab-content">
       <div class="table-container">
         <table>
@@ -659,7 +737,95 @@
       if (carRes.status === 'success') {
         document.getElementById('metric-carriers').innerText = carRes.data.length;
       }
+
+      await fetchAccountingData();
     }
+
+    async function fetchAccountingData() {
+      try {
+        const res = await fetch('/api/v1/accounting/financial-summary').then(r => r.json());
+        if (res.success && res.data) {
+          const m = res.data.metrics;
+          document.getElementById('gl-metric-op-cash').innerText = '$' + (m.operatingCashBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+          document.getElementById('gl-metric-trust-cash').innerText = '$' + (m.trustCashBalance || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+          document.getElementById('gl-metric-ar').innerText = '$' + (m.totalAccountsReceivable || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+          document.getElementById('gl-metric-ap').innerText = '$' + (m.totalCarrierPayables || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+          document.getElementById('gl-metric-rev').innerText = '$' + (m.ytdCommissionRevenue || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+          const statusEl = document.getElementById('trial-balance-status');
+          if (res.data.isBalanced) {
+            statusEl.innerText = 'Balanced (Debits = Credits)';
+            statusEl.className = 'badge badge-fmt-b';
+          } else {
+            statusEl.innerText = 'UNBALANCED!';
+            statusEl.className = 'badge badge-fmt-a';
+          }
+
+          // Render Trial Balance
+          const tbBody = document.getElementById('trial-balance-table-body');
+          tbBody.innerHTML = '';
+          res.data.trialBalance.forEach(a => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="font-family: monospace; font-weight: 600; color: var(--accent-cyan);">${a.accountNumber}</td>
+              <td style="font-weight: 600;">${a.accountName}</td>
+              <td><span class="badge badge-core">${a.category}</span></td>
+              <td style="font-family: monospace; text-align: right;">${a.debitBalance ? '$' + a.debitBalance.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</td>
+              <td style="font-family: monospace; text-align: right;">${a.creditBalance ? '$' + a.creditBalance.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</td>
+            `;
+            tbBody.appendChild(tr);
+          });
+        }
+
+        const invRes = await fetch('/api/v1/accounting/invoices').then(r => r.json());
+        if (invRes.success && invRes.data) {
+          const invBody = document.getElementById('invoices-table-body');
+          invBody.innerHTML = '';
+          invRes.data.forEach(inv => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="font-family: monospace; font-weight: 600; color: #38bdf8;">${inv.invoiceNumber}</td>
+              <td style="font-family: monospace;">$${inv.grossPremium.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+              <td style="font-family: monospace; color: var(--accent-emerald);">$${inv.agencyCommissionAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+              <td style="font-family: monospace; color: var(--accent-rose);">$${inv.netCarrierPayable.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+              <td><span class="badge badge-fmt-b">${inv.status}</span></td>
+            `;
+            invBody.appendChild(tr);
+          });
+        }
+      } catch (err) {
+        console.error('Failed to fetch accounting data:', err);
+      }
+    }
+
+    function openPaymentModal() {
+      const invNum = prompt('Enter Invoice Number or ID to receive payment for (e.g. INV-1001):', 'INV-1001');
+      if (!invNum) return;
+      const amtStr = prompt('Enter Payment Amount ($):', '2500.00');
+      if (!amtStr) return;
+      const refStr = prompt('Enter Payment Reference Number / Check #:', 'CHK-99182');
+      if (!refStr) return;
+
+      fetch('/api/v1/accounting/payments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invoiceId: invNum,
+          amount: parseFloat(amtStr),
+          paymentMethod: 'Check',
+          referenceNumber: refStr,
+          depositAccount: '1010'
+        })
+      }).then(r => r.json()).then(res => {
+        if (res.success) {
+          alert('Payment received and deposited into Fiduciary Trust Cash (1010)!');
+          fetchAccountingData();
+        } else {
+          alert('Payment Error: ' + (res.error || 'Failed to post payment'));
+        }
+      });
+    }
+
 
     async function runDryRun() {
       const editorVal = document.getElementById('payload-editor').value;

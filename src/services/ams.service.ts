@@ -2,6 +2,7 @@ import { Customer, Policy, Carrier, Claim, AcordDecPagePayload, LineOfBusiness, 
 import { INITIAL_CARRIERS, INITIAL_CUSTOMERS, INITIAL_POLICIES, INITIAL_CLAIMS } from '../data/seedData.js';
 import { CrosswalkEngine } from '../transformers/crosswalk.engine.js';
 import { IngestionPayload, CrosswalkResult } from '../types/legacy.js';
+import { AccountingService } from './accounting.service.js';
 
 export class AmsService {
   private static instance: AmsService;
@@ -11,10 +12,25 @@ export class AmsService {
   private carriers: Carrier[] = [...INITIAL_CARRIERS];
   private claims: Claim[] = [...INITIAL_CLAIMS];
   private crosswalkEngine: CrosswalkEngine;
+  private accountingService: AccountingService;
 
   private constructor() {
     this.crosswalkEngine = new CrosswalkEngine(this.carriers);
+    this.accountingService = AccountingService.getInstance();
+    
+    // Auto-generate invoices for initial seed agency bill policies
+    for (const pol of this.policies) {
+      if (pol.billingType === 'Agency Bill') {
+        try {
+          this.accountingService.generateInvoiceForPolicy(pol);
+          pol.billingStatus = 'Invoiced';
+        } catch {
+          // Ignore duplicates during seed init
+        }
+      }
+    }
   }
+
 
   public static getInstance(): AmsService {
     if (!AmsService.instance) {
@@ -136,6 +152,16 @@ export class AmsService {
     };
 
     this.policies.push(newPolicy);
+
+    if (newPolicy.billingType === 'Agency Bill') {
+      try {
+        this.accountingService.generateInvoiceForPolicy(newPolicy);
+        newPolicy.billingStatus = 'Invoiced';
+      } catch (err) {
+        console.error('Failed to auto-generate invoice for policy:', err);
+      }
+    }
+
     return newPolicy;
   }
 
