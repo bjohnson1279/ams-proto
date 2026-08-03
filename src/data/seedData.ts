@@ -1,4 +1,4 @@
-import { Customer, Carrier, Policy, Claim } from '../types/domain.js';
+import { Customer, Carrier, Policy, Claim, CertificateHolder, CertificateOfInsurance } from '../types/domain.js';
 
 export const INITIAL_CARRIERS: Carrier[] = [
   {
@@ -219,3 +219,142 @@ export const INITIAL_CLAIMS: Claim[] = [
     createdAt: '2026-03-14T14:30:00Z'
   }
 ];
+
+export const INITIAL_CERTIFICATE_HOLDERS: CertificateHolder[] = [
+  {
+    holderId: 'HOLDER-1001',
+    name: 'Chicago Commercial Properties LLC',
+    attention: 'Risk Management Dept - Suite 500',
+    address: {
+      street1: '200 South Wacker Drive',
+      street2: 'Suite 500',
+      city: 'Chicago',
+      state: 'IL',
+      postalCode: '60606',
+      country: 'USA'
+    },
+    email: 'certificates@chicagocommerical.com',
+    phone: '312-555-8800',
+    defaultSpecialWording: 'Certificate Holder is listed as Additional Insured on General Liability as required by written contract.',
+    deliveryPreference: 'Email',
+    createdAt: '2026-01-10T09:00:00Z',
+    updatedAt: '2026-01-10T09:00:00Z'
+  },
+  {
+    holderId: 'HOLDER-1002',
+    name: 'Midwest Infrastructure & Logistics Partners',
+    attention: 'Compliance Manager',
+    address: {
+      street1: '1500 Michigan Ave',
+      city: 'Chicago',
+      state: 'IL',
+      postalCode: '60605',
+      country: 'USA'
+    },
+    email: 'compliance@midwestinfra.com',
+    phone: '312-555-9922',
+    defaultSpecialWording: 'Waiver of Subrogation applies in favor of Certificate Holder with respect to General Liability and Workers Compensation.',
+    deliveryPreference: 'Email',
+    createdAt: '2026-02-01T10:00:00Z',
+    updatedAt: '2026-02-01T10:00:00Z'
+  }
+];
+
+export const INITIAL_CERTIFICATES: CertificateOfInsurance[] = [
+  {
+    certificateId: 'CERT-2026-001',
+    certificateNumber: 'COI-2026-9901',
+    issueDate: '2026-02-15',
+    status: 'Issued',
+    producer: {
+      agencyName: 'Apex Pinnacle Insurance Services, Inc.',
+      producerName: 'Sarah Jenkins, CIC',
+      address: '100 South Wacker Drive, Suite 1800, Chicago, IL 60606',
+      phone: '(312) 555-9000',
+      email: 'certificates@apexpinnacle.com'
+    },
+    insured: {
+      customerId: 'CUST-1001',
+      name: 'Apex Logistics & Freight LLC',
+      address: '742 Enterprise Way, Suite 300, Chicago, IL 60607',
+      email: 'dispatch@apexlogistics.com',
+      phone: '312-555-0199'
+    },
+    insurers: [
+      {
+        letter: 'A',
+        carrierId: 'CARRIER-001',
+        carrierName: 'Travelers Insurance',
+        naicNumber: '25658',
+        writingCompany: 'Travelers Property Casualty Corp'
+      },
+      {
+        letter: 'B',
+        carrierId: 'CARRIER-002',
+        carrierName: 'The Hartford',
+        naicNumber: '19682',
+        writingCompany: 'Hartford Fire Insurance Company'
+      }
+    ],
+    coverages: {
+      generalLiability: {
+        insurerLetter: 'B',
+        commercialGeneralLiability: true,
+        claimsMade: false,
+        occur: true,
+        addlInsd: true,
+        subrWvd: true,
+        policyNumber: 'GL-4412093-22',
+        effectiveDate: '2026-02-01',
+        expirationDate: '2027-02-01',
+        limits: {
+          eachOccurrence: 1000000,
+          damageToRentedPremises: 100000,
+          medExp: 5000,
+          personalAndAdvInjury: 1000000,
+          generalAggregate: 2000000,
+          productsCompOpAgg: 2000000
+        }
+      },
+      autoLiability: {
+        insurerLetter: 'A',
+        anyAuto: true,
+        allOwnedAutos: false,
+        scheduledAutos: true,
+        hiredAutos: true,
+        nonOwnedAutos: true,
+        addlInsd: true,
+        subrWvd: false,
+        policyNumber: 'CA-90218-2026',
+        effectiveDate: '2026-01-01',
+        expirationDate: '2027-01-01',
+        limits: {
+          combinedSingleLimit: 1000000
+        }
+      }
+    },
+    descriptionOfOperations: 'Re: Project #4020 - Chicago Commercial Center. Certificate Holder is included as Additional Insured on General Liability as required by written contract. Waiver of Subrogation applies where permitted by law.',
+    certificateHolder: {
+      holderId: 'HOLDER-1001',
+      name: 'Chicago Commercial Properties LLC',
+      attention: 'Risk Management Dept - Suite 500',
+      address: {
+        street1: '200 South Wacker Drive',
+        street2: 'Suite 500',
+        city: 'Chicago',
+        state: 'IL',
+        postalCode: '60606',
+        country: 'USA'
+      },
+      email: 'certificates@chicagocommerical.com',
+      phone: '312-555-8800',
+      createdAt: '2026-01-10T09:00:00Z',
+      updatedAt: '2026-01-10T09:00:00Z'
+    },
+    cancellationNoticeDays: 30,
+    authorizedRepresentative: 'Sarah Jenkins, CIC',
+    createdAt: '2026-02-15T10:00:00Z',
+    updatedAt: '2026-02-15T10:00:00Z'
+  }
+];
+

@@ -3,6 +3,7 @@ import customerRoutes from './customer.routes.js';
 import policyRoutes from './policy.routes.js';
 import integrationRoutes from './integration.routes.js';
 import accountingRoutes from './accounting.routes.js';
+import { certificateRouter, holderRouter } from './certificate.routes.js';
 import { AmsService } from '../services/ams.service.js';
 
 const router = Router();
@@ -11,6 +12,8 @@ router.use('/customers', customerRoutes);
 router.use('/policies', policyRoutes);
 router.use('/integration', integrationRoutes);
 router.use('/accounting', accountingRoutes);
+router.use('/certificates', certificateRouter);
+router.use('/holders', holderRouter);
 
 
 // Additional helper endpoints for carrier and claim inspection

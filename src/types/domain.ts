@@ -284,3 +284,166 @@ export interface FinancialSummary {
   };
 }
 
+// ACORD 25 CERTIFICATE OF INSURANCE TYPES
+export interface CertificateHolder {
+  holderId: string;
+  name: string;
+  attention?: string;
+  address: Address;
+  email: string;
+  phone?: string;
+  defaultSpecialWording?: string;
+  deliveryPreference?: 'Email' | 'Mail' | 'Portal';
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Acord25InsurerSlot {
+  letter: 'A' | 'B' | 'C' | 'D' | 'E';
+  carrierId: string;
+  carrierName: string;
+  naicNumber: string;
+  writingCompany: string;
+}
+
+export interface Acord25GeneralLiability {
+  insurerLetter: 'A' | 'B' | 'C' | 'D' | 'E';
+  commercialGeneralLiability: boolean;
+  claimsMade: boolean;
+  occur: boolean;
+  addlInsd: boolean;
+  subrWvd: boolean;
+  policyNumber: string;
+  effectiveDate: string;
+  expirationDate: string;
+  limits: {
+    eachOccurrence: number;
+    damageToRentedPremises: number;
+    medExp: number;
+    personalAndAdvInjury: number;
+    generalAggregate: number;
+    productsCompOpAgg: number;
+  };
+}
+
+export interface Acord25AutoLiability {
+  insurerLetter: 'A' | 'B' | 'C' | 'D' | 'E';
+  anyAuto: boolean;
+  allOwnedAutos: boolean;
+  scheduledAutos: boolean;
+  hiredAutos: boolean;
+  nonOwnedAutos: boolean;
+  addlInsd: boolean;
+  subrWvd: boolean;
+  policyNumber: string;
+  effectiveDate: string;
+  expirationDate: string;
+  limits: {
+    combinedSingleLimit: number;
+    bodilyInjuryPerPerson?: number;
+    bodilyInjuryPerAccident?: number;
+    propertyDamage?: number;
+  };
+}
+
+export interface Acord25UmbrellaLiability {
+  insurerLetter: 'A' | 'B' | 'C' | 'D' | 'E';
+  umbrellaLiab: boolean;
+  excessLiab: boolean;
+  occur: boolean;
+  claimsMade: boolean;
+  deductibleAmount?: number;
+  retentionAmount?: number;
+  addlInsd: boolean;
+  subrWvd: boolean;
+  policyNumber: string;
+  effectiveDate: string;
+  expirationDate: string;
+  limits: {
+    eachOccurrence: number;
+    aggregate: number;
+  };
+}
+
+export interface Acord25WorkersComp {
+  insurerLetter: 'A' | 'B' | 'C' | 'D' | 'E';
+  statutoryLimits: boolean;
+  otherLimits: boolean;
+  excludedProprietorPartnerOfficer: boolean;
+  addlInsd: boolean;
+  subrWvd: boolean;
+  policyNumber: string;
+  effectiveDate: string;
+  expirationDate: string;
+  limits: {
+    elEachAccident: number;
+    elDiseasePolicyLimit: number;
+    elDiseaseEAEmployee: number;
+  };
+}
+
+export interface Acord25OtherCoverage {
+  insurerLetter: 'A' | 'B' | 'C' | 'D' | 'E';
+  coverageDescription: string;
+  addlInsd: boolean;
+  subrWvd: boolean;
+  policyNumber: string;
+  effectiveDate: string;
+  expirationDate: string;
+  limitsDescription: string;
+}
+
+export type CertificateStatus = 'Draft' | 'Issued' | 'Revoked' | 'Expired';
+
+export interface CertificateOfInsurance {
+  certificateId: string;
+  certificateNumber: string;
+  issueDate: string; // YYYY-MM-DD
+  status: CertificateStatus;
+  producer: {
+    agencyName: string;
+    producerName: string;
+    address: string;
+    phone: string;
+    email: string;
+  };
+  insured: {
+    customerId: string;
+    name: string;
+    address: string;
+    email: string;
+    phone: string;
+  };
+  insurers: Acord25InsurerSlot[];
+  coverages: {
+    generalLiability?: Acord25GeneralLiability;
+    autoLiability?: Acord25AutoLiability;
+    umbrellaLiability?: Acord25UmbrellaLiability;
+    workersComp?: Acord25WorkersComp;
+    otherCoverages?: Acord25OtherCoverage[];
+  };
+  descriptionOfOperations: string;
+  certificateHolder: CertificateHolder;
+  cancellationNoticeDays: number;
+  authorizedRepresentative: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateCertificateRequest {
+  customerId: string;
+  holderId: string;
+  policyIds: string[];
+  descriptionOfOperations?: string;
+  cancellationNoticeDays?: number;
+}
+
+export interface BulkIssueCertificateRequest {
+  customerId: string;
+  holderIds: string[];
+  policyIds: string[];
+  descriptionOfOperations?: string;
+  cancellationNoticeDays?: number;
+}
+
+

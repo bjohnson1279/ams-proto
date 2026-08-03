@@ -8,7 +8,7 @@ This document outlines the multi-phase engineering roadmap for **CoreAMS** (`ams
 
 ```mermaid
 graph TD
-    Phase1["Phase 1: General Ledger & Subsidiary Ledger Accounting (COMPLETED)"] --> Phase2["Phase 2: ACORD 25 Certificate of Insurance Engine"]
+    Phase1["Phase 1: General Ledger & Subsidiary Ledger Accounting (COMPLETED)"] --> Phase2["Phase 2: ACORD 25 Certificate of Insurance Engine (COMPLETED)"]
     Phase2 --> Phase3["Phase 3: IVANS AL3 & Carrier Direct Download Processing"]
     Phase3 --> Phase4["Phase 4: Multi-Tenant PostgreSQL RLS & TimescaleDB Ledger Persistence"]
 ```
@@ -20,7 +20,7 @@ graph TD
 | Phase | Core Focus | Target Feature Parity | Status | Deliverables / Highlights |
 | :--- | :--- | :--- | :---: | :--- |
 | **Phase 1** | **General Ledger & Accounting** | Enterprise GL & Invoicing | **COMPLETED** | Double-entry GL engine, Chart of Accounts, Agency Bill invoicing (85/15 split), Trust Cash segregation (`1010`), Trial Balance API, and interactive workbench GUI. |
-| **Phase 2** | **Certificate Management** | Enterprise COI & Certificates | **UPCOMING** | ACORD 25 Certificate of Liability Insurance generator, holder tracking database, and policy endorsement management. |
+| **Phase 2** | **Certificate Management** | Enterprise COI & Certificates | **COMPLETED** | ACORD 25 Certificate of Liability Insurance generator, Insurers A-E slotting engine, Certificate Holder database, high-fidelity printable HTML renderer, mass bulk issuance API, and workbench GUI tab. |
 | **Phase 3** | **Carrier Download Processing** | IVANS / ACORD eDocs & AL3 Sync | **PLANNED** | Automated IVANS download intake, ACORD AL3 binary parser, policy renewal auto-reconciliation, direct bill statement posting. |
 | **Phase 4** | **Database Persistence & RLS** | Enterprise SaaS Multi-Tenancy | **PLANNED** | Migration from in-memory seed store to PostgreSQL with Row-Level Security (RLS), multi-agency tenant isolation, and TimescaleDB hypertable transaction auditing. |
 
@@ -37,10 +37,12 @@ graph TD
 
 ---
 
-### ⏳ Phase 2: ACORD 25 Certificate of Insurance Engine (Upcoming)
-- **ACORD 25 Rendering**: PDF and dynamic HTML generation for Certificate of Liability Insurance.
-- **Certificate Holder Database**: Track certificate holders, special wording requirements, and additional insured endorsements.
-- **Mass Issuance & Distribution**: Bulk certificate generation and carrier notification triggers.
+### ✅ Phase 2: ACORD 25 Certificate of Insurance Engine (Completed)
+- **ACORD 25 Rendering**: High-fidelity, print-styled HTML view matching official ACORD 25 Certificate of Liability Insurance grid specifications.
+- **Insurers A-E Carrier Slotting**: Automatic extraction of active policies (GL, Auto, Workers Comp, Umbrella) and dynamic mapping to Insurers A through E slots.
+- **Certificate Holder Database**: First-class Certificate Holder entity store supporting custom wording, attention contacts, and delivery preferences.
+- **Mass Bulk Issuance**: Batch COI generation endpoint (`POST /api/v1/certificates/bulk-issue`) for project annual renewals across multiple holders.
+- **Interactive Workbench GUI**: Dedicated **Certificate Management (ACORD 25)** tab in `public/index.html` with metrics, certificate tables, holder directory, and form triggers.
 
 ---
 

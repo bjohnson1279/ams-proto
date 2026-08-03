@@ -101,8 +101,12 @@ export class AmsService {
   }
 
   // POLICY OPERATIONS
-  public getPolicies(filter?: { carrierId?: string; status?: string; effectiveDate?: string }): Policy[] {
+  public getPolicies(filter?: { customerId?: string; carrierId?: string; status?: string; effectiveDate?: string }): Policy[] {
     let result = [...this.policies];
+
+    if (filter?.customerId) {
+      result = result.filter(p => p.customerId === filter.customerId);
+    }
 
     if (filter?.carrierId) {
       result = result.filter(p => p.carrierId === filter.carrierId);

@@ -481,6 +481,7 @@
     <div class="tabs-nav">
       <button class="tab-btn active" onclick="switchTab('tab-workbench')">⚡ Migration Workbench & Sandbox</button>
       <button class="tab-btn" onclick="switchTab('tab-customers')">👥 Insured & Policy Registry</button>
+      <button class="tab-btn" onclick="switchTab('tab-certificates'); fetchCertificatesData();">📜 Certificate Management (ACORD 25)</button>
       <button class="tab-btn" onclick="switchTab('tab-accounting')">💰 General Ledger & Accounting</button>
       <button class="tab-btn" onclick="switchTab('tab-matrix')">📊 Crosswalk Transformation Matrix</button>
     </div>
@@ -542,6 +543,80 @@
             <!-- Dynamically populated -->
           </tbody>
         </table>
+      </div>
+    </div>
+
+    <!-- TAB: CERTIFICATE MANAGEMENT (ACORD 25) -->
+    <div id="tab-certificates" class="tab-content">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+        <div class="metric-card" style="padding: 1rem;">
+          <span class="metric-label">Total COIs Issued</span>
+          <span class="metric-value" id="coi-metric-issued" style="font-size: 1.4rem; color: var(--accent-cyan);">0</span>
+        </div>
+        <div class="metric-card" style="padding: 1rem; border-color: var(--accent-blue);">
+          <span class="metric-label">Active Certificate Holders</span>
+          <span class="metric-value" id="coi-metric-holders" style="font-size: 1.4rem; color: var(--accent-blue);">0</span>
+        </div>
+        <div class="metric-card" style="padding: 1rem;">
+          <span class="metric-label">Active Policy Linkages</span>
+          <span class="metric-value" id="coi-metric-policies" style="font-size: 1.4rem; color: var(--accent-emerald);">0</span>
+        </div>
+        <div class="metric-card" style="padding: 1rem;">
+          <span class="metric-label">Default Notice Clause</span>
+          <span class="metric-value" style="font-size: 1.4rem; color: var(--accent-amber);">30 Days</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">📜 ACORD 25 Certificates of Liability Insurance</span>
+          <div class="btn-group">
+            <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openCreateCertModal()">+ Generate ACORD 25 Certificate</button>
+            <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openNewHolderModal()">🏢 Add Certificate Holder</button>
+            <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openBulkIssueModal()">⚡ Bulk Issue COIs</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Certificate #</th>
+                <th>Insured Customer</th>
+                <th>Certificate Holder</th>
+                <th>Issue Date</th>
+                <th>Insurers (A-E)</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="certificates-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">🏢 Master Certificate Holder Directory</span>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Holder ID</th>
+                <th>Holder Name</th>
+                <th>Attention</th>
+                <th>City, State</th>
+                <th>Delivery Mode</th>
+                <th>Default Special Wording</th>
+              </tr>
+            </thead>
+            <tbody id="holders-table-body">
+              <!-- Dynamically populated -->
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -1004,6 +1079,166 @@
           renderCustomersTable(filtered);
         }
       });
+    }
+
+    async function fetchCertificatesData() {
+      try {
+        const certRes = await fetch('/api/v1/certificates').then(r => r.json());
+        const holderRes = await fetch('/api/v1/holders').then(r => r.json());
+        const polRes = await fetch('/api/v1/policies').then(r => r.json());
+
+        if (certRes.status === 'success') {
+          renderCertificatesTable(certRes.data);
+          document.getElementById('coi-metric-issued').innerText = certRes.count || certRes.data.length;
+        }
+
+        if (holderRes.status === 'success') {
+          renderHoldersTable(holderRes.data);
+          document.getElementById('coi-metric-holders').innerText = holderRes.count || holderRes.data.length;
+        }
+
+        if (polRes.status === 'success') {
+          document.getElementById('coi-metric-policies').innerText = polRes.count || polRes.data.length;
+        }
+      } catch (err) {
+        console.error('Failed to load certificates data:', err);
+      }
+    }
+
+    function renderCertificatesTable(certs) {
+      const tbody = document.getElementById('certificates-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      certs.forEach(c => {
+        const tr = document.createElement('tr');
+        const insurerLetters = c.insurers ? c.insurers.map(i => i.letter).join(', ') : 'A';
+
+        tr.innerHTML = `
+          <td style="font-family: monospace; font-weight: 700; color: var(--accent-cyan);">${c.certificateNumber}</td>
+          <td style="font-weight: 600;">${c.insured.name}</td>
+          <td>${c.certificateHolder.name}</td>
+          <td>${c.issueDate}</td>
+          <td><span class="badge badge-fmt-a">${insurerLetters}</span></td>
+          <td><span style="color: var(--accent-emerald); font-weight: 600;">${c.status}</span></td>
+          <td>
+            <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="viewAcord25Form('${c.certificateId}')">📄 View ACORD 25</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderHoldersTable(holders) {
+      const tbody = document.getElementById('holders-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      holders.forEach(h => {
+        const tr = document.createElement('tr');
+        const loc = h.address ? `${h.address.city}, ${h.address.state}` : 'N/A';
+
+        tr.innerHTML = `
+          <td style="font-family: monospace; font-weight: 600; color: var(--accent-blue);">${h.holderId}</td>
+          <td style="font-weight: 600;">${h.name}</td>
+          <td style="color: var(--text-muted);">${h.attention || '-'}</td>
+          <td>${loc}</td>
+          <td><span class="badge badge-core">${h.deliveryPreference || 'Email'}</span></td>
+          <td style="font-size: 0.8rem; color: var(--text-muted); max-width: 300px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${h.defaultSpecialWording || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function viewAcord25Form(certId) {
+      window.open(`/api/v1/certificates/${certId}/render`, '_blank');
+    }
+
+    async function openCreateCertModal() {
+      const custId = prompt('Enter Insured Customer ID (e.g. CUST-1001):', 'CUST-1001');
+      if (!custId) return;
+      const holderId = prompt('Enter Certificate Holder ID (e.g. HOLDER-1001):', 'HOLDER-1001');
+      if (!holderId) return;
+      const desc = prompt('Enter Description of Operations / Special Provisions:', 'Certificate Holder is listed as Additional Insured on General Liability as required by written contract.');
+
+      try {
+        const res = await fetch('/api/v1/certificates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerId: custId,
+            holderId: holderId,
+            policyIds: ['ALL'],
+            descriptionOfOperations: desc || undefined
+          })
+        }).then(r => r.json());
+
+        if (res.status === 'success') {
+          alert(`✅ ACORD 25 Certificate ${res.data.certificateNumber} generated successfully!`);
+          fetchCertificatesData();
+          viewAcord25Form(res.data.certificateId);
+        } else {
+          alert('Error generating certificate: ' + res.message);
+        }
+      } catch (err) {
+        alert('Failed to generate certificate: ' + err.message);
+      }
+    }
+
+    async function openNewHolderModal() {
+      const name = prompt('Enter Certificate Holder Organization Name:', 'Apex Commercial Center LLC');
+      if (!name) return;
+      const attn = prompt('Enter Attention / Contact Name:', 'Risk Management Dept');
+      const email = prompt('Enter Holder Email Address:', 'risk@apexcommercial.com');
+
+      try {
+        const res = await fetch('/api/v1/holders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name,
+            attention: attn || undefined,
+            email: email || 'holder@example.com',
+            address: { street1: '100 Main St', city: 'Chicago', state: 'IL', postalCode: '60601', country: 'USA' }
+          })
+        }).then(r => r.json());
+
+        if (res.status === 'success') {
+          alert(`✅ Certificate Holder '${res.data.name}' (${res.data.holderId}) registered!`);
+          fetchCertificatesData();
+        } else {
+          alert('Error registering holder: ' + res.message);
+        }
+      } catch (err) {
+        alert('Failed to register holder: ' + err.message);
+      }
+    }
+
+    async function openBulkIssueModal() {
+      const custId = prompt('Enter Customer ID for Bulk Issuance (e.g. CUST-1001):', 'CUST-1001');
+      if (!custId) return;
+
+      try {
+        const res = await fetch('/api/v1/certificates/bulk-issue', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customerId: custId,
+            holderIds: ['HOLDER-1001', 'HOLDER-1002'],
+            policyIds: ['ALL'],
+            descriptionOfOperations: 'Annual Batch Certificate Renewal - Additional Insured Applies'
+          })
+        }).then(r => r.json());
+
+        if (res.status === 'success') {
+          alert(`⚡ Mass Issued ${res.count} ACORD 25 Certificates for ${custId}!`);
+          fetchCertificatesData();
+        } else {
+          alert('Bulk Issue Error: ' + res.message);
+        }
+      } catch (err) {
+        alert('Bulk Issue Error: ' + err.message);
+      }
     }
 
     window.onload = init;
