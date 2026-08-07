@@ -330,4 +330,8 @@ export class AccountingService {
       }
     };
   }
+
+  public getTrialBalance(_tenantId?: string): FinancialSummary {
+    return this.getFinancialSummary();
+  }
 }

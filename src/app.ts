@@ -5,6 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import apiV1Routes from './routes/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import { tenantMiddleware } from './middleware/tenant.middleware.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,8 +50,8 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
-// API Routes V1
-app.use('/api/v1', apiV1Routes);
+// API Routes V1 with Multi-Tenant Middleware
+app.use('/api/v1', tenantMiddleware, apiV1Routes);
 
 // Global Error Middleware
 app.use(errorHandler);

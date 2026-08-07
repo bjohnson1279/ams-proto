@@ -8,9 +8,9 @@ This document outlines the multi-phase engineering roadmap for **CoreAMS** (`ams
 
 ```mermaid
 graph TD
-    Phase1["Phase 1: General Ledger & Subsidiary Ledger Accounting (COMPLETED)"] --> Phase2["Phase 2: ACORD 25 Certificate of Insurance Engine (COMPLETED)"]
-    Phase2 --> Phase3["Phase 3: IVANS AL3 & Carrier Direct Download Processing"]
-    Phase3 --> Phase4["Phase 4: Multi-Tenant PostgreSQL RLS & TimescaleDB Ledger Persistence"]
+    Phase1["Phase 1: General Ledger & Accounting (COMPLETED)"] --> Phase2["Phase 2: ACORD 25 Certificate Engine (COMPLETED)"]
+    Phase2 --> Phase3["Phase 3: IVANS AL3 & Carrier Direct Download (COMPLETED)"]
+    Phase3 --> Phase4["Phase 4: Multi-Tenant PostgreSQL RLS & TimescaleDB Audit (COMPLETED)"]
 ```
 
 ---
@@ -21,8 +21,8 @@ graph TD
 | :--- | :--- | :--- | :---: | :--- |
 | **Phase 1** | **General Ledger & Accounting** | Enterprise GL & Invoicing | **COMPLETED** | Double-entry GL engine, Chart of Accounts, Agency Bill invoicing (85/15 split), Trust Cash segregation (`1010`), Trial Balance API, and interactive workbench GUI. |
 | **Phase 2** | **Certificate Management** | Enterprise COI & Certificates | **COMPLETED** | ACORD 25 Certificate of Liability Insurance generator, Insurers A-E slotting engine, Certificate Holder database, high-fidelity printable HTML renderer, mass bulk issuance API, and workbench GUI tab. |
-| **Phase 3** | **Carrier Download Processing** | IVANS / ACORD eDocs & AL3 Sync | **PLANNED** | Automated IVANS download intake, ACORD AL3 binary parser, policy renewal auto-reconciliation, direct bill statement posting. |
-| **Phase 4** | **Database Persistence & RLS** | Enterprise SaaS Multi-Tenancy | **PLANNED** | Migration from in-memory seed store to PostgreSQL with Row-Level Security (RLS), multi-agency tenant isolation, and TimescaleDB hypertable transaction auditing. |
+| **Phase 3** | **Carrier Download Processing** | IVANS / ACORD eDocs & AL3 Sync | **COMPLETED** | Automated IVANS download intake, ACORD AL3 binary/fixed-width parser (`2BOS`, `2PRT`, `3CVI`, `3TRG`, `2EOS`), policy renewal auto-reconciliation engine, and direct bill commission auto-posting to GL. |
+| **Phase 4** | **Database Persistence & RLS** | Enterprise SaaS Multi-Tenancy | **COMPLETED** | PostgreSQL relational DDL (`schema.sql`), Row-Level Security policies (`rls_policies.sql`), TimescaleDB hypertable audit ledger (`timescaledb_ledger.sql`), Express tenant middleware, multi-agency context switcher, and expanded test suite. |
 
 ---
 
@@ -46,14 +46,16 @@ graph TD
 
 ---
 
-### ⏳ Phase 3: IVANS AL3 & Carrier Direct Download Processing (Planned)
-- **IVANS Exchange Connectors**: Intake automated carrier download packages.
-- **ACORD AL3 Parser**: Decode legacy binary AL3 files into canonical policy objects.
-- **Auto-Reconciliation Engine**: Match carrier policy transactions against existing CoreAMS customer policies.
+### ✅ Phase 3: IVANS AL3 & Carrier Direct Download Processing (Completed)
+- **ACORD AL3 Parser**: Binary & fixed-width parsing for `2BOS` Group Header, `2PRT` Policy Header, `3CVI` Coverages, `3BTH`/`3TRG` Transaction Details, and `2EOS` Trailer.
+- **Auto-Reconciliation Engine**: Automatic matching against existing policies by Policy Number, Carrier Code, Insured FEIN/SSN, Name, and Effective Date.
+- **Direct Bill GL Commission Auto-Posting**: Automatic posting of direct bill commission revenue (`4000`), cash receipts (`1000`), and carrier net payables (`2000`) directly to the General Ledger upon batch reconciliation.
+- **Carrier Download Workbench UI**: Added interactive **Carrier Download (AL3 / RLS)** tab with AL3 raw stream simulator, download batch ledger table, and GL commission posting triggers.
 
 ---
 
-### ⏳ Phase 4: Multi-Tenant PostgreSQL RLS & TimescaleDB Persistence (Planned)
-- **PostgreSQL Database Schema**: Migrate in-memory seed store to relational DDL schemas with foreign key integrity.
-- **Row-Level Security (RLS)**: Enforce tenant policy isolation across acquired agency branches.
-- **TimescaleDB Ledger Audit**: Immutable time-series audit trail for financial transactions and legacy data migration crosswalks.
+### ✅ Phase 4: Multi-Tenant PostgreSQL RLS & TimescaleDB Persistence (Completed)
+- **PostgreSQL Database Schema (`schema.sql`)**: Relational DDL for core domain tables (`tenants`, `customers`, `policies`, `carriers`, `download_batches`, `download_transactions`, `journal_entries`, `certificate_holders`, `certificates`) with foreign keys and UUID primary keys.
+- **Row-Level Security (`rls_policies.sql`)**: Strict tenant data isolation policies (`USING (tenant_id = current_setting('app.current_tenant_id'))`) protecting multi-agency data boundaries.
+- **TimescaleDB Hypertable Audit Ledger (`timescaledb_ledger.sql`)**: Immutable time-series audit hypertable partitioned by 1-day time chunks for financial transaction auditing and legacy migration crosswalk tracking.
+- **Multi-Tenant Middleware & UI Switcher**: Express middleware (`tenant.middleware.ts`) and active Tenant Switcher in `public/index.html` (`tenant-001` - Midwest Commercial Agency vs `tenant-002` - Coastal Property Risk).

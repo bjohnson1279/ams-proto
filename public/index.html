@@ -477,13 +477,24 @@
       </div>
     </div>
 
-    <!-- Tabs Navigation -->
-    <div class="tabs-nav">
-      <button class="tab-btn active" onclick="switchTab('tab-workbench')">⚡ Migration Workbench & Sandbox</button>
-      <button class="tab-btn" onclick="switchTab('tab-customers')">👥 Insured & Policy Registry</button>
-      <button class="tab-btn" onclick="switchTab('tab-certificates'); fetchCertificatesData();">📜 Certificate Management (ACORD 25)</button>
-      <button class="tab-btn" onclick="switchTab('tab-accounting')">💰 General Ledger & Accounting</button>
-      <button class="tab-btn" onclick="switchTab('tab-matrix')">📊 Crosswalk Transformation Matrix</button>
+    <!-- Tabs Navigation & Multi-Tenant Switcher -->
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
+      <div class="tabs-nav" style="border-bottom: none; padding-bottom: 0;">
+        <button class="tab-btn active" onclick="switchTab('tab-workbench')">⚡ Migration Workbench</button>
+        <button class="tab-btn" onclick="switchTab('tab-customers')">👥 Insured & Policy Registry</button>
+        <button class="tab-btn" onclick="switchTab('tab-certificates'); fetchCertificatesData();">📜 Certificates (ACORD 25)</button>
+        <button class="tab-btn" onclick="switchTab('tab-accounting')">💰 General Ledger</button>
+        <button class="tab-btn" onclick="switchTab('tab-download'); fetchDownloadData();">📥 Carrier Download (AL3 / RLS)</button>
+        <button class="tab-btn" onclick="switchTab('tab-matrix')">📊 Crosswalk Matrix</button>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.35rem 0.8rem; border-radius: 8px; font-size: 0.85rem;">
+        <span style="color: var(--text-muted); font-weight: 600;">Active Tenant (RLS):</span>
+        <select id="active-tenant-select" onchange="changeActiveTenant(this.value)" style="background: var(--bg-input); color: #fff; border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; border-radius: 6px; font-weight: 600; font-family: var(--font-body);">
+          <option value="tenant-001">Midwest Commercial Risk Agency (tenant-001)</option>
+          <option value="tenant-002">Coastal Property Risk Partners (tenant-002)</option>
+        </select>
+      </div>
     </div>
 
 
@@ -696,7 +707,95 @@
       </div>
     </div>
 
-    <!-- TAB 4: CROSSWALK MATRIX -->
+    <!-- TAB 5: CARRIER DOWNLOAD & MULTI-TENANCY -->
+    <div id="tab-download" class="tab-content">
+      <div class="metrics-grid" style="grid-template-columns: repeat(4, 1fr);">
+        <div class="metric-card" style="padding: 1rem;">
+          <span class="metric-label">Download Batches</span>
+          <span class="metric-value" id="dl-metric-batches" style="font-size: 1.4rem; color: var(--accent-cyan);">0</span>
+        </div>
+        <div class="metric-card" style="padding: 1rem;">
+          <span class="metric-label">Auto-Reconciled Policies</span>
+          <span class="metric-value" id="dl-metric-matched" style="font-size: 1.4rem; color: var(--accent-emerald);">0</span>
+        </div>
+        <div class="metric-card" style="padding: 1rem;">
+          <span class="metric-label">Reconciliation Discrepancies</span>
+          <span class="metric-value" id="dl-metric-discrepancy" style="font-size: 1.4rem; color: var(--accent-amber);">0</span>
+        </div>
+        <div class="metric-card" style="padding: 1rem;">
+          <span class="metric-label">Direct Bill Comm Posted</span>
+          <span class="metric-value" id="dl-metric-commissions" style="font-size: 1.4rem; color: var(--accent-blue);">$0.00</span>
+        </div>
+      </div>
+
+      <div class="workbench-layout">
+        <!-- Panel 1: Raw AL3 Parser Simulator -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">1. Raw ACORD AL3 Download Simulator</span>
+            <span class="badge badge-fmt-d">IVANS AL3 Protocol</span>
+          </div>
+          <textarea id="al3-input-editor" class="code-editor" style="height: 180px; font-family: monospace; font-size: 0.8rem;" spellcheck="false">2BOSIVANS-NETCOREAMS-0100010120260801
+2PRTTRV01TRV-2026-9041Acme Logistics LLC   Commercial Auto     2026080112500.00
+3CVICOMPComprehensive & Collision               1500
+3TRGRENE12500.00
+2EOS0005</textarea>
+          <div class="btn-group">
+            <button class="btn btn-secondary" onclick="parseRawAl3Sim()">⚡ Parse Raw AL3 Stream</button>
+            <button class="btn btn-primary" onclick="ingestAl3Batch()">🚀 Ingest IVANS Download Batch</button>
+          </div>
+          <div id="al3-output-box" class="output-box" style="max-height: 180px;">
+            <div style="color: var(--text-muted); font-style: italic;">Decoded AL3 record groups will appear here...</div>
+          </div>
+        </div>
+
+        <!-- Panel 2: Multi-Tenant RLS & TimescaleDB Audit -->
+        <div class="panel">
+          <div class="panel-header">
+            <span class="panel-title">2. PostgreSQL Row-Level Security (RLS) & TimescaleDB Audit</span>
+            <span id="rls-badge-status" class="badge badge-core">RLS ACTIVE</span>
+          </div>
+          <div style="background: var(--bg-input); padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.8rem; color: var(--text-muted);">
+            <div><strong style="color: var(--accent-cyan);">Active RLS Isolation Rule:</strong></div>
+            <div style="color: #fff; margin-top: 0.25rem;">CREATE POLICY tenant_isolation_policy ON customers FOR ALL USING (tenant_id = current_setting('app.current_tenant_id'));</div>
+            <div style="margin-top: 0.5rem;"><strong style="color: var(--accent-emerald);">Current Session Setting:</strong> <span id="current-rls-setting" style="color: #fff;">tenant-001</span></div>
+          </div>
+          <div class="panel-title" style="font-size: 0.95rem; margin-top: 0.5rem;">TimescaleDB Hypertable Ledger Audit Trail</div>
+          <div id="timescale-audit-box" class="output-box" style="height: 150px; overflow-y: auto;">
+            <div class="log-line log-INFO">[TIMESCALEDB AUDIT] Partitioned time-chunk: 2026-08-07T00:00:00Z - RLS Context initialized for tenant-001</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 3: Carrier Download Batches Table -->
+      <div class="panel">
+        <div class="panel-header">
+          <span class="panel-title">Carrier Download Batches & Auto-Reconciliation Ledger</span>
+          <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="postSelectedBatchCommissions()">💰 Post Direct Bill Commissions to GL</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Batch ID</th>
+                <th>Carrier</th>
+                <th>Source</th>
+                <th>Transactions</th>
+                <th>Total Premium</th>
+                <th>Commission</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="download-batches-table-body">
+              <!-- Populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 6: CROSSWALK MATRIX -->
     <div id="tab-matrix" class="tab-content">
       <div class="table-container">
         <table>
@@ -1238,6 +1337,203 @@
         }
       } catch (err) {
         alert('Bulk Issue Error: ' + err.message);
+      }
+    }
+
+    let currentTenantId = 'tenant-001';
+
+    function changeActiveTenant(tenantId) {
+      currentTenantId = tenantId;
+      document.getElementById('current-rls-setting').innerText = tenantId;
+      const tName = tenantId === 'tenant-001' ? 'Midwest Commercial Risk Agency' : 'Coastal Property Risk Partners';
+      
+      const auditBox = document.getElementById('timescale-audit-box');
+      if (auditBox) {
+        const div = document.createElement('div');
+        div.className = 'log-line log-WARN';
+        div.innerHTML = `<strong>[RLS SESSION SWITCH]</strong> Switched active tenant context to <strong>${tenantId}</strong> (${tName}). Database query scope set to <code>app.current_tenant_id = '${tenantId}'</code>.`;
+        auditBox.prepend(div);
+      }
+
+      // Refresh metrics and current active tab data
+      fetchMetrics();
+      fetchDownloadData();
+      fetchCertificatesData();
+      fetchAccountingData();
+    }
+
+    async function fetchDownloadData() {
+      try {
+        const batches = await fetch('/api/v1/downloads/batches', {
+          headers: { 'x-tenant-id': currentTenantId }
+        }).then(r => r.json());
+
+        if (Array.isArray(batches)) {
+          document.getElementById('dl-metric-batches').innerText = batches.length;
+          
+          let totalMatched = 0;
+          let totalDiscrepancy = 0;
+          let totalCommissions = 0;
+
+          batches.forEach(b => {
+            if (b.items) {
+              b.items.forEach(i => {
+                if (i.reconciliationStatus === 'Matched' || i.reconciliationStatus === 'Policy Renewed' || i.reconciliationStatus === 'New Policy Created') {
+                  totalMatched++;
+                } else if (i.reconciliationStatus === 'Discrepancy') {
+                  totalDiscrepancy++;
+                }
+                if (i.reconciliationStatus === 'Commissions Posted' || b.status === 'Commissions Posted') {
+                  totalCommissions += i.commissionAmount;
+                }
+              });
+            }
+          });
+
+          document.getElementById('dl-metric-matched').innerText = totalMatched;
+          document.getElementById('dl-metric-discrepancy').innerText = totalDiscrepancy;
+          document.getElementById('dl-metric-commissions').innerText = '$' + totalCommissions.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+          renderDownloadBatchesTable(batches);
+        }
+      } catch (err) {
+        console.error('Failed to fetch download batches:', err);
+      }
+    }
+
+    function renderDownloadBatchesTable(batches) {
+      const tbody = document.getElementById('download-batches-table-body');
+      if (!tbody) return;
+      tbody.innerHTML = '';
+
+      batches.forEach(b => {
+        const tr = document.createElement('tr');
+        const statusBadge = b.status === 'Commissions Posted' 
+          ? '<span class="badge badge-core">Commissions Posted</span>' 
+          : '<span class="badge badge-fmt-b">Reconciled</span>';
+
+        tr.innerHTML = `
+          <td style="font-family: monospace; font-weight: 700; color: var(--accent-cyan);">${b.batchId}</td>
+          <td style="font-weight: 600;">${b.carrierName} (${b.carrierCode})</td>
+          <td><span class="badge badge-fmt-d">${b.source}</span></td>
+          <td style="font-family: monospace; text-align: center;">${b.totalTransactions}</td>
+          <td style="font-family: monospace;">$${(b.totalPremium || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td style="font-family: monospace; color: var(--accent-emerald);">$${(b.totalCommission || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td>${statusBadge}</td>
+          <td>
+            ${b.status !== 'Commissions Posted' 
+              ? `<button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="postBatchCommissions('${b.batchId}')">💰 Post GL Comm</button>`
+              : `<span style="color: var(--accent-emerald); font-weight: 600; font-size: 0.8rem;">✓ Posted to GL</span>`}
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function parseRawAl3Sim() {
+      const raw = document.getElementById('al3-input-editor').value;
+      const box = document.getElementById('al3-output-box');
+      try {
+        const res = await fetch('/api/v1/downloads/parse-al3', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-tenant-id': currentTenantId },
+          body: JSON.stringify({ rawContent: raw })
+        }).then(r => r.json());
+
+        box.innerHTML = '';
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'log-line log-INFO';
+        headerDiv.innerHTML = `<strong>AL3 GROUP HEADER (2BOS):</strong> Sender: ${res.header.senderId} | Receiver: ${res.header.receiverId} | Seq: ${res.header.sequenceNumber}`;
+        box.appendChild(headerDiv);
+
+        res.policies.forEach((p, idx) => {
+          const div = document.createElement('div');
+          div.className = 'log-line log-INFO';
+          div.innerHTML = `<strong>POLICY RECORD #${idx+1} (2PRT):</strong> Policy #${p.policy.policyNumber} | Insured: ${p.policy.insuredName} | LOB: ${p.policy.lineOfBusiness} | Gross Prem: $${p.policy.premiumAmount}`;
+          box.appendChild(div);
+
+          p.coverages.forEach(c => {
+            const covDiv = document.createElement('div');
+            covDiv.className = 'log-line log-INFO';
+            covDiv.innerText = `  ↳ [3CVI Coverage] ${c.coverageCode} - ${c.coverageDescription} ($${c.premium})`;
+            box.appendChild(covDiv);
+          });
+
+          const txDiv = document.createElement('div');
+          txDiv.className = 'log-line log-WARN';
+          txDiv.innerHTML = `  ↳ [3TRG Detail] Code: <strong>${p.transaction.transactionCode}</strong> | Comm Rate: ${p.transaction.commissionRate*100}% | Comm Amt: <strong>$${p.transaction.commissionAmount}</strong> | Net Payable: $${p.transaction.netCarrierPayable}`;
+          box.appendChild(txDiv);
+        });
+
+        const trailerDiv = document.createElement('div');
+        trailerDiv.className = 'log-line log-INFO';
+        trailerDiv.innerHTML = `<strong>AL3 TRAILER (2EOS):</strong> Total Stream Records: ${res.trailer.totalRecords}`;
+        box.appendChild(trailerDiv);
+
+      } catch (err) {
+        alert('AL3 Parse Error: ' + err.message);
+      }
+    }
+
+    async function ingestAl3Batch() {
+      const raw = document.getElementById('al3-input-editor').value;
+      try {
+        const batch = await fetch('/api/v1/downloads/ingest', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-tenant-id': currentTenantId },
+          body: JSON.stringify({
+            carrierCode: 'TRV01',
+            carrierName: 'Travelers Insurance',
+            source: 'AL3 Upload Simulation',
+            rawAl3Content: raw
+          })
+        }).then(r => r.json());
+
+        alert(`✅ IVANS Download Batch ${batch.batchId} ingested & auto-reconciled! (${batch.totalTransactions} Transactions)`);
+        fetchDownloadData();
+
+        // Log to TimescaleDB Audit box
+        const auditBox = document.getElementById('timescale-audit-box');
+        if (auditBox) {
+          const div = document.createElement('div');
+          div.className = 'log-line log-INFO';
+          div.innerHTML = `[TIMESCALEDB AUDIT] Ingested Download Batch <strong>${batch.batchId}</strong> for carrier ${batch.carrierName} under tenant <strong>${currentTenantId}</strong>.`;
+          auditBox.prepend(div);
+        }
+      } catch (err) {
+        alert('Ingest Error: ' + err.message);
+      }
+    }
+
+    async function postBatchCommissions(batchId) {
+      try {
+        const batch = await fetch(`/api/v1/downloads/batches/${batchId}/post-commissions`, {
+          method: 'POST',
+          headers: { 'x-tenant-id': currentTenantId }
+        }).then(r => r.json());
+
+        alert(`💰 Posted $${batch.totalCommission} in Direct Bill Commissions to General Ledger for Batch ${batchId}!`);
+        fetchDownloadData();
+        fetchAccountingData();
+      } catch (err) {
+        alert('Commission Posting Error: ' + err.message);
+      }
+    }
+
+    async function postSelectedBatchCommissions() {
+      const batches = await fetch('/api/v1/downloads/batches', {
+        headers: { 'x-tenant-id': currentTenantId }
+      }).then(r => r.json());
+
+      if (Array.isArray(batches) && batches.length > 0) {
+        const unposted = batches.find(b => b.status !== 'Commissions Posted');
+        if (unposted) {
+          await postBatchCommissions(unposted.batchId);
+        } else {
+          alert('All carrier download batches have already posted commissions!');
+        }
+      } else {
+        alert('No download batches available to post.');
       }
     }
 

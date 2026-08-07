@@ -25,6 +25,7 @@ export interface LegacyCrosswalkRef {
 
 export interface Customer {
   customerId: string; // Core AMS ID
+  tenantId?: string;
   entityType: EntityType;
   firstName?: string;
   lastName?: string;
@@ -41,6 +42,7 @@ export interface Customer {
 
 export interface Carrier {
   carrierId: string;
+  tenantId?: string;
   carrierName: string;
   naicNumber: string;
   writingCompany: string;
@@ -101,6 +103,7 @@ export interface DriverSchedule {
 
 export interface Policy {
   policyId: string;
+  tenantId?: string;
   policyNumber: string;
   customerId: string;
   carrierId: string;
