@@ -818,14 +818,14 @@
   </main>
 
   <!-- ACORD DEC-PAGE MODAL -->
-  <div id="dec-modal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div id="dec-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="dec-title" onclick="if(event.target===this)closeModal()">
     <div class="modal-content">
       <div class="dec-header">
         <div>
           <h2 id="dec-title" style="font-family: var(--font-heading); font-size: 1.1rem; color: #fff;">ACORD 125/126 POLICY DECLARATION</h2>
           <p id="dec-acord-std" style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600;">ACORD COMPLIANT</p>
         </div>
-        <button onclick="closeModal()" style="background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+        <button aria-label="Close modal" onclick="closeModal()" style="background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
       </div>
 
       <div class="dec-section">
@@ -1137,6 +1137,15 @@
     function closeModal() {
       document.getElementById('dec-modal').classList.remove('active');
     }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('dec-modal');
+        if (modal && modal.classList.contains('active')) {
+          closeModal();
+        }
+      }
+    });
 
     async function fetchCrosswalkMatrix() {
       const res = await fetch('/api/v1/integration/crosswalk-matrix').then(r => r.json());
