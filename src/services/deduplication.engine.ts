@@ -1,10 +1,26 @@
 import { Customer, DeduplicationMatch } from '../types/domain.js';
 
+interface CachedCustomer {
+  customer: Customer;
+  cleanFein: string;
+  cleanName: string;
+  cleanZip: string;
+}
+
 export class DeduplicationEngine {
-  private existingCustomers: Customer[];
+  // ⚡ Bolt: Cache normalized existing customer fields to avoid O(N*M) recalculations during evaluate
+  private existingCustomersCache: CachedCustomer[] = [];
 
   constructor(existingCustomers: Customer[]) {
-    this.existingCustomers = existingCustomers;
+    // Pre-calculate normalized fields once instead of in every evaluate() loop
+    this.existingCustomersCache = (existingCustomers || []).map(existing => ({
+      customer: existing,
+      cleanFein: this.normalizeTaxId(existing.feinOrSsn),
+      cleanName: this.normalizeName(
+        existing.businessName || `${existing.firstName || ''} ${existing.lastName || ''}`
+      ),
+      cleanZip: (existing.address?.postalCode || '').trim().substring(0, 5)
+    }));
   }
 
   /**
@@ -12,7 +28,7 @@ export class DeduplicationEngine {
    * Returns a match recommendation if confidence meets or exceeds threshold (>= 75%).
    */
   public evaluate(candidate: Customer): DeduplicationMatch | null {
-    if (!this.existingCustomers || this.existingCustomers.length === 0) {
+    if (!this.existingCustomersCache || this.existingCustomersCache.length === 0) {
       return null;
     }
 
@@ -25,12 +41,8 @@ export class DeduplicationEngine {
     let bestMatch: DeduplicationMatch | null = null;
     let highestScore = 0;
 
-    for (const existing of this.existingCustomers) {
-      const cleanExistingFein = this.normalizeTaxId(existing.feinOrSsn);
-      const cleanExistingName = this.normalizeName(
-        existing.businessName || `${existing.firstName || ''} ${existing.lastName || ''}`
-      );
-      const cleanExistingZip = (existing.address?.postalCode || '').trim().substring(0, 5);
+    for (const cached of this.existingCustomersCache) {
+      const { customer: existing, cleanFein: cleanExistingFein, cleanName: cleanExistingName, cleanZip: cleanExistingZip } = cached;
 
       const matchedFields: Array<'FEIN' | 'NAME' | 'ADDRESS'> = [];
       let score = 0;
