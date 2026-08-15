@@ -289,6 +289,17 @@ export class CertificateService {
       throw new Error(`Certificate with ID ${certificateId} not found`);
     }
 
+    const escapeHtml = (unsafe?: string): string => {
+      if (!unsafe) return '';
+      return unsafe
+        .toString()
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    };
+
     const fmtCurr = (num?: number) => {
       if (num === undefined || num === null) return 'N/A';
       return `$${num.toLocaleString('en-US')}`;
@@ -453,11 +464,11 @@ export class CertificateService {
       <tr>
         <td style="width: 70%;">
           <div class="header-title">ACORD 25 (2016/03) — CERTIFICATE OF LIABILITY INSURANCE</div>
-          <div class="header-sub">PRODUCER: ${cert.producer.agencyName} | LICENSE: IL-PROD-998102</div>
+          <div class="header-sub">PRODUCER: ${escapeHtml(cert.producer.agencyName)} | LICENSE: IL-PROD-998102</div>
         </td>
         <td style="width: 30%; text-align: right;">
-          <strong>DATE (MM/DD/YYYY):</strong> ${cert.issueDate}<br>
-          <strong>CERTIFICATE #:</strong> ${cert.certificateNumber}
+          <strong>DATE (MM/DD/YYYY):</strong> ${escapeHtml(cert.issueDate)}<br>
+          <strong>CERTIFICATE #:</strong> ${escapeHtml(cert.certificateNumber)}
         </td>
       </tr>
     </table>
@@ -469,17 +480,17 @@ export class CertificateService {
     <div class="section-grid">
       <div class="box">
         <div class="box-title">PRODUCER</div>
-        <strong>${cert.producer.agencyName}</strong><br>
-        ${cert.producer.address}<br>
-        Producer Contact: ${cert.producer.producerName}<br>
-        Phone: ${cert.producer.phone} | Email: ${cert.producer.email}
+        <strong>${escapeHtml(cert.producer.agencyName)}</strong><br>
+        ${escapeHtml(cert.producer.address)}<br>
+        Producer Contact: ${escapeHtml(cert.producer.producerName)}<br>
+        Phone: ${escapeHtml(cert.producer.phone)} | Email: ${escapeHtml(cert.producer.email)}
       </div>
       <div class="box">
         <div class="box-title">INSURED</div>
-        <strong>${cert.insured.name}</strong><br>
-        ${cert.insured.address}<br>
-        Contact Email: ${cert.insured.email}<br>
-        Phone: ${cert.insured.phone}
+        <strong>${escapeHtml(cert.insured.name)}</strong><br>
+        ${escapeHtml(cert.insured.address)}<br>
+        Contact Email: ${escapeHtml(cert.insured.email)}<br>
+        Phone: ${escapeHtml(cert.insured.phone)}
       </div>
     </div>
 
@@ -586,17 +597,17 @@ export class CertificateService {
 
     <div class="ops-box">
       <div class="box-title">DESCRIPTION OF OPERATIONS / LOCATIONS / VEHICLES / SPECIAL PROVISIONS</div>
-      ${cert.descriptionOfOperations}
+      ${escapeHtml(cert.descriptionOfOperations)}
     </div>
 
     <div class="holder-grid">
       <div class="box">
         <div class="box-title">CERTIFICATE HOLDER</div>
-        <strong>${cert.certificateHolder.name}</strong><br>
-        ${cert.certificateHolder.attention ? `Attn: ${cert.certificateHolder.attention}<br>` : ''}
-        ${cert.certificateHolder.address.street1} ${cert.certificateHolder.address.street2 || ''}<br>
-        ${cert.certificateHolder.address.city}, ${cert.certificateHolder.address.state} ${cert.certificateHolder.address.postalCode}<br>
-        Email: ${cert.certificateHolder.email}
+        <strong>${escapeHtml(cert.certificateHolder.name)}</strong><br>
+        ${cert.certificateHolder.attention ? `Attn: ${escapeHtml(cert.certificateHolder.attention)}<br>` : ''}
+        ${escapeHtml(cert.certificateHolder.address.street1)} ${cert.certificateHolder.address.street2 ? escapeHtml(cert.certificateHolder.address.street2) : ''}<br>
+        ${escapeHtml(cert.certificateHolder.address.city)}, ${escapeHtml(cert.certificateHolder.address.state)} ${escapeHtml(cert.certificateHolder.address.postalCode)}<br>
+        Email: ${escapeHtml(cert.certificateHolder.email)}
       </div>
 
       <div class="box">
