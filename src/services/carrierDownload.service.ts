@@ -131,11 +131,23 @@ export class CarrierDownloadService {
     const existingPolicies = this.amsService.getPolicies();
     const existingCustomers = this.amsService.getCustomers();
 
+    // PERFORMANCE OPTIMIZATION:
+    // 1. Pre-compute a map for O(1) policy lookups instead of O(N) array scans.
+    // 2. Pre-compute lowercased customer names outside the loop to avoid redundant string operations.
+    const policyMap = new Map<string, any>();
+    for (const p of existingPolicies) {
+      policyMap.set(p.policyNumber.toLowerCase(), p);
+    }
+
+    const customerSearchData = existingCustomers.map(c => ({
+      ...c,
+      searchBusName: (c.businessName || '').toLowerCase(),
+      searchIndName: `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase()
+    }));
+
     for (const item of items) {
-      // 1. Direct Policy Number Match
-      const matchedPol = existingPolicies.find(p =>
-        p.policyNumber.toLowerCase() === item.policyNumber.toLowerCase()
-      );
+      // 1. Direct Policy Number Match (O(1) lookup)
+      const matchedPol = policyMap.get(item.policyNumber.toLowerCase());
 
       if (matchedPol) {
         item.matchedPolicyId = matchedPol.policyId;
@@ -150,12 +162,10 @@ export class CarrierDownloadService {
         }
       } else {
         // 2. Customer FEIN/Name Fuzzy Match
-        const matchedCust = existingCustomers.find(c => {
+        const searchName = item.insuredName.toLowerCase();
+        const matchedCust = customerSearchData.find(c => {
           if (item.insuredFeinOrSsn && c.feinOrSsn === item.insuredFeinOrSsn) return true;
-          const busName = (c.businessName || '').toLowerCase();
-          const indName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
-          const searchName = item.insuredName.toLowerCase();
-          return busName.includes(searchName) || searchName.includes(busName) || indName.includes(searchName);
+          return c.searchBusName.includes(searchName) || searchName.includes(c.searchBusName) || c.searchIndName.includes(searchName);
         });
 
         if (matchedCust) {
