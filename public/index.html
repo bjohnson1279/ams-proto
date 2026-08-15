@@ -818,7 +818,7 @@
   </main>
 
   <!-- ACORD DEC-PAGE MODAL -->
-  <div id="dec-modal" class="modal-overlay" onclick="if(event.target===this)closeModal()">
+  <div id="dec-modal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="dec-title" onclick="if(event.target===this)closeModal()">
     <div class="modal-content">
       <div class="dec-header">
         <div>
@@ -1137,6 +1137,15 @@
     function closeModal() {
       document.getElementById('dec-modal').classList.remove('active');
     }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        const modal = document.getElementById('dec-modal');
+        if (modal && modal.classList.contains('active')) {
+          closeModal();
+        }
+      }
+    });
 
     async function fetchCrosswalkMatrix() {
       const res = await fetch('/api/v1/integration/crosswalk-matrix').then(r => r.json());
