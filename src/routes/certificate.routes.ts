@@ -1,8 +1,8 @@
 import { Router } from 'express';
 import { CertificateController } from '../controllers/certificate.controller.js';
 
-const certificateRouter = Router();
-const holderRouter = Router();
+const certificateRouter: Router = Router();
+const holderRouter: Router = Router();
 const controller = new CertificateController();
 
 // CERTIFICATES ENDPOINTS (/api/v1/certificates)

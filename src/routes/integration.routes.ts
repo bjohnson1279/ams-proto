@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { IntegrationController } from '../controllers/integration.controller.js';
 
-const router = Router();
+const router: Router = Router();
 const controller = new IntegrationController();
 
 router.post('/import', controller.importLegacyPayload);

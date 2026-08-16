@@ -7,7 +7,7 @@ import { certificateRouter, holderRouter } from './certificate.routes.js';
 import downloadRoutes from './download.routes.js';
 import { AmsService } from '../services/ams.service.js';
 
-const router = Router();
+const router: Router = Router();
 
 router.use('/customers', customerRoutes);
 router.use('/policies', policyRoutes);

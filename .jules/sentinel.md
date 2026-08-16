@@ -1,0 +1,4 @@
+## 2025-02-23 - DOM-based XSS via innerHTML
+**Vulnerability:** Found multiple instances where dynamic customer data (name, address, id) was injected directly into the DOM using `innerHTML` without sanitization in `public/index.html`.
+**Learning:** `innerHTML` concatenations are a primary source of XSS. In inline Javascript event handlers like `onclick="..."`, HTML entities inside attributes are decoded before execution, meaning `escapeHtml` is insufficient for those attributes unless using JS string encoding or, better, `data-` attributes. Also learned that port 6000 is considered unsafe by modern browsers (ERR_UNSAFE_PORT).
+**Prevention:** Avoid `innerHTML` for dynamic data insertion. Use `textContent` or robust DOM manipulation techniques. If HTML insertion is required, always use a robust escaping function, keeping in mind the context (body text vs. attribute vs. inline JS).
