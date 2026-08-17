@@ -262,21 +262,35 @@ export class AmsService {
     const result = this.crosswalkEngine.processIngestion(ingestionPayload);
 
     if (!ingestionPayload.dryRun) {
+      // ⚡ Bolt: Replace O(n^2) nested array scan with O(n) hash map lookups
+      const customerIdxMap = new Map<string, number>();
+      for (let i = 0; i < this.customers.length; i++) {
+        customerIdxMap.set(this.customers[i].customerId, i);
+      }
+
       for (const newCust of result.customers) {
-        const existingIdx = this.customers.findIndex(c => c.customerId === newCust.customerId);
-        if (existingIdx >= 0) {
+        const existingIdx = customerIdxMap.get(newCust.customerId);
+        if (existingIdx !== undefined) {
           this.customers[existingIdx] = { ...this.customers[existingIdx], ...newCust };
         } else {
           this.customers.push(newCust);
+          // Update map for potentially duplicate new customers in the payload
+          customerIdxMap.set(newCust.customerId, this.customers.length - 1);
         }
       }
 
+      const policyIdxMap = new Map<string, number>();
+      for (let i = 0; i < this.policies.length; i++) {
+        policyIdxMap.set(this.policies[i].policyId, i);
+      }
+
       for (const newPol of result.policies) {
-        const existingIdx = this.policies.findIndex(p => p.policyId === newPol.policyId);
-        if (existingIdx >= 0) {
+        const existingIdx = policyIdxMap.get(newPol.policyId);
+        if (existingIdx !== undefined) {
           this.policies[existingIdx] = newPol;
         } else {
           this.policies.push(newPol);
+          policyIdxMap.set(newPol.policyId, this.policies.length - 1);
         }
       }
     }
