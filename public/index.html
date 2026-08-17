@@ -289,6 +289,12 @@
       transition: all 0.2s;
     }
 
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      filter: grayscale(50%);
+    }
+
     .btn-secondary {
       background: var(--bg-card-hover);
       color: var(--text-main);
@@ -489,7 +495,7 @@
       </div>
 
       <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.35rem 0.8rem; border-radius: 8px; font-size: 0.85rem;">
-        <span style="color: var(--text-muted); font-weight: 600;">Active Tenant (RLS):</span>
+        <label for="active-tenant-select" style="color: var(--text-muted); font-weight: 600;">Active Tenant (RLS):</label>
         <select id="active-tenant-select" onchange="changeActiveTenant(this.value)" style="background: var(--bg-input); color: #fff; border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; border-radius: 6px; font-weight: 600; font-family: var(--font-body);">
           <option value="tenant-001">Midwest Commercial Risk Agency (tenant-001)</option>
           <option value="tenant-002">Coastal Property Risk Partners (tenant-002)</option>
@@ -513,8 +519,8 @@
           </div>
           <textarea id="payload-editor" class="code-editor" spellcheck="false"></textarea>
           <div class="btn-group">
-            <button class="btn btn-secondary" onclick="runDryRun()">🔍 Run Dry-Run Audit</button>
-            <button class="btn btn-primary" onclick="executeImport()">🚀 Execute CoreAMS Import</button>
+            <button id="btn-dry-run" class="btn btn-secondary" onclick="runDryRun()">🔍 Run Dry-Run Audit</button>
+            <button id="btn-import" class="btn btn-primary" onclick="executeImport()">🚀 Execute CoreAMS Import</button>
           </div>
         </div>
 
@@ -533,7 +539,7 @@
     <!-- TAB 2: INSURED & POLICY REGISTRY -->
     <div id="tab-customers" class="tab-content">
       <div style="display: flex; gap: 1rem; align-items: center;">
-        <input type="text" id="search-input" placeholder="Search by customer name or policy number..."
+        <input type="text" id="search-input" aria-label="Search customers" placeholder="Search by customer name or policy number..."
           style="background: var(--bg-card); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 1rem; border-radius: 8px; width: 360px;"
           onkeyup="filterCustomers()">
       </div>
@@ -1013,6 +1019,9 @@
 
     async function runDryRun() {
       const editorVal = document.getElementById('payload-editor').value;
+      const btn = document.getElementById('btn-dry-run');
+      btn.disabled = true;
+      btn.innerText = '⏳ Analyzing...';
       try {
         const payload = JSON.parse(editorVal);
         const res = await fetch('/api/v1/integration/dry-run', {
@@ -1024,11 +1033,17 @@
         renderAuditOutput(res, true);
       } catch (err) {
         alert('Invalid JSON in payload editor: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '🔍 Run Dry-Run Audit';
       }
     }
 
     async function executeImport() {
       const editorVal = document.getElementById('payload-editor').value;
+      const btn = document.getElementById('btn-import');
+      btn.disabled = true;
+      btn.innerText = '⏳ Importing...';
       try {
         const payload = JSON.parse(editorVal);
         const res = await fetch('/api/v1/integration/import', {
@@ -1041,6 +1056,9 @@
         await fetchMetrics();
       } catch (err) {
         alert('Import Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = '🚀 Execute CoreAMS Import';
       }
     }
 
