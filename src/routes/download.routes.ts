@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { DownloadController } from '../controllers/download.controller.js';
 
-const router = Router();
+const router: Router = Router();
 const controller = new DownloadController();
 
 router.post('/parse-al3', controller.parseAl3.bind(controller));

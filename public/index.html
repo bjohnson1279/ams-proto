@@ -533,7 +533,7 @@
     <!-- TAB 2: INSURED & POLICY REGISTRY -->
     <div id="tab-customers" class="tab-content">
       <div style="display: flex; gap: 1rem; align-items: center;">
-        <input type="text" id="search-input" aria-label="Search by customer name or policy number" placeholder="Search by customer name or policy number..."
+        <input type="text" id="search-input" placeholder="Search by customer name or policy number..."
           style="background: var(--bg-card); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 1rem; border-radius: 8px; width: 360px;"
           onkeyup="filterCustomers()">
       </div>
@@ -855,6 +855,16 @@
   </div>
 
   <script>
+    function escapeHtml(unsafe) {
+      if (typeof unsafe !== 'string') return unsafe;
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
     let activeFormat = 'FORMAT_A';
     let samplePayloads = {};
 
@@ -1088,17 +1098,17 @@
         if (c.legacyCrosswalks && c.legacyCrosswalks.length > 0) {
           const sys = c.legacyCrosswalks[0].systemSource;
           const clsMap = { 'FORMAT_A': 'badge-fmt-a', 'FORMAT_B': 'badge-fmt-b', 'FORMAT_C': 'badge-fmt-c', 'FORMAT_D': 'badge-fmt-d' };
-          lineageBadge = `<span class="badge ${clsMap[sys] || 'badge-core'}">${sys} (${c.legacyCrosswalks[0].legacyId})</span>`;
+          lineageBadge = `<span class="badge ${clsMap[sys] || 'badge-core'}">${escapeHtml(sys)} (${escapeHtml(c.legacyCrosswalks[0].legacyId)})</span>`;
         }
 
         tr.innerHTML = `
-          <td style="font-family: monospace; font-weight: 600; color: var(--accent-cyan);">${c.customerId}</td>
-          <td style="font-weight: 600;">${nameStr}</td>
-          <td style="font-family: monospace;">${c.feinOrSsn}</td>
-          <td>${locStr}</td>
+          <td style="font-family: monospace; font-weight: 600; color: var(--accent-cyan);">${escapeHtml(c.customerId)}</td>
+          <td style="font-weight: 600;">${escapeHtml(nameStr)}</td>
+          <td style="font-family: monospace;">${escapeHtml(c.feinOrSsn)}</td>
+          <td>${escapeHtml(locStr)}</td>
           <td>${lineageBadge}</td>
-          <td><span style="color: var(--accent-emerald); font-weight: 600;">${c.status}</span></td>
-          <td><button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="viewDecPageForCustomer('${c.customerId}')">View Dec-Page</button></td>
+          <td><span style="color: var(--accent-emerald); font-weight: 600;">${escapeHtml(c.status)}</span></td>
+          <td><button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="viewDecPageForCustomer('${escapeHtml(c.customerId)}')">View Dec-Page</button></td>
         `;
         tbody.appendChild(tr);
       });

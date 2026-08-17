@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { PolicyController } from '../controllers/policy.controller.js';
 
-const router = Router();
+const router: Router = Router();
 const controller = new PolicyController();
 
 router.get('/', controller.getPolicies);
