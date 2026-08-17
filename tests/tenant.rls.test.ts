@@ -15,6 +15,12 @@ describe('Multi-Tenant Row-Level Security & Context Tests', () => {
     expect(query).toBe("SELECT set_config('app.current_tenant_id', 'tenant-002', false);");
   });
 
+  it('should escape single quotes to prevent SQL injection in RLS session query', () => {
+    const maliciousTenantId = "tenant-002'; DROP TABLE users; --";
+    const query = dbService.generateRlsSessionQuery(maliciousTenantId);
+    expect(query).toBe("SELECT set_config('app.current_tenant_id', 'tenant-002''; DROP TABLE users; --', false);");
+  });
+
   it('should extract x-tenant-id header and attach to request context', async () => {
     const res = await request(app)
       .get('/api/v1/customers')
