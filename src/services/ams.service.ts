@@ -41,7 +41,9 @@ export class AmsService {
 
   // CUSTOMER OPERATIONS
   public getCustomers(filter?: { name?: string; policyNumber?: string }): Customer[] {
-    let result = [...this.customers];
+    // ⚡ Bolt: Removed wasteful initial O(N) copy `[...this.customers]`.
+    // Only spread at the end if no filters are applied, saving significant memory allocation.
+    let result = this.customers;
 
     if (filter?.name) {
       const q = filter.name.toLowerCase();
@@ -62,7 +64,7 @@ export class AmsService {
       result = result.filter(c => customerIdsWithPolicy.has(c.customerId));
     }
 
-    return result;
+    return result === this.customers ? [...result] : result;
   }
 
   public getCustomerById(customerId: string): Customer | undefined {
@@ -102,7 +104,9 @@ export class AmsService {
 
   // POLICY OPERATIONS
   public getPolicies(filter?: { customerId?: string; carrierId?: string; status?: string; effectiveDate?: string }): Policy[] {
-    let result = [...this.policies];
+    // ⚡ Bolt: Removed wasteful initial O(N) copy `[...this.policies]`.
+    // Only spread at the end if no filters are applied.
+    let result = this.policies;
 
     if (filter?.customerId) {
       result = result.filter(p => p.customerId === filter.customerId);
@@ -122,7 +126,7 @@ export class AmsService {
       result = result.filter(p => p.effectiveDate >= targetDate);
     }
 
-    return result;
+    return result === this.policies ? [...result] : result;
   }
 
   public getPolicyById(policyId: string): Policy | undefined {
