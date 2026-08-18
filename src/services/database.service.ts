@@ -45,7 +45,9 @@ export class DatabaseService {
    * Standard syntax: SELECT set_config('app.current_tenant_id', 'tenant-001', false);
    */
   public generateRlsSessionQuery(tenantId: string): string {
-    return `SELECT set_config('app.current_tenant_id', '${tenantId}', false);`;
+    // Escape single quotes to prevent SQL injection when this query is executed
+    const safeTenantId = tenantId.replace(/'/g, "''");
+    return `SELECT set_config('app.current_tenant_id', '${safeTenantId}', false);`;
   }
 
   /**
