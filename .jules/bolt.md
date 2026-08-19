@@ -12,3 +12,7 @@
 ## 2026-08-17 - [Avoid Wasteful Array Copies Before Filtering]
 **Learning:** Found O(N) array spreads (e.g., `[...this.customers]`) being used to create copies of large collections *before* applying `.filter()` in `getCustomers` and `getPolicies`. This forces a full memory allocation of the entire array, only to immediately discard it for the filtered result.
 **Action:** When filtering collections, apply `.filter()` directly to the original collection reference first. Only use the spread operator (`[...result]`) at the very end if returning an unfiltered list and mutation protection is required.
+
+## 2026-08-17 - Avoid Wasteful Array Copies Before Filtering in CertificateService
+**Learning:** Found O(N) array spreads (e.g., `[...this.certificateHolders]`) being used to create copies of large collections *before* applying `.filter()` in `getCertificateHolders` and `getCertificates`. This forces a full memory allocation of the entire array, only to immediately discard it for the filtered result.
+**Action:** When filtering collections, apply `.filter()` directly to the original collection reference first. Only use the spread operator (`[...result]`) at the very end if returning an unfiltered list and mutation protection is required.

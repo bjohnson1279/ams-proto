@@ -29,12 +29,14 @@ export class CertificateService {
 
   // CERTIFICATE HOLDER MANAGEMENT
   public getCertificateHolders(filter?: { name?: string }): CertificateHolder[] {
-    let result = [...this.certificateHolders];
+    // ⚡ Bolt: Removed wasteful initial O(N) array copy `[...this.certificateHolders]`.
+    // Only spread at the end if returning the unfiltered list to protect the original array.
+    let result = this.certificateHolders;
     if (filter?.name) {
       const q = filter.name.toLowerCase();
       result = result.filter(h => h.name.toLowerCase().includes(q) || (h.attention && h.attention.toLowerCase().includes(q)));
     }
-    return result;
+    return result === this.certificateHolders ? [...result] : result;
   }
 
   public getCertificateHolderById(holderId: string): CertificateHolder | undefined {
@@ -72,7 +74,9 @@ export class CertificateService {
 
   // CERTIFICATE OPERATIONS
   public getCertificates(filter?: { customerId?: string; holderId?: string; status?: string }): CertificateOfInsurance[] {
-    let result = [...this.certificates];
+    // ⚡ Bolt: Removed wasteful initial O(N) array copy `[...this.certificates]`.
+    // Only spread at the end if returning the unfiltered list to protect the original array.
+    let result = this.certificates;
 
     if (filter?.customerId) {
       result = result.filter(c => c.insured.customerId === filter.customerId);
@@ -84,7 +88,7 @@ export class CertificateService {
       result = result.filter(c => c.status === filter.status);
     }
 
-    return result;
+    return result === this.certificates ? [...result] : result;
   }
 
   public getCertificateById(certificateId: string): CertificateOfInsurance | undefined {
