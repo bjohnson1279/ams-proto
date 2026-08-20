@@ -5,3 +5,6 @@
 ## 2024-08-18 - Aria-Live for Asynchronous Status Updates
 **Learning:** Dynamically updating text on the screen (like a status badge or completion message after a dry-run audit) is completely invisible to screen readers unless the container has an `aria-live` attribute.
 **Action:** Always add `aria-live="polite"` (or "assertive" if critical) to status elements that are updated asynchronously via JavaScript to ensure parity between visual and auditory experiences.
+## 2024-10-24 - Empty States for Dynamic Search Results
+**Learning:** When tables are dynamically filtered (like via a search input), users need immediate, clear visual feedback if their search yields zero results. An empty table body can appear broken or lead the user to believe the data is still loading.
+**Action:** Always provide an explicit "empty state" row spanning all table columns with a helpful message and guidance (e.g., "Try adjusting your search criteria") when data arrays are empty.
