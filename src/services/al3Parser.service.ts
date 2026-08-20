@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { Al3ParsedPackage, Al3GroupHeader, Al3PolicyHeader, Al3CoverageRecord, Al3TransactionDetail } from '../types/download.js';
 
 export class Al3ParserService {
@@ -234,7 +235,7 @@ export class Al3ParserService {
       commissionRate: commRate,
       commissionAmount: commAmt,
       netCarrierPayable: Math.round((prem - commAmt) * 100) / 100,
-      statementNumber: t?.statementNumber || `STMT-${Math.floor(100000 + Math.random() * 900000)}`
+      statementNumber: t?.statementNumber || `STMT-${randomInt(100000, 1000000)}`
     };
   }
 
