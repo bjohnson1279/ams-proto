@@ -1107,6 +1107,19 @@
       const tbody = document.getElementById('customers-table-body');
       tbody.innerHTML = '';
 
+      if (customers.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+              <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+              <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No customers found</div>
+              <div style="font-size: 0.9rem;">Try adjusting your search criteria or clearing the search input.</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
       customers.forEach(c => {
         const tr = document.createElement('tr');
         const nameStr = c.businessName || `${c.firstName || ''} ${c.lastName || ''}`;
