@@ -16,3 +16,7 @@
 ## 2026-08-17 - Avoid Wasteful Array Copies Before Filtering in CertificateService
 **Learning:** Found O(N) array spreads (e.g., `[...this.certificateHolders]`) being used to create copies of large collections *before* applying `.filter()` in `getCertificateHolders` and `getCertificates`. This forces a full memory allocation of the entire array, only to immediately discard it for the filtered result.
 **Action:** When filtering collections, apply `.filter()` directly to the original collection reference first. Only use the spread operator (`[...result]`) at the very end if returning an unfiltered list and mutation protection is required.
+
+## 2026-08-21 - Debounce UI Events to Prevent Redundant Backend Calls
+**Learning:** Found an onkeyup event listener on the frontend search input calling the `filterCustomers` function on every keystroke, fetching all customers from the backend repeatedly which created significant and unnecessary network/backend loads.
+**Action:** Always wrap highly active event listeners (like keystrokes or scrolls) that trigger backend calls or complex logic in a debounce or throttle function.
