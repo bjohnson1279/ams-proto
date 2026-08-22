@@ -485,13 +485,13 @@
 
     <!-- Tabs Navigation & Multi-Tenant Switcher -->
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-      <div class="tabs-nav" style="border-bottom: none; padding-bottom: 0;">
-        <button class="tab-btn active" onclick="switchTab('tab-workbench')">⚡ Migration Workbench</button>
-        <button class="tab-btn" onclick="switchTab('tab-customers')">👥 Insured & Policy Registry</button>
-        <button class="tab-btn" onclick="switchTab('tab-certificates'); fetchCertificatesData();">📜 Certificates (ACORD 25)</button>
-        <button class="tab-btn" onclick="switchTab('tab-accounting')">💰 General Ledger</button>
-        <button class="tab-btn" onclick="switchTab('tab-download'); fetchDownloadData();">📥 Carrier Download (AL3 / RLS)</button>
-        <button class="tab-btn" onclick="switchTab('tab-matrix')">📊 Crosswalk Matrix</button>
+      <div class="tabs-nav" style="border-bottom: none; padding-bottom: 0;" role="tablist" aria-label="Main Navigation">
+        <button class="tab-btn active" onclick="switchTab('tab-workbench')" role="tab" aria-selected="true" aria-controls="tab-workbench">⚡ Migration Workbench</button>
+        <button class="tab-btn" onclick="switchTab('tab-customers')" role="tab" aria-selected="false" aria-controls="tab-customers">👥 Insured & Policy Registry</button>
+        <button class="tab-btn" onclick="switchTab('tab-certificates'); fetchCertificatesData();" role="tab" aria-selected="false" aria-controls="tab-certificates">📜 Certificates (ACORD 25)</button>
+        <button class="tab-btn" onclick="switchTab('tab-accounting')" role="tab" aria-selected="false" aria-controls="tab-accounting">💰 General Ledger</button>
+        <button class="tab-btn" onclick="switchTab('tab-download'); fetchDownloadData();" role="tab" aria-selected="false" aria-controls="tab-download">📥 Carrier Download (AL3 / RLS)</button>
+        <button class="tab-btn" onclick="switchTab('tab-matrix')" role="tab" aria-selected="false" aria-controls="tab-matrix">📊 Crosswalk Matrix</button>
       </div>
 
       <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.35rem 0.8rem; border-radius: 8px; font-size: 0.85rem;">
@@ -505,7 +505,7 @@
 
 
     <!-- TAB 1: MIGRATION WORKBENCH -->
-    <div id="tab-workbench" class="tab-content active">
+    <div id="tab-workbench" class="tab-content active" role="tabpanel">
       <div class="workbench-layout">
         <div class="panel">
           <div class="panel-header">
@@ -537,7 +537,7 @@
     </div>
 
     <!-- TAB 2: INSURED & POLICY REGISTRY -->
-    <div id="tab-customers" class="tab-content">
+    <div id="tab-customers" class="tab-content" role="tabpanel">
       <div style="display: flex; gap: 1rem; align-items: center;">
         <input type="text" id="search-input" aria-label="Search customers" placeholder="Search by customer name or policy number..."
           style="background: var(--bg-card); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 1rem; border-radius: 8px; width: 360px;"
@@ -564,7 +564,7 @@
     </div>
 
     <!-- TAB: CERTIFICATE MANAGEMENT (ACORD 25) -->
-    <div id="tab-certificates" class="tab-content">
+    <div id="tab-certificates" class="tab-content" role="tabpanel">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div class="metric-card" style="padding: 1rem;">
           <span class="metric-label">Total COIs Issued</span>
@@ -638,7 +638,7 @@
     </div>
 
     <!-- TAB 3: GENERAL LEDGER & ACCOUNTING WORKBENCH -->
-    <div id="tab-accounting" class="tab-content">
+    <div id="tab-accounting" class="tab-content" role="tabpanel">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div class="metric-card" style="padding: 1rem;">
           <span class="metric-label">Operating Cash (1000)</span>
@@ -714,7 +714,7 @@
     </div>
 
     <!-- TAB 5: CARRIER DOWNLOAD & MULTI-TENANCY -->
-    <div id="tab-download" class="tab-content">
+    <div id="tab-download" class="tab-content" role="tabpanel">
       <div class="metrics-grid" style="grid-template-columns: repeat(4, 1fr);">
         <div class="metric-card" style="padding: 1rem;">
           <span class="metric-label">Download Batches</span>
@@ -802,7 +802,7 @@
     </div>
 
     <!-- TAB 6: CROSSWALK MATRIX -->
-    <div id="tab-matrix" class="tab-content">
+    <div id="tab-matrix" class="tab-content" role="tabpanel">
       <div class="table-container">
         <table>
           <thead>
@@ -1210,8 +1210,18 @@
     }
 
     function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      event?.target?.classList.add('active');
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      if (event?.target) {
+        // Need to traverse up to button if icon or span is clicked inside button. In this case, there are no icons, but good practice.
+        const btn = event.target.closest ? event.target.closest('.tab-btn') : event.target;
+        if (btn) {
+            btn.classList.add('active');
+            btn.setAttribute('aria-selected', 'true');
+        }
+      }
 
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
