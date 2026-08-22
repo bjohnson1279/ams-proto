@@ -517,7 +517,7 @@
               <button class="format-pill" onclick="loadSample('FORMAT_D')">Format D (Cloud)</button>
             </div>
           </div>
-          <textarea id="payload-editor" class="code-editor" spellcheck="false"></textarea>
+          <textarea id="payload-editor" aria-label="Raw Legacy Export Payload" class="code-editor" spellcheck="false"></textarea>
           <div class="btn-group">
             <button id="btn-dry-run" class="btn btn-secondary" onclick="runDryRun()">🔍 Run Dry-Run Audit</button>
             <button id="btn-import" class="btn btn-primary" onclick="executeImport()">🚀 Execute CoreAMS Import</button>
@@ -741,7 +741,7 @@
             <span class="panel-title">1. Raw ACORD AL3 Download Simulator</span>
             <span class="badge badge-fmt-d">IVANS AL3 Protocol</span>
           </div>
-          <textarea id="al3-input-editor" class="code-editor" style="height: 180px; font-family: monospace; font-size: 0.8rem;" spellcheck="false">2BOSIVANS-NETCOREAMS-0100010120260801
+          <textarea id="al3-input-editor" aria-label="Raw ACORD AL3 Download Simulator" class="code-editor" style="height: 180px; font-family: monospace; font-size: 0.8rem;" spellcheck="false">2BOSIVANS-NETCOREAMS-0100010120260801
 2PRTTRV01TRV-2026-9041Acme Logistics LLC   Commercial Auto     2026080112500.00
 3CVICOMPComprehensive & Collision               1500
 3TRGRENE12500.00
@@ -1139,7 +1139,7 @@
           <td>${escapeHtml(locStr)}</td>
           <td>${lineageBadge}</td>
           <td><span style="color: var(--accent-emerald); font-weight: 600;">${escapeHtml(c.status)}</span></td>
-          <td><button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="viewDecPageForCustomer('${escapeHtml(c.customerId)}')">View Dec-Page</button></td>
+          <td><button aria-label="View Dec-Page for Customer ${escapeHtml(c.customerId)}" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="viewDecPageForCustomer('${escapeHtml(c.customerId)}')">View Dec-Page</button></td>
         `;
         tbody.appendChild(tr);
       });
@@ -1291,7 +1291,7 @@
           <td><span class="badge badge-fmt-a">${insurerLetters}</span></td>
           <td><span style="color: var(--accent-emerald); font-weight: 600;">${c.status}</span></td>
           <td>
-            <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="viewAcord25Form('${c.certificateId}')">📄 View ACORD 25</button>
+            <button aria-label="View ACORD 25 for ${escapeHtml(c.insured.name)}" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="viewAcord25Form('${c.certificateId}')">📄 View ACORD 25</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -1492,7 +1492,7 @@
           <td>${statusBadge}</td>
           <td>
             ${b.status !== 'Commissions Posted' 
-              ? `<button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="postBatchCommissions('${b.batchId}')">💰 Post GL Comm</button>`
+              ? `<button aria-label="Post GL Commissions for Batch ${escapeHtml(b.batchId)}" class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="postBatchCommissions('${b.batchId}')">💰 Post GL Comm</button>`
               : `<span style="color: var(--accent-emerald); font-weight: 600; font-size: 0.8rem;">✓ Posted to GL</span>`}
           </td>
         `;
