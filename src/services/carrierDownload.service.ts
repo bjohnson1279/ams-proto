@@ -140,10 +140,18 @@ export class CarrierDownloadService {
     }
 
     const customerSearchData = existingCustomers.map(c => ({
-      ...c,
+      customer: c,
       searchBusName: (c.businessName || '').toLowerCase(),
       searchIndName: `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase()
     }));
+
+    // 3. Pre-compute a map for O(1) customer lookups by FEIN
+    const customerFeinMap = new Map<string, any>();
+    for (const sd of customerSearchData) {
+      if (sd.customer.feinOrSsn) {
+        customerFeinMap.set(sd.customer.feinOrSsn, sd);
+      }
+    }
 
     for (const item of items) {
       // 1. Direct Policy Number Match (O(1) lookup)
@@ -163,19 +171,24 @@ export class CarrierDownloadService {
       } else {
         // 2. Customer FEIN/Name Fuzzy Match
         const searchName = item.insuredName.toLowerCase();
-        const matchedCust = customerSearchData.find(c => {
-          if (item.insuredFeinOrSsn && c.feinOrSsn === item.insuredFeinOrSsn) return true;
-          return c.searchBusName.includes(searchName) || searchName.includes(c.searchBusName) || c.searchIndName.includes(searchName);
-        });
+
+        // ⚡ Bolt: Fast O(1) FEIN match before falling back to O(N) fuzzy search
+        let matchedCust = item.insuredFeinOrSsn ? customerFeinMap.get(item.insuredFeinOrSsn) : undefined;
+
+        if (!matchedCust) {
+          matchedCust = customerSearchData.find(c =>
+            c.searchBusName.includes(searchName) || searchName.includes(c.searchBusName) || c.searchIndName.includes(searchName)
+          );
+        }
 
         if (matchedCust) {
-          item.matchedCustomerId = matchedCust.customerId;
+          item.matchedCustomerId = matchedCust.customer.customerId;
           item.reconciliationStatus = 'New Policy Created';
 
           // Auto-create policy for customer
           try {
             const newPol = this.amsService.createPolicy({
-              customerId: matchedCust.customerId,
+              customerId: matchedCust.customer.customerId,
               policyNumber: item.policyNumber,
               lineOfBusiness: item.lineOfBusiness as any,
               effectiveDate: item.effectiveDate,

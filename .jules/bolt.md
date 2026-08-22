@@ -16,3 +16,7 @@
 ## 2026-08-17 - Avoid Wasteful Array Copies Before Filtering in CertificateService
 **Learning:** Found O(N) array spreads (e.g., `[...this.certificateHolders]`) being used to create copies of large collections *before* applying `.filter()` in `getCertificateHolders` and `getCertificates`. This forces a full memory allocation of the entire array, only to immediately discard it for the filtered result.
 **Action:** When filtering collections, apply `.filter()` directly to the original collection reference first. Only use the spread operator (`[...result]`) at the very end if returning an unfiltered list and mutation protection is required.
+
+## 2026-08-17 - Avoid O(N*M) and excessive memory mapping during data reconciliation
+**Learning:** Found nested loops and redundant object spread mappings (`...c`) in `reconcileItems` where downloaded items are compared against all existing policies and customers. Constructing `customerSearchData` created a new large object for every customer, thrashing memory. Scanning the array with `.find(c => c.feinOrSsn === ...)` created a worst-case $O(N \times M)$ search path for exact matches.
+**Action:** When filtering or reconciling datasets, use `Map` for $O(1)$ lookups on unique keys (like FEIN/SSN) before falling back to array scans. Also, preserve original object references (e.g., `{ customer: originalObj }`) instead of spreading (`...originalObj`) to save significant memory allocations during map pre-computation.
