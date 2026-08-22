@@ -6,3 +6,7 @@
 **Vulnerability:** SQL Injection in `DatabaseService.generateRlsSessionQuery` via unescaped string concatenation of `tenantId`.
 **Learning:** Constructing SQL queries using direct string concatenation with user-supplied input introduces SQL injection risks, even for session configuration queries like `set_config`.
 **Prevention:** Always escape or sanitize dynamic input used in string-based SQL queries. For PostgreSQL string literals, single quotes must be escaped by doubling them (`''`), or parameterized queries should be used where supported.
+## 2024-05-24 - [DOM-based XSS in index.html]
+**Vulnerability:** Widespread Cross-Site Scripting (XSS) vulnerabilities where unescaped API response data was being directly interpolated into `innerHTML` strings in vanilla JS.
+**Learning:** Even internal backend data (like API responses) cannot be trusted if it originates from external legacy systems or user imports. `innerHTML` is inherently dangerous for any dynamic data.
+**Prevention:** Always wrap dynamically interpolated variables with a sanitizer like `escapeHtml()` when assigning to `innerHTML`, or prefer `.innerText` / `.textContent` when HTML formatting is not required. Be careful not to `.toString()` fields before escaping to avoid TypeErrors on nulls.
