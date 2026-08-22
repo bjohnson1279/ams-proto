@@ -541,7 +541,7 @@
       <div style="display: flex; gap: 1rem; align-items: center;">
         <input type="text" id="search-input" aria-label="Search customers" placeholder="Search by customer name or policy number..."
           style="background: var(--bg-card); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 1rem; border-radius: 8px; width: 360px;"
-          onkeyup="filterCustomers()">
+          onkeyup="debouncedFilterCustomers()">
       </div>
       <div class="table-container">
         <table>
@@ -1227,7 +1227,17 @@
       document.getElementById(tabId).classList.add('active');
     }
 
-    function filterCustomers() {
+    // ⚡ Bolt: Debounce helper to prevent excessive function calls
+    function debounce(func, wait) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    // ⚡ Bolt: Debounce the customer filtering to prevent an API call on every keystroke, reducing network & server load.
+    const debouncedFilterCustomers = debounce(() => {
       const q = document.getElementById('search-input').value.toLowerCase();
       fetch('/api/v1/customers').then(r => r.json()).then(res => {
         if (res.status === 'success') {
@@ -1238,7 +1248,7 @@
           renderCustomersTable(filtered);
         }
       });
-    }
+    }, 300);
 
     async function fetchCertificatesData() {
       try {
