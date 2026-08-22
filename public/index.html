@@ -485,13 +485,13 @@
 
     <!-- Tabs Navigation & Multi-Tenant Switcher -->
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
-      <div class="tabs-nav" style="border-bottom: none; padding-bottom: 0;">
-        <button class="tab-btn active" onclick="switchTab('tab-workbench')">⚡ Migration Workbench</button>
-        <button class="tab-btn" onclick="switchTab('tab-customers')">👥 Insured & Policy Registry</button>
-        <button class="tab-btn" onclick="switchTab('tab-certificates'); fetchCertificatesData();">📜 Certificates (ACORD 25)</button>
-        <button class="tab-btn" onclick="switchTab('tab-accounting')">💰 General Ledger</button>
-        <button class="tab-btn" onclick="switchTab('tab-download'); fetchDownloadData();">📥 Carrier Download (AL3 / RLS)</button>
-        <button class="tab-btn" onclick="switchTab('tab-matrix')">📊 Crosswalk Matrix</button>
+      <div class="tabs-nav" style="border-bottom: none; padding-bottom: 0;" role="tablist" aria-label="Main Navigation">
+        <button class="tab-btn active" onclick="switchTab('tab-workbench')" role="tab" aria-selected="true" aria-controls="tab-workbench">⚡ Migration Workbench</button>
+        <button class="tab-btn" onclick="switchTab('tab-customers')" role="tab" aria-selected="false" aria-controls="tab-customers">👥 Insured & Policy Registry</button>
+        <button class="tab-btn" onclick="switchTab('tab-certificates'); fetchCertificatesData();" role="tab" aria-selected="false" aria-controls="tab-certificates">📜 Certificates (ACORD 25)</button>
+        <button class="tab-btn" onclick="switchTab('tab-accounting')" role="tab" aria-selected="false" aria-controls="tab-accounting">💰 General Ledger</button>
+        <button class="tab-btn" onclick="switchTab('tab-download'); fetchDownloadData();" role="tab" aria-selected="false" aria-controls="tab-download">📥 Carrier Download (AL3 / RLS)</button>
+        <button class="tab-btn" onclick="switchTab('tab-matrix')" role="tab" aria-selected="false" aria-controls="tab-matrix">📊 Crosswalk Matrix</button>
       </div>
 
       <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.35rem 0.8rem; border-radius: 8px; font-size: 0.85rem;">
@@ -505,7 +505,7 @@
 
 
     <!-- TAB 1: MIGRATION WORKBENCH -->
-    <div id="tab-workbench" class="tab-content active">
+    <div id="tab-workbench" class="tab-content active" role="tabpanel">
       <div class="workbench-layout">
         <div class="panel">
           <div class="panel-header">
@@ -517,7 +517,7 @@
               <button class="format-pill" onclick="loadSample('FORMAT_D')">Format D (Cloud)</button>
             </div>
           </div>
-          <textarea id="payload-editor" class="code-editor" spellcheck="false"></textarea>
+          <textarea id="payload-editor" aria-label="Raw Legacy Export Payload" class="code-editor" spellcheck="false"></textarea>
           <div class="btn-group">
             <button id="btn-dry-run" class="btn btn-secondary" onclick="runDryRun()">🔍 Run Dry-Run Audit</button>
             <button id="btn-import" class="btn btn-primary" onclick="executeImport()">🚀 Execute CoreAMS Import</button>
@@ -537,11 +537,11 @@
     </div>
 
     <!-- TAB 2: INSURED & POLICY REGISTRY -->
-    <div id="tab-customers" class="tab-content">
+    <div id="tab-customers" class="tab-content" role="tabpanel">
       <div style="display: flex; gap: 1rem; align-items: center;">
         <input type="text" id="search-input" aria-label="Search customers" placeholder="Search by customer name or policy number..."
           style="background: var(--bg-card); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 1rem; border-radius: 8px; width: 360px;"
-          onkeyup="filterCustomers()">
+          onkeyup="debouncedFilterCustomers()">
       </div>
       <div class="table-container">
         <table>
@@ -564,7 +564,7 @@
     </div>
 
     <!-- TAB: CERTIFICATE MANAGEMENT (ACORD 25) -->
-    <div id="tab-certificates" class="tab-content">
+    <div id="tab-certificates" class="tab-content" role="tabpanel">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div class="metric-card" style="padding: 1rem;">
           <span class="metric-label">Total COIs Issued</span>
@@ -638,7 +638,7 @@
     </div>
 
     <!-- TAB 3: GENERAL LEDGER & ACCOUNTING WORKBENCH -->
-    <div id="tab-accounting" class="tab-content">
+    <div id="tab-accounting" class="tab-content" role="tabpanel">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div class="metric-card" style="padding: 1rem;">
           <span class="metric-label">Operating Cash (1000)</span>
@@ -714,7 +714,7 @@
     </div>
 
     <!-- TAB 5: CARRIER DOWNLOAD & MULTI-TENANCY -->
-    <div id="tab-download" class="tab-content">
+    <div id="tab-download" class="tab-content" role="tabpanel">
       <div class="metrics-grid" style="grid-template-columns: repeat(4, 1fr);">
         <div class="metric-card" style="padding: 1rem;">
           <span class="metric-label">Download Batches</span>
@@ -741,7 +741,7 @@
             <span class="panel-title">1. Raw ACORD AL3 Download Simulator</span>
             <span class="badge badge-fmt-d">IVANS AL3 Protocol</span>
           </div>
-          <textarea id="al3-input-editor" class="code-editor" style="height: 180px; font-family: monospace; font-size: 0.8rem;" spellcheck="false">2BOSIVANS-NETCOREAMS-0100010120260801
+          <textarea id="al3-input-editor" aria-label="Raw ACORD AL3 Download Simulator" class="code-editor" style="height: 180px; font-family: monospace; font-size: 0.8rem;" spellcheck="false">2BOSIVANS-NETCOREAMS-0100010120260801
 2PRTTRV01TRV-2026-9041Acme Logistics LLC   Commercial Auto     2026080112500.00
 3CVICOMPComprehensive & Collision               1500
 3TRGRENE12500.00
@@ -802,7 +802,7 @@
     </div>
 
     <!-- TAB 6: CROSSWALK MATRIX -->
-    <div id="tab-matrix" class="tab-content">
+    <div id="tab-matrix" class="tab-content" role="tabpanel">
       <div class="table-container">
         <table>
           <thead>
@@ -1107,6 +1107,19 @@
       const tbody = document.getElementById('customers-table-body');
       tbody.innerHTML = '';
 
+      if (customers.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+              <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+              <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No customers found</div>
+              <div style="font-size: 0.9rem;">Try adjusting your search criteria or clearing the search input.</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
       customers.forEach(c => {
         const tr = document.createElement('tr');
         const nameStr = c.businessName || `${c.firstName || ''} ${c.lastName || ''}`;
@@ -1126,11 +1139,18 @@
           <td>${escapeHtml(locStr)}</td>
           <td>${lineageBadge}</td>
           <td><span style="color: var(--accent-emerald); font-weight: 600;">${escapeHtml(c.status)}</span></td>
-          <td><button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="viewDecPageForCustomer('${escapeHtml(c.customerId)}')">View Dec-Page</button></td>
+          <td><button aria-label="View Dec-Page for Customer ${escapeHtml(c.customerId)}" class="btn btn-secondary view-dec-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-customer-id="${escapeHtml(c.customerId)}">View Dec-Page</button></td>
         `;
         tbody.appendChild(tr);
       });
     }
+
+    document.getElementById('customers-table-body').addEventListener('click', (e) => {
+      const btn = e.target.closest('.view-dec-btn');
+      if (btn) {
+        viewDecPageForCustomer(btn.getAttribute('data-customer-id'));
+      }
+    });
 
     async function viewDecPageForCustomer(customerId) {
       const polRes = await fetch('/api/v1/policies').then(r => r.json());
@@ -1197,14 +1217,34 @@
     }
 
     function switchTab(tabId) {
-      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-      event?.target?.classList.add('active');
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('active');
+        b.setAttribute('aria-selected', 'false');
+      });
+      if (event?.target) {
+        // Need to traverse up to button if icon or span is clicked inside button. In this case, there are no icons, but good practice.
+        const btn = event.target.closest ? event.target.closest('.tab-btn') : event.target;
+        if (btn) {
+            btn.classList.add('active');
+            btn.setAttribute('aria-selected', 'true');
+        }
+      }
 
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
     }
 
-    function filterCustomers() {
+    // ⚡ Bolt: Debounce helper to prevent excessive function calls
+    function debounce(func, wait) {
+      let timeout;
+      return function(...args) {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => func.apply(this, args), wait);
+      };
+    }
+
+    // ⚡ Bolt: Debounce the customer filtering to prevent an API call on every keystroke, reducing network & server load.
+    const debouncedFilterCustomers = debounce(() => {
       const q = document.getElementById('search-input').value.toLowerCase();
       fetch('/api/v1/customers').then(r => r.json()).then(res => {
         if (res.status === 'success') {
@@ -1215,7 +1255,7 @@
           renderCustomersTable(filtered);
         }
       });
-    }
+    }, 300);
 
     async function fetchCertificatesData() {
       try {
@@ -1258,7 +1298,7 @@
           <td><span class="badge badge-fmt-a">${insurerLetters}</span></td>
           <td><span style="color: var(--accent-emerald); font-weight: 600;">${c.status}</span></td>
           <td>
-            <button class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="viewAcord25Form('${c.certificateId}')">📄 View ACORD 25</button>
+            <button aria-label="View ACORD 25 for ${escapeHtml(c.insured.name)}" class="btn btn-secondary view-cert-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-cert-id="${escapeHtml(c.certificateId)}">📄 View ACORD 25</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -1285,6 +1325,13 @@
         tbody.appendChild(tr);
       });
     }
+
+    document.getElementById('certificates-table-body').addEventListener('click', (e) => {
+      const btn = e.target.closest('.view-cert-btn');
+      if (btn) {
+        viewAcord25Form(btn.getAttribute('data-cert-id'));
+      }
+    });
 
     function viewAcord25Form(certId) {
       window.open(`/api/v1/certificates/${certId}/render`, '_blank');
@@ -1459,7 +1506,7 @@
           <td>${statusBadge}</td>
           <td>
             ${b.status !== 'Commissions Posted' 
-              ? `<button class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="postBatchCommissions('${b.batchId}')">💰 Post GL Comm</button>`
+              ? `<button aria-label="Post GL Commissions for Batch ${escapeHtml(b.batchId)}" class="btn btn-primary post-batch-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-batch-id="${escapeHtml(b.batchId)}">💰 Post GL Comm</button>`
               : `<span style="color: var(--accent-emerald); font-weight: 600; font-size: 0.8rem;">✓ Posted to GL</span>`}
           </td>
         `;
@@ -1541,6 +1588,13 @@
         alert('Ingest Error: ' + err.message);
       }
     }
+
+    document.getElementById('download-batches-table-body').addEventListener('click', (e) => {
+      const btn = e.target.closest('.post-batch-btn');
+      if (btn) {
+        postBatchCommissions(btn.getAttribute('data-batch-id'));
+      }
+    });
 
     async function postBatchCommissions(batchId) {
       try {

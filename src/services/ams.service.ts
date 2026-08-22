@@ -1,3 +1,4 @@
+import { randomInt } from "crypto";
 import { Customer, Policy, Carrier, Claim, AcordDecPagePayload, LineOfBusiness, PolicyStatus } from '../types/domain.js';
 import { INITIAL_CARRIERS, INITIAL_CUSTOMERS, INITIAL_POLICIES, INITIAL_CLAIMS } from '../data/seedData.js';
 import { CrosswalkEngine } from '../transformers/crosswalk.engine.js';
@@ -43,28 +44,39 @@ export class AmsService {
   public getCustomers(filter?: { name?: string; policyNumber?: string }): Customer[] {
     // ⚡ Bolt: Removed wasteful initial O(N) copy `[...this.customers]`.
     // Only spread at the end if no filters are applied, saving significant memory allocation.
-    let result = this.customers;
+    // ⚡ Bolt: Combined sequential .filter() calls into a single pass to avoid intermediate array allocations and redundant iterations.
 
-    if (filter?.name) {
-      const q = filter.name.toLowerCase();
-      result = result.filter(c => {
-        const fullIndName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
-        const busName = (c.businessName || '').toLowerCase();
-        const dba = (c.dba || '').toLowerCase();
-        return fullIndName.includes(q) || busName.includes(q) || dba.includes(q);
-      });
+    if (!filter || (!filter.name && !filter.policyNumber)) {
+      return [...this.customers];
     }
 
-    if (filter?.policyNumber) {
+    const q = filter.name?.toLowerCase();
+
+    let customerIdsWithPolicy: Set<string> | undefined;
+    if (filter.policyNumber) {
       const pNum = filter.policyNumber.toLowerCase();
       const matchingPolicies = this.policies.filter(p =>
         p.policyNumber.toLowerCase().includes(pNum) || p.policyId.toLowerCase().includes(pNum)
       );
-      const customerIdsWithPolicy = new Set(matchingPolicies.map(p => p.customerId));
-      result = result.filter(c => customerIdsWithPolicy.has(c.customerId));
+      customerIdsWithPolicy = new Set(matchingPolicies.map(p => p.customerId));
     }
 
-    return result === this.customers ? [...result] : result;
+    return this.customers.filter(c => {
+      if (q) {
+        const fullIndName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
+        const busName = (c.businessName || '').toLowerCase();
+        const dba = (c.dba || '').toLowerCase();
+        if (!fullIndName.includes(q) && !busName.includes(q) && !dba.includes(q)) {
+          return false;
+        }
+      }
+
+      if (customerIdsWithPolicy && !customerIdsWithPolicy.has(c.customerId)) {
+        return false;
+      }
+
+      return true;
+    });
   }
 
   public getCustomerById(customerId: string): Customer | undefined {
@@ -106,27 +118,22 @@ export class AmsService {
   public getPolicies(filter?: { customerId?: string; carrierId?: string; status?: string; effectiveDate?: string }): Policy[] {
     // ⚡ Bolt: Removed wasteful initial O(N) copy `[...this.policies]`.
     // Only spread at the end if no filters are applied.
-    let result = this.policies;
+    // ⚡ Bolt: Combined sequential .filter() calls into a single pass to avoid intermediate array allocations and redundant iterations.
 
-    if (filter?.customerId) {
-      result = result.filter(p => p.customerId === filter.customerId);
+    if (!filter || (!filter.customerId && !filter.carrierId && !filter.status && !filter.effectiveDate)) {
+      return [...this.policies];
     }
 
-    if (filter?.carrierId) {
-      result = result.filter(p => p.carrierId === filter.carrierId);
-    }
+    const st = filter.status?.toLowerCase();
+    const targetDate = filter.effectiveDate;
 
-    if (filter?.status) {
-      const st = filter.status.toLowerCase();
-      result = result.filter(p => p.status.toLowerCase() === st);
-    }
-
-    if (filter?.effectiveDate) {
-      const targetDate = filter.effectiveDate;
-      result = result.filter(p => p.effectiveDate >= targetDate);
-    }
-
-    return result === this.policies ? [...result] : result;
+    return this.policies.filter(p => {
+      if (filter.customerId && p.customerId !== filter.customerId) return false;
+      if (filter.carrierId && p.carrierId !== filter.carrierId) return false;
+      if (st && p.status.toLowerCase() !== st) return false;
+      if (targetDate && p.effectiveDate < targetDate) return false;
+      return true;
+    });
   }
 
   public getPolicyById(policyId: string): Policy | undefined {
@@ -134,7 +141,7 @@ export class AmsService {
   }
 
   public createPolicy(payload: Partial<Policy>): Policy {
-    const nextNum = Math.floor(100000 + Math.random() * 900000);
+    const nextNum = randomInt(100000, 1000000);
     const newPolicy: Policy = {
       policyId: payload.policyId || `POL-${Date.now()}`,
       policyNumber: payload.policyNumber || `POL-NUM-${nextNum}`,

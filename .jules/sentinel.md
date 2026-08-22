@@ -6,3 +6,7 @@
 **Vulnerability:** SQL Injection in `DatabaseService.generateRlsSessionQuery` via unescaped string concatenation of `tenantId`.
 **Learning:** Constructing SQL queries using direct string concatenation with user-supplied input introduces SQL injection risks, even for session configuration queries like `set_config`.
 **Prevention:** Always escape or sanitize dynamic input used in string-based SQL queries. For PostgreSQL string literals, single quotes must be escaped by doubling them (`''`), or parameterized queries should be used where supported.
+## 2026-08-17 - [Fix Insecure Random Number Generation]
+**Vulnerability:** Weak PRNG via `Math.random()` used for generating secure IDs.
+**Learning:** `Math.random()` is not cryptographically secure and should not be used to generate secure IDs (like Policy IDs and Statement Numbers).
+**Prevention:** Always use secure alternatives from the `crypto` module, such as `crypto.randomInt()` or `crypto.randomUUID()`.
