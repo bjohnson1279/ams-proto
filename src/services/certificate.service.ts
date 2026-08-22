@@ -76,19 +76,18 @@ export class CertificateService {
   public getCertificates(filter?: { customerId?: string; holderId?: string; status?: string }): CertificateOfInsurance[] {
     // ⚡ Bolt: Removed wasteful initial O(N) array copy `[...this.certificates]`.
     // Only spread at the end if returning the unfiltered list to protect the original array.
-    let result = this.certificates;
+    // ⚡ Bolt: Combined sequential .filter() calls into a single pass to avoid intermediate array allocations and redundant iterations.
 
-    if (filter?.customerId) {
-      result = result.filter(c => c.insured.customerId === filter.customerId);
-    }
-    if (filter?.holderId) {
-      result = result.filter(c => c.certificateHolder.holderId === filter.holderId);
-    }
-    if (filter?.status) {
-      result = result.filter(c => c.status === filter.status);
+    if (!filter || (!filter.customerId && !filter.holderId && !filter.status)) {
+      return [...this.certificates];
     }
 
-    return result === this.certificates ? [...result] : result;
+    return this.certificates.filter(c => {
+      if (filter.customerId && c.insured.customerId !== filter.customerId) return false;
+      if (filter.holderId && c.certificateHolder.holderId !== filter.holderId) return false;
+      if (filter.status && c.status !== filter.status) return false;
+      return true;
+    });
   }
 
   public getCertificateById(certificateId: string): CertificateOfInsurance | undefined {
