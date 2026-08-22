@@ -1139,11 +1139,18 @@
           <td>${escapeHtml(locStr)}</td>
           <td>${lineageBadge}</td>
           <td><span style="color: var(--accent-emerald); font-weight: 600;">${escapeHtml(c.status)}</span></td>
-          <td><button aria-label="View Dec-Page for Customer ${escapeHtml(c.customerId)}" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="viewDecPageForCustomer('${escapeHtml(c.customerId)}')">View Dec-Page</button></td>
+          <td><button aria-label="View Dec-Page for Customer ${escapeHtml(c.customerId)}" class="btn btn-secondary view-dec-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-customer-id="${escapeHtml(c.customerId)}">View Dec-Page</button></td>
         `;
         tbody.appendChild(tr);
       });
     }
+
+    document.getElementById('customers-table-body').addEventListener('click', (e) => {
+      const btn = e.target.closest('.view-dec-btn');
+      if (btn) {
+        viewDecPageForCustomer(btn.getAttribute('data-customer-id'));
+      }
+    });
 
     async function viewDecPageForCustomer(customerId) {
       const polRes = await fetch('/api/v1/policies').then(r => r.json());
@@ -1291,7 +1298,7 @@
           <td><span class="badge badge-fmt-a">${insurerLetters}</span></td>
           <td><span style="color: var(--accent-emerald); font-weight: 600;">${c.status}</span></td>
           <td>
-            <button aria-label="View ACORD 25 for ${escapeHtml(c.insured.name)}" class="btn btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="viewAcord25Form('${c.certificateId}')">📄 View ACORD 25</button>
+            <button aria-label="View ACORD 25 for ${escapeHtml(c.insured.name)}" class="btn btn-secondary view-cert-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-cert-id="${escapeHtml(c.certificateId)}">📄 View ACORD 25</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -1318,6 +1325,13 @@
         tbody.appendChild(tr);
       });
     }
+
+    document.getElementById('certificates-table-body').addEventListener('click', (e) => {
+      const btn = e.target.closest('.view-cert-btn');
+      if (btn) {
+        viewAcord25Form(btn.getAttribute('data-cert-id'));
+      }
+    });
 
     function viewAcord25Form(certId) {
       window.open(`/api/v1/certificates/${certId}/render`, '_blank');
@@ -1492,7 +1506,7 @@
           <td>${statusBadge}</td>
           <td>
             ${b.status !== 'Commissions Posted' 
-              ? `<button aria-label="Post GL Commissions for Batch ${escapeHtml(b.batchId)}" class="btn btn-primary" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" onclick="postBatchCommissions('${b.batchId}')">💰 Post GL Comm</button>`
+              ? `<button aria-label="Post GL Commissions for Batch ${escapeHtml(b.batchId)}" class="btn btn-primary post-batch-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-batch-id="${escapeHtml(b.batchId)}">💰 Post GL Comm</button>`
               : `<span style="color: var(--accent-emerald); font-weight: 600; font-size: 0.8rem;">✓ Posted to GL</span>`}
           </td>
         `;
@@ -1574,6 +1588,13 @@
         alert('Ingest Error: ' + err.message);
       }
     }
+
+    document.getElementById('download-batches-table-body').addEventListener('click', (e) => {
+      const btn = e.target.closest('.post-batch-btn');
+      if (btn) {
+        postBatchCommissions(btn.getAttribute('data-batch-id'));
+      }
+    });
 
     async function postBatchCommissions(batchId) {
       try {
