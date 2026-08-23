@@ -913,6 +913,15 @@
 
       if (custRes.status === 'success') {
         const custs = custRes.data;
+
+        // ⚡ Bolt: Pre-compute search fields during initial fetch for O(1) string access in filter loop
+        cachedCustomerSearchData = custs.map(c => ({
+          original: c,
+          searchName: (c.businessName || `${c.firstName || ''} ${c.lastName || ''}`).toLowerCase(),
+          searchId: c.customerId.toLowerCase(),
+          searchFein: c.feinOrSsn || ''
+        }));
+
         document.getElementById('metric-customers').innerText = custs.length;
         renderCustomersTable(custs);
       }
@@ -1243,18 +1252,18 @@
       };
     }
 
-    // ⚡ Bolt: Debounce the customer filtering to prevent an API call on every keystroke, reducing network & server load.
+    // ⚡ Bolt: Cache customers to prevent a heavy API call on every keystroke, reducing network & server load.
+    let cachedCustomerSearchData = [];
+
     const debouncedFilterCustomers = debounce(() => {
       const q = document.getElementById('search-input').value.toLowerCase();
-      fetch('/api/v1/customers').then(r => r.json()).then(res => {
-        if (res.status === 'success') {
-          const filtered = res.data.filter(c => {
-            const nameStr = (c.businessName || `${c.firstName || ''} ${c.lastName || ''}`).toLowerCase();
-            return nameStr.includes(q) || c.customerId.toLowerCase().includes(q) || c.feinOrSsn.includes(q);
-          });
-          renderCustomersTable(filtered);
-        }
-      });
+      if (!cachedCustomerSearchData.length) return;
+
+      const filtered = cachedCustomerSearchData.filter(c => {
+        return c.searchName.includes(q) || c.searchId.includes(q) || c.searchFein.includes(q);
+      }).map(c => c.original);
+
+      renderCustomersTable(filtered);
     }, 300);
 
     async function fetchCertificatesData() {

@@ -25,3 +25,7 @@
 ## 2026-08-22 - [Array Filter Consolidation]
 **Learning:** Sequential `.filter()` calls on in-memory arrays create wasteful intermediate arrays and run O(K*N) iterations.
 **Action:** Always combine sequential `.filter()` operations into a single loop pass to save memory allocations and CPU cycles, especially for large datasets.
+
+## 2026-08-23 - Avoid fetching large static datasets on every keystroke
+**Learning:** Found a debounced frontend search function that fetched the *entire* customer database from the backend on every keystroke interval, only to filter it client-side. While debouncing limits frequency, downloading a huge JSON payload repeatedly wastes massive bandwidth and server resources.
+**Action:** For datasets that are filtered client-side, fetch the data once on load, cache it in memory, and perform searches instantly against the local cache. Also, pre-compute lowercased strings during the initial cache load to prevent O(N) string thrashing during the filter loop.
