@@ -747,8 +747,8 @@
 3TRGRENE12500.00
 2EOS0005</textarea>
           <div class="btn-group">
-            <button class="btn btn-secondary" onclick="parseRawAl3Sim()">⚡ Parse Raw AL3 Stream</button>
-            <button class="btn btn-primary" onclick="ingestAl3Batch()">🚀 Ingest IVANS Download Batch</button>
+            <button class="btn btn-secondary" onclick="parseRawAl3Sim(this)">⚡ Parse Raw AL3 Stream</button>
+            <button class="btn btn-primary" onclick="ingestAl3Batch(this)">🚀 Ingest IVANS Download Batch</button>
           </div>
           <div id="al3-output-box" class="output-box" style="max-height: 180px;">
             <div style="color: var(--text-muted); font-style: italic;">Decoded AL3 record groups will appear here...</div>
@@ -777,7 +777,7 @@
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Carrier Download Batches & Auto-Reconciliation Ledger</span>
-          <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="postSelectedBatchCommissions()">💰 Post Direct Bill Commissions to GL</button>
+          <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="postSelectedBatchCommissions(this)">💰 Post Direct Bill Commissions to GL</button>
         </div>
         <div class="table-container">
           <table>
@@ -1514,7 +1514,13 @@
       });
     }
 
-    async function parseRawAl3Sim() {
+    async function parseRawAl3Sim(btn = null) {
+      let originalText;
+      if (btn) {
+        originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = '⏳ Parsing...';
+      }
       const raw = document.getElementById('al3-input-editor').value;
       const box = document.getElementById('al3-output-box');
       try {
@@ -1556,10 +1562,21 @@
 
       } catch (err) {
         alert('AL3 Parse Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
       }
     }
 
-    async function ingestAl3Batch() {
+    async function ingestAl3Batch(btn = null) {
+      let originalText;
+      if (btn) {
+        originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = '⏳ Ingesting...';
+      }
       const raw = document.getElementById('al3-input-editor').value;
       try {
         const batch = await fetch('/api/v1/downloads/ingest', {
@@ -1586,17 +1603,28 @@
         }
       } catch (err) {
         alert('Ingest Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
       }
     }
 
     document.getElementById('download-batches-table-body').addEventListener('click', (e) => {
       const btn = e.target.closest('.post-batch-btn');
       if (btn) {
-        postBatchCommissions(btn.getAttribute('data-batch-id'));
+        postBatchCommissions(btn.getAttribute('data-batch-id'), btn);
       }
     });
 
-    async function postBatchCommissions(batchId) {
+    async function postBatchCommissions(batchId, btn = null) {
+      let originalText;
+      if (btn) {
+        originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = '⏳ Posting...';
+      }
       try {
         const batch = await fetch(`/api/v1/downloads/batches/${batchId}/post-commissions`, {
           method: 'POST',
@@ -1608,23 +1636,41 @@
         fetchAccountingData();
       } catch (err) {
         alert('Commission Posting Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
       }
     }
 
-    async function postSelectedBatchCommissions() {
-      const batches = await fetch('/api/v1/downloads/batches', {
-        headers: { 'x-tenant-id': currentTenantId }
-      }).then(r => r.json());
+    async function postSelectedBatchCommissions(btn = null) {
+      let originalText;
+      if (btn) {
+        originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = '⏳ Posting...';
+      }
+      try {
+        const batches = await fetch('/api/v1/downloads/batches', {
+          headers: { 'x-tenant-id': currentTenantId }
+        }).then(r => r.json());
 
-      if (Array.isArray(batches) && batches.length > 0) {
-        const unposted = batches.find(b => b.status !== 'Commissions Posted');
-        if (unposted) {
-          await postBatchCommissions(unposted.batchId);
+        if (Array.isArray(batches) && batches.length > 0) {
+          const unposted = batches.find(b => b.status !== 'Commissions Posted');
+          if (unposted) {
+            await postBatchCommissions(unposted.batchId);
+          } else {
+            alert('All carrier download batches have already posted commissions!');
+          }
         } else {
-          alert('All carrier download batches have already posted commissions!');
+          alert('No download batches available to post.');
         }
-      } else {
-        alert('No download batches available to post.');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
       }
     }
 
