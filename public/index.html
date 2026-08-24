@@ -747,8 +747,8 @@
 3TRGRENE12500.00
 2EOS0005</textarea>
           <div class="btn-group">
-            <button class="btn btn-secondary" onclick="parseRawAl3Sim()">⚡ Parse Raw AL3 Stream</button>
-            <button class="btn btn-primary" onclick="ingestAl3Batch()">🚀 Ingest IVANS Download Batch</button>
+            <button id="btn-parse-al3" class="btn btn-secondary" onclick="parseRawAl3Sim()">⚡ Parse Raw AL3 Stream</button>
+            <button id="btn-ingest-al3" class="btn btn-primary" onclick="ingestAl3Batch()">🚀 Ingest IVANS Download Batch</button>
           </div>
           <div id="al3-output-box" class="output-box" style="max-height: 180px;">
             <div style="color: var(--text-muted); font-style: italic;">Decoded AL3 record groups will appear here...</div>
@@ -1517,6 +1517,11 @@
     async function parseRawAl3Sim() {
       const raw = document.getElementById('al3-input-editor').value;
       const box = document.getElementById('al3-output-box');
+      const btn = document.getElementById('btn-parse-al3');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Parsing...';
+      }
       try {
         const res = await fetch('/api/v1/downloads/parse-al3', {
           method: 'POST',
@@ -1556,11 +1561,21 @@
 
       } catch (err) {
         alert('AL3 Parse Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = '⚡ Parse Raw AL3 Stream';
+        }
       }
     }
 
     async function ingestAl3Batch() {
       const raw = document.getElementById('al3-input-editor').value;
+      const btn = document.getElementById('btn-ingest-al3');
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Ingesting...';
+      }
       try {
         const batch = await fetch('/api/v1/downloads/ingest', {
           method: 'POST',
@@ -1586,6 +1601,11 @@
         }
       } catch (err) {
         alert('Ingest Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = '🚀 Ingest IVANS Download Batch';
+        }
       }
     }
 
