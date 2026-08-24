@@ -913,8 +913,16 @@
 
       if (custRes.status === 'success') {
         const custs = custRes.data;
-        document.getElementById('metric-customers').innerText = custs.length;
-        renderCustomersTable(custs);
+        // ⚡ Bolt: Cache static datasets in memory and pre-compute lowercased search strings to prevent redundant API calls
+        cachedCustomers = custs.map(c => {
+          const nameStr = (c.businessName || `${c.firstName || ''} ${c.lastName || ''}`).toLowerCase();
+          return {
+            ...c,
+            _searchString: `${nameStr} ${c.customerId.toLowerCase()} ${c.feinOrSsn.toLowerCase()}`
+          };
+        });
+        document.getElementById('metric-customers').innerText = cachedCustomers.length;
+        renderCustomersTable(cachedCustomers);
       }
 
       if (polRes.status === 'success') {
@@ -1243,18 +1251,15 @@
       };
     }
 
+    // ⚡ Bolt: Cache static datasets in memory and pre-compute lowercased search strings to prevent redundant API calls
+    // and optimize the filter loop to O(1) property access.
+    let cachedCustomers = [];
+
     // ⚡ Bolt: Debounce the customer filtering to prevent an API call on every keystroke, reducing network & server load.
     const debouncedFilterCustomers = debounce(() => {
       const q = document.getElementById('search-input').value.toLowerCase();
-      fetch('/api/v1/customers').then(r => r.json()).then(res => {
-        if (res.status === 'success') {
-          const filtered = res.data.filter(c => {
-            const nameStr = (c.businessName || `${c.firstName || ''} ${c.lastName || ''}`).toLowerCase();
-            return nameStr.includes(q) || c.customerId.toLowerCase().includes(q) || c.feinOrSsn.includes(q);
-          });
-          renderCustomersTable(filtered);
-        }
-      });
+      const filtered = cachedCustomers.filter(c => c._searchString.includes(q));
+      renderCustomersTable(filtered);
     }, 300);
 
     async function fetchCertificatesData() {
