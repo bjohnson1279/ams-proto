@@ -10,7 +10,7 @@
 **Vulnerability:** Weak PRNG via `Math.random()` used for generating secure IDs.
 **Learning:** `Math.random()` is not cryptographically secure and should not be used to generate secure IDs (like Policy IDs and Statement Numbers).
 **Prevention:** Always use secure alternatives from the `crypto` module, such as `crypto.randomInt()` or `crypto.randomUUID()`.
-## 2026-08-17 - [Add API Rate Limiting]
-**Vulnerability:** API endpoints were missing rate limiting, making them vulnerable to DoS and brute-force attacks.
-**Learning:** `express-rate-limit` no longer has a default export; use a named export (`import { rateLimit } from 'express-rate-limit';`). Additionally, when using rate limiters in Express, it's critical to set `app.set('trust proxy', 1);` so that the limiter correctly identifies client IPs when deployed behind a reverse proxy.
-**Prevention:** Ensure rate limiting is applied to sensitive API endpoints and that proxy trust settings are correctly configured for the deployment environment.
+## 2026-08-17 - [Fix XSS Vulnerabilities in UI Rendering]
+**Vulnerability:** Found multiple instances where dynamic customer data and API variables (account numbers, names, statuses) were injected directly into the DOM using `innerHTML` without sanitization in `public/index.html`.
+**Learning:** `innerHTML` concatenations are a primary source of XSS. While some areas were using `escapeHtml`, several variables in the `innerHTML` string literals were missed. The existing `escapeHtml` function was also missing a null check, causing potential TypeError crashes if passed null or undefined.
+**Prevention:** Avoid `innerHTML` for dynamic data insertion. When string literals are necessary for `innerHTML`, ensure ALL dynamic variables are wrapped in a robust `escapeHtml` function, and ensure `escapeHtml` safely handles null/undefined values.
