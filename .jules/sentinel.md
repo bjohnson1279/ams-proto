@@ -10,3 +10,7 @@
 **Vulnerability:** Weak PRNG via `Math.random()` used for generating secure IDs.
 **Learning:** `Math.random()` is not cryptographically secure and should not be used to generate secure IDs (like Policy IDs and Statement Numbers).
 **Prevention:** Always use secure alternatives from the `crypto` module, such as `crypto.randomInt()` or `crypto.randomUUID()`.
+## 2026-08-17 - [Add API Rate Limiting]
+**Vulnerability:** API endpoints were missing rate limiting, making them vulnerable to DoS and brute-force attacks.
+**Learning:** `express-rate-limit` no longer has a default export; use a named export (`import { rateLimit } from 'express-rate-limit';`). Additionally, when using rate limiters in Express, it's critical to set `app.set('trust proxy', 1);` so that the limiter correctly identifies client IPs when deployed behind a reverse proxy.
+**Prevention:** Ensure rate limiting is applied to sensitive API endpoints and that proxy trust settings are correctly configured for the deployment environment.
