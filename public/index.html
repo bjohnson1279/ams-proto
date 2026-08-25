@@ -747,8 +747,8 @@
 3TRGRENE12500.00
 2EOS0005</textarea>
           <div class="btn-group">
-            <button class="btn btn-secondary" onclick="parseRawAl3Sim()">⚡ Parse Raw AL3 Stream</button>
-            <button class="btn btn-primary" onclick="ingestAl3Batch()">🚀 Ingest IVANS Download Batch</button>
+            <button class="btn btn-secondary" onclick="parseRawAl3Sim(event)">⚡ Parse Raw AL3 Stream</button>
+            <button class="btn btn-primary" onclick="ingestAl3Batch(event)">🚀 Ingest IVANS Download Batch</button>
           </div>
           <div id="al3-output-box" class="output-box" style="max-height: 180px;">
             <div style="color: var(--text-muted); font-style: italic;">Decoded AL3 record groups will appear here...</div>
@@ -862,8 +862,9 @@
 
   <script>
     function escapeHtml(unsafe) {
-      if (typeof unsafe !== 'string') return unsafe;
-      return unsafe
+      if (unsafe == null) return '';
+      const str = typeof unsafe !== 'string' ? String(unsafe) : unsafe;
+      return str
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
@@ -925,6 +926,16 @@
 
         document.getElementById('metric-customers').innerText = custs.length;
         renderCustomersTable(custs);
+        // ⚡ Bolt: Cache static datasets in memory and pre-compute lowercased search strings to prevent redundant API calls
+        cachedCustomers = custs.map(c => {
+          const nameStr = (c.businessName || `${c.firstName || ''} ${c.lastName || ''}`).toLowerCase();
+          return {
+            ...c,
+            _searchString: `${nameStr} ${c.customerId.toLowerCase()} ${c.feinOrSsn.toLowerCase()}`
+          };
+        });
+        document.getElementById('metric-customers').innerText = cachedCustomers.length;
+        renderCustomersTable(cachedCustomers);
       }
 
       if (polRes.status === 'success') {
@@ -967,9 +978,9 @@
           res.data.trialBalance.forEach(a => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-              <td style="font-family: monospace; font-weight: 600; color: var(--accent-cyan);">${a.accountNumber}</td>
-              <td style="font-weight: 600;">${a.accountName}</td>
-              <td><span class="badge badge-core">${a.category}</span></td>
+              <td style="font-family: monospace; font-weight: 600; color: var(--accent-cyan);">${escapeHtml(a.accountNumber)}</td>
+              <td style="font-weight: 600;">${escapeHtml(a.accountName)}</td>
+              <td><span class="badge badge-core">${escapeHtml(a.category)}</span></td>
               <td style="font-family: monospace; text-align: right;">${a.debitBalance ? '$' + a.debitBalance.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</td>
               <td style="font-family: monospace; text-align: right;">${a.creditBalance ? '$' + a.creditBalance.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</td>
             `;
@@ -984,11 +995,11 @@
           invRes.data.forEach(inv => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-              <td style="font-family: monospace; font-weight: 600; color: #38bdf8;">${inv.invoiceNumber}</td>
+              <td style="font-family: monospace; font-weight: 600; color: #38bdf8;">${escapeHtml(inv.invoiceNumber)}</td>
               <td style="font-family: monospace;">$${inv.grossPremium.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
               <td style="font-family: monospace; color: var(--accent-emerald);">$${inv.agencyCommissionAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
               <td style="font-family: monospace; color: var(--accent-rose);">$${inv.netCarrierPayable.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-              <td><span class="badge badge-fmt-b">${inv.status}</span></td>
+              <td><span class="badge badge-fmt-b">${escapeHtml(inv.status)}</span></td>
             `;
             invBody.appendChild(tr);
           });
@@ -1088,7 +1099,7 @@
           r.deduplicationMatches.forEach(m => {
             const div = document.createElement('div');
             div.className = 'log-line log-WARN';
-            div.innerHTML = `<strong>DEDUPLICATION MATCH ALERT (${m.confidenceScore}% Score):</strong> Matches existing customer '${m.matchedCustomerName}' (${m.matchedCustomerId}). Recommendation: ${m.recommendation}`;
+            div.innerHTML = `<strong>DEDUPLICATION MATCH ALERT (${m.confidenceScore}% Score):</strong> Matches existing customer '${escapeHtml(m.matchedCustomerName)}' (${escapeHtml(m.matchedCustomerId)}). Recommendation: ${escapeHtml(m.recommendation)}`;
             box.appendChild(div);
           });
         }
@@ -1180,7 +1191,7 @@
             const covBox = document.getElementById('dec-coverages-list');
             covBox.innerHTML = '';
             dec.coverageDetails.forEach(c => {
-              covBox.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#fff;"><span>${c.description}</span><span>Limit: ${c.limit} | Premium: ${c.premium}</span></div>`;
+              covBox.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#fff;"><span>${escapeHtml(c.description)}</span><span>Limit: ${escapeHtml(c.limit.toString())} | Premium: ${escapeHtml(c.premium.toString())}</span></div>`;
             });
 
             document.getElementById('dec-financials').innerText = 'Total Policy Premium: ' + dec.financials.totalPremium;
@@ -1214,12 +1225,12 @@
           const tr = document.createElement('tr');
           const clsMap = { 'FORMAT_A': 'badge-fmt-a', 'FORMAT_B': 'badge-fmt-b', 'FORMAT_C': 'badge-fmt-c', 'FORMAT_D': 'badge-fmt-d' };
           tr.innerHTML = `
-            <td><span class="badge ${clsMap[m.format] || 'badge-core'}">${m.format}</span></td>
-            <td style="color: var(--text-muted);">${m.systemType}</td>
-            <td style="font-family: monospace; font-weight: 600; color: #38bdf8;">${m.sourceField}</td>
-            <td style="font-family: monospace; font-weight: 600; color: var(--accent-emerald);">${m.canonicalField}</td>
-            <td>${m.transformRule}</td>
-            <td style="font-family: monospace; font-size: 0.8rem; color: var(--accent-amber);">${m.example}</td>
+            <td><span class="badge ${clsMap[m.format] || 'badge-core'}">${escapeHtml(m.format)}</span></td>
+            <td style="color: var(--text-muted);">${escapeHtml(m.systemType)}</td>
+            <td style="font-family: monospace; font-weight: 600; color: #38bdf8;">${escapeHtml(m.sourceField)}</td>
+            <td style="font-family: monospace; font-weight: 600; color: var(--accent-emerald);">${escapeHtml(m.canonicalField)}</td>
+            <td>${escapeHtml(m.transformRule)}</td>
+            <td style="font-family: monospace; font-size: 0.8rem; color: var(--accent-amber);">${escapeHtml(m.example)}</td>
           `;
           tbody.appendChild(tr);
         });
@@ -1259,6 +1270,12 @@
       const filtered = allCustomersCache.filter(c => {
         return c.searchName.includes(q) || c.searchId.includes(q) || c.searchFein.includes(q);
       }).map(c => c.customer);
+    // ⚡ Bolt: Cache static datasets in memory and pre-compute lowercased search strings to prevent redundant API calls
+    // and optimize the filter loop to O(1) property access.
+    let cachedCustomers = [];
+
+    // ⚡ Bolt: Debounce the customer filtering to prevent an API call on every keystroke, reducing network & server load.
+      const filtered = cachedCustomers.filter(c => c._searchString.includes(q));
       renderCustomersTable(filtered);
     }, 300);
 
@@ -1296,12 +1313,12 @@
         const insurerLetters = c.insurers ? c.insurers.map(i => i.letter).join(', ') : 'A';
 
         tr.innerHTML = `
-          <td style="font-family: monospace; font-weight: 700; color: var(--accent-cyan);">${c.certificateNumber}</td>
-          <td style="font-weight: 600;">${c.insured.name}</td>
-          <td>${c.certificateHolder.name}</td>
-          <td>${c.issueDate}</td>
-          <td><span class="badge badge-fmt-a">${insurerLetters}</span></td>
-          <td><span style="color: var(--accent-emerald); font-weight: 600;">${c.status}</span></td>
+          <td style="font-family: monospace; font-weight: 700; color: var(--accent-cyan);">${escapeHtml(c.certificateNumber)}</td>
+          <td style="font-weight: 600;">${escapeHtml(c.insured.name)}</td>
+          <td>${escapeHtml(c.certificateHolder.name)}</td>
+          <td>${escapeHtml(c.issueDate)}</td>
+          <td><span class="badge badge-fmt-a">${escapeHtml(insurerLetters)}</span></td>
+          <td><span style="color: var(--accent-emerald); font-weight: 600;">${escapeHtml(c.status)}</span></td>
           <td>
             <button aria-label="View ACORD 25 for ${escapeHtml(c.insured.name)}" class="btn btn-secondary view-cert-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-cert-id="${escapeHtml(c.certificateId)}">📄 View ACORD 25</button>
           </td>
@@ -1320,12 +1337,12 @@
         const loc = h.address ? `${h.address.city}, ${h.address.state}` : 'N/A';
 
         tr.innerHTML = `
-          <td style="font-family: monospace; font-weight: 600; color: var(--accent-blue);">${h.holderId}</td>
-          <td style="font-weight: 600;">${h.name}</td>
-          <td style="color: var(--text-muted);">${h.attention || '-'}</td>
-          <td>${loc}</td>
-          <td><span class="badge badge-core">${h.deliveryPreference || 'Email'}</span></td>
-          <td style="font-size: 0.8rem; color: var(--text-muted); max-width: 300px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${h.defaultSpecialWording || '-'}</td>
+          <td style="font-family: monospace; font-weight: 600; color: var(--accent-blue);">${escapeHtml(h.holderId)}</td>
+          <td style="font-weight: 600;">${escapeHtml(h.name)}</td>
+          <td style="color: var(--text-muted);">${escapeHtml(h.attention || '-')}</td>
+          <td>${escapeHtml(loc)}</td>
+          <td><span class="badge badge-core">${escapeHtml(h.deliveryPreference || 'Email')}</span></td>
+          <td style="font-size: 0.8rem; color: var(--text-muted); max-width: 300px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${escapeHtml(h.defaultSpecialWording || '-')}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -1440,7 +1457,7 @@
       if (auditBox) {
         const div = document.createElement('div');
         div.className = 'log-line log-WARN';
-        div.innerHTML = `<strong>[RLS SESSION SWITCH]</strong> Switched active tenant context to <strong>${tenantId}</strong> (${tName}). Database query scope set to <code>app.current_tenant_id = '${tenantId}'</code>.`;
+        div.innerHTML = `<strong>[RLS SESSION SWITCH]</strong> Switched active tenant context to <strong>${escapeHtml(tenantId)}</strong> (${escapeHtml(tName)}). Database query scope set to <code>app.current_tenant_id = '${escapeHtml(tenantId)}'</code>.`;
         auditBox.prepend(div);
       }
 
@@ -1502,9 +1519,9 @@
           : '<span class="badge badge-fmt-b">Reconciled</span>';
 
         tr.innerHTML = `
-          <td style="font-family: monospace; font-weight: 700; color: var(--accent-cyan);">${b.batchId}</td>
-          <td style="font-weight: 600;">${b.carrierName} (${b.carrierCode})</td>
-          <td><span class="badge badge-fmt-d">${b.source}</span></td>
+          <td style="font-family: monospace; font-weight: 700; color: var(--accent-cyan);">${escapeHtml(b.batchId)}</td>
+          <td style="font-weight: 600;">${escapeHtml(b.carrierName)} (${escapeHtml(b.carrierCode)})</td>
+          <td><span class="badge badge-fmt-d">${escapeHtml(b.source)}</span></td>
           <td style="font-family: monospace; text-align: center;">${b.totalTransactions}</td>
           <td style="font-family: monospace;">$${(b.totalPremium || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
           <td style="font-family: monospace; color: var(--accent-emerald);">$${(b.totalCommission || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
@@ -1519,7 +1536,13 @@
       });
     }
 
-    async function parseRawAl3Sim() {
+    async function parseRawAl3Sim(event) {
+      const btn = event ? event.target.closest('.btn') : null;
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Parsing...';
+      }
+
       const raw = document.getElementById('al3-input-editor').value;
       const box = document.getElementById('al3-output-box');
       try {
@@ -1532,13 +1555,13 @@
         box.innerHTML = '';
         const headerDiv = document.createElement('div');
         headerDiv.className = 'log-line log-INFO';
-        headerDiv.innerHTML = `<strong>AL3 GROUP HEADER (2BOS):</strong> Sender: ${res.header.senderId} | Receiver: ${res.header.receiverId} | Seq: ${res.header.sequenceNumber}`;
+        headerDiv.innerHTML = `<strong>AL3 GROUP HEADER (2BOS):</strong> Sender: ${escapeHtml(res.header.senderId)} | Receiver: ${escapeHtml(res.header.receiverId)} | Seq: ${escapeHtml(res.header.sequenceNumber)}`;
         box.appendChild(headerDiv);
 
         res.policies.forEach((p, idx) => {
           const div = document.createElement('div');
           div.className = 'log-line log-INFO';
-          div.innerHTML = `<strong>POLICY RECORD #${idx+1} (2PRT):</strong> Policy #${p.policy.policyNumber} | Insured: ${p.policy.insuredName} | LOB: ${p.policy.lineOfBusiness} | Gross Prem: $${p.policy.premiumAmount}`;
+          div.innerHTML = `<strong>POLICY RECORD #${idx+1} (2PRT):</strong> Policy #${escapeHtml(p.policy.policyNumber)} | Insured: ${escapeHtml(p.policy.insuredName)} | LOB: ${escapeHtml(p.policy.lineOfBusiness)} | Gross Prem: $${p.policy.premiumAmount}`;
           box.appendChild(div);
 
           p.coverages.forEach(c => {
@@ -1550,21 +1573,32 @@
 
           const txDiv = document.createElement('div');
           txDiv.className = 'log-line log-WARN';
-          txDiv.innerHTML = `  ↳ [3TRG Detail] Code: <strong>${p.transaction.transactionCode}</strong> | Comm Rate: ${p.transaction.commissionRate*100}% | Comm Amt: <strong>$${p.transaction.commissionAmount}</strong> | Net Payable: $${p.transaction.netCarrierPayable}`;
+          txDiv.innerHTML = `  ↳ [3TRG Detail] Code: <strong>${escapeHtml(p.transaction.transactionCode)}</strong> | Comm Rate: ${p.transaction.commissionRate*100}% | Comm Amt: <strong>$${p.transaction.commissionAmount}</strong> | Net Payable: $${p.transaction.netCarrierPayable}`;
           box.appendChild(txDiv);
         });
 
         const trailerDiv = document.createElement('div');
         trailerDiv.className = 'log-line log-INFO';
-        trailerDiv.innerHTML = `<strong>AL3 TRAILER (2EOS):</strong> Total Stream Records: ${res.trailer.totalRecords}`;
+        trailerDiv.innerHTML = `<strong>AL3 TRAILER (2EOS):</strong> Total Stream Records: ${escapeHtml(res.trailer.totalRecords.toString())}`;
         box.appendChild(trailerDiv);
 
       } catch (err) {
         alert('AL3 Parse Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = '⚡ Parse Raw AL3 Stream';
+        }
       }
     }
 
-    async function ingestAl3Batch() {
+    async function ingestAl3Batch(event) {
+      const btn = event ? event.target.closest('.btn') : null;
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Ingesting...';
+      }
+
       const raw = document.getElementById('al3-input-editor').value;
       try {
         const batch = await fetch('/api/v1/downloads/ingest', {
@@ -1586,11 +1620,16 @@
         if (auditBox) {
           const div = document.createElement('div');
           div.className = 'log-line log-INFO';
-          div.innerHTML = `[TIMESCALEDB AUDIT] Ingested Download Batch <strong>${batch.batchId}</strong> for carrier ${batch.carrierName} under tenant <strong>${currentTenantId}</strong>.`;
+          div.innerHTML = `[TIMESCALEDB AUDIT] Ingested Download Batch <strong>${escapeHtml(batch.batchId)}</strong> for carrier ${escapeHtml(batch.carrierName)} under tenant <strong>${escapeHtml(currentTenantId)}</strong>.`;
           auditBox.prepend(div);
         }
       } catch (err) {
         alert('Ingest Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = '🚀 Ingest IVANS Download Batch';
+        }
       }
     }
 
