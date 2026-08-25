@@ -10,3 +10,7 @@
 **Vulnerability:** Weak PRNG via `Math.random()` used for generating secure IDs.
 **Learning:** `Math.random()` is not cryptographically secure and should not be used to generate secure IDs (like Policy IDs and Statement Numbers).
 **Prevention:** Always use secure alternatives from the `crypto` module, such as `crypto.randomInt()` or `crypto.randomUUID()`.
+## 2025-02-23 - [Fix DOM-based XSS Vulnerability in HTML Templates]
+**Vulnerability:** Several dynamic payload fields were directly inserted into `.innerHTML` templates in `public/index.html` without escaping, causing DOM-based XSS vulnerabilities.
+**Learning:** The frontend makes heavy use of string literal template generation and assignment via `.innerHTML = ` and `.innerHTML += ` for data tables and logs. Even if fields appear to be internal strings or numbers, failing to sanitize them using the built-in `escapeHtml` function creates cross-site scripting risks.
+**Prevention:** Apply the built-in `escapeHtml` function strictly to every dynamic parameter injected into a template string that is destined for `.innerHTML`.
