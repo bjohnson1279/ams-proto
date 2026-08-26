@@ -25,3 +25,10 @@
 ## 2026-08-22 - [Array Filter Consolidation]
 **Learning:** Sequential `.filter()` calls on in-memory arrays create wasteful intermediate arrays and run O(K*N) iterations.
 **Action:** Always combine sequential `.filter()` operations into a single loop pass to save memory allocations and CPU cycles, especially for large datasets.
+## 2025-02-12 - [Pre-computing and caching string operations in frontend filtering]
+**Learning:** Sequential `.toLowerCase()` conversions and redundant string concatenations within a `.filter()` loop on a large dataset executed repeatedly via keystroke events caused significant CPU/memory overhead. Caching the dataset in memory and pre-computing a single concatenated, lowercased `_searchString` reduced the filtering operation to O(1) property access and eliminated redundant backend GET requests.
+**Action:** When implementing client-side search filtering on static datasets, cache the initial network response, pre-compute normalized search strings during initialization, and filter the cached dataset using those pre-computed values rather than executing transformations inline during the filter loop.
+
+## 2026-08-26 - [O(n*m) to O(n+m) Optimization in Certificate Generation]
+**Learning:** Found an `O(N)` array `.find()` operation (`carriers.find`) happening *inside* a `.forEach` loop over `selectedPolicies` in `generateCertificate` (src/services/certificate.service.ts). For each unique carrier across policies, it scanned the entire carriers array. This creates unnecessary CPU overhead, especially if the number of policies and carriers grows.
+**Action:** Always pre-compute a `Map` of lookup data (like carriers by ID) *before* entering a loop, enabling `O(1)` access inside the iteration and reducing the overall time complexity from `O(N*M)` to `O(N+M)`.

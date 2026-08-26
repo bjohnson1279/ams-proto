@@ -124,12 +124,17 @@ export class CertificateService {
 
     // Gather carriers and assign Insurer Letters (A, B, C, D, E)
     const carriers = amsService.getCarriers();
+
+    // ⚡ Bolt: Pre-compute a Map of carriers by ID to avoid O(N*M) lookups inside the policies loop
+    const allCarriersMap = new Map(carriers.map(c => [c.carrierId, c]));
+
     const insurerLetters: Array<'A' | 'B' | 'C' | 'D' | 'E'> = ['A', 'B', 'C', 'D', 'E'];
     const carrierMap = new Map<string, Acord25InsurerSlot>();
 
     selectedPolicies.forEach(pol => {
       if (!carrierMap.has(pol.carrierId)) {
-        const foundCarrier = carriers.find(c => c.carrierId === pol.carrierId);
+        // ⚡ Bolt: Replace O(N) array search with O(1) Map lookup
+        const foundCarrier = allCarriersMap.get(pol.carrierId);
         const letter = insurerLetters[carrierMap.size] || 'E';
         carrierMap.set(pol.carrierId, {
           letter,
