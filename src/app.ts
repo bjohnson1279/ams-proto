@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { rateLimit } from 'express-rate-limit';
 import apiV1Routes from './routes/index.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { tenantMiddleware } from './middleware/tenant.middleware.js';
@@ -22,6 +23,9 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Trust proxy to ensure correct IP resolution for rate limiting behind reverse proxies
+app.set('trust proxy', 1);
+
 // Root route summary for API clients vs static UI for browsers
 app.get('/', (req: Request, res: Response, next) => {
   if (req.headers.accept && req.headers.accept.includes('application/json')) {
@@ -39,6 +43,21 @@ app.get('/', (req: Request, res: Response, next) => {
 
 // Serve static frontend files
 app.use(express.static(publicDir));
+
+// Rate Limiter
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  message: {
+    status: 'error',
+    message: 'Too many requests from this IP, please try again after 15 minutes.'
+  },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+// Apply the rate limiting middleware to API calls only
+app.use('/api', apiLimiter);
 
 // Health Check Endpoint
 app.get('/health', (req: Request, res: Response) => {
