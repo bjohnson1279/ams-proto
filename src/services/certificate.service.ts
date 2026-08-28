@@ -7,7 +7,10 @@ import {
   Acord25WorkersComp,
   Acord25UmbrellaLiability,
   CreateCertificateRequest,
-  BulkIssueCertificateRequest
+  BulkIssueCertificateRequest,
+  Customer,
+  Policy,
+  Carrier
 } from '../types/domain.js';
 import { INITIAL_CERTIFICATE_HOLDERS, INITIAL_CERTIFICATES } from '../data/seedData.js';
 import { AmsService } from './ams.service.js';
@@ -94,10 +97,13 @@ export class CertificateService {
     return this.certificates.find(c => c.certificateId === certificateId || c.certificateNumber === certificateId);
   }
 
-  public generateCertificate(req: CreateCertificateRequest): CertificateOfInsurance {
+  public generateCertificate(
+    req: CreateCertificateRequest,
+    context?: { customer: Customer; allCustomerPolicies: Policy[]; carriers: Carrier[] }
+  ): CertificateOfInsurance {
     const amsService = AmsService.getInstance();
 
-    const customer = amsService.getCustomerById(req.customerId);
+    const customer = context?.customer || amsService.getCustomerById(req.customerId);
     if (!customer) {
       throw new Error(`Customer with ID ${req.customerId} not found`);
     }
@@ -108,7 +114,7 @@ export class CertificateService {
     }
 
     // Get policies for customer
-    const allCustomerPolicies = amsService.getPolicies({ customerId: req.customerId });
+    const allCustomerPolicies = context?.allCustomerPolicies || amsService.getPolicies({ customerId: req.customerId });
     if (allCustomerPolicies.length === 0) {
       throw new Error(`No policies found for customer ${req.customerId}`);
     }
@@ -123,7 +129,7 @@ export class CertificateService {
     }
 
     // Gather carriers and assign Insurer Letters (A, B, C, D, E)
-    const carriers = amsService.getCarriers();
+    const carriers = context?.carriers || amsService.getCarriers();
 
     // ⚡ Bolt: Pre-compute a Map of carriers by ID to avoid O(N*M) lookups inside the policies loop
     const allCarriersMap = new Map(carriers.map(c => [c.carrierId, c]));
@@ -276,6 +282,17 @@ export class CertificateService {
       throw new Error('At least one holderId must be provided for bulk issuance');
     }
 
+    // ⚡ Bolt: Pre-fetch customer, policies, and carriers outside the loop to avoid N+1 lookups
+    const amsService = AmsService.getInstance();
+    const customer = amsService.getCustomerById(req.customerId);
+    if (!customer) {
+      throw new Error(`Customer with ID ${req.customerId} not found`);
+    }
+    const allCustomerPolicies = amsService.getPolicies({ customerId: req.customerId });
+    const carriers = amsService.getCarriers();
+
+    const context = { customer, allCustomerPolicies, carriers };
+
     const issued: CertificateOfInsurance[] = [];
     for (const holderId of req.holderIds) {
       const cert = this.generateCertificate({
@@ -284,7 +301,7 @@ export class CertificateService {
         policyIds: req.policyIds,
         descriptionOfOperations: req.descriptionOfOperations,
         cancellationNoticeDays: req.cancellationNoticeDays
-      });
+      }, context);
       issued.push(cert);
     }
     return issued;

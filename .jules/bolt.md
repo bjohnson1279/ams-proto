@@ -32,3 +32,7 @@
 ## 2026-08-26 - [O(n*m) to O(n+m) Optimization in Certificate Generation]
 **Learning:** Found an `O(N)` array `.find()` operation (`carriers.find`) happening *inside* a `.forEach` loop over `selectedPolicies` in `generateCertificate` (src/services/certificate.service.ts). For each unique carrier across policies, it scanned the entire carriers array. This creates unnecessary CPU overhead, especially if the number of policies and carriers grows.
 **Action:** Always pre-compute a `Map` of lookup data (like carriers by ID) *before* entering a loop, enabling `O(1)` access inside the iteration and reducing the overall time complexity from `O(N*M)` to `O(N+M)`.
+
+## 2026-08-28 - [Avoid N+1 Service Lookups in Bulk Operations]
+**Learning:** Found N+1 service lookups in `bulkIssueCertificates` where inner generator function (`generateCertificate`) was called in a loop, causing redundant `getCustomerById`, `getPolicies`, and `getCarriers` lookups on every iteration.
+**Action:** When optimizing bulk operations that invoke inner generator functions in a loop, avoid N+1 service lookups by pre-fetching necessary dependencies (e.g., customers, policies, carriers) outside the loop and passing them as an optional `context` parameter.
