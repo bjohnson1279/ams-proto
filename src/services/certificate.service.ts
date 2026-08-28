@@ -99,7 +99,11 @@ export class CertificateService {
 
   public generateCertificate(
     req: CreateCertificateRequest,
+<<<<<<< HEAD
     context?: { customer: Customer; allCustomerPolicies: Policy[]; carriers: Carrier[] }
+=======
+    context?: { customer: Customer; selectedPolicies: Policy[]; allCarriersMap: Map<string, Carrier> }
+>>>>>>> origin/main
   ): CertificateOfInsurance {
     const amsService = AmsService.getInstance();
 
@@ -113,26 +117,46 @@ export class CertificateService {
       throw new Error(`Certificate Holder with ID ${req.holderId} not found`);
     }
 
+<<<<<<< HEAD
     // Get policies for customer
     const allCustomerPolicies = context?.allCustomerPolicies || amsService.getPolicies({ customerId: req.customerId });
     if (allCustomerPolicies.length === 0) {
       throw new Error(`No policies found for customer ${req.customerId}`);
     }
+=======
+    let selectedPolicies = context?.selectedPolicies;
+    if (!selectedPolicies) {
+      // Get policies for customer
+      const allCustomerPolicies = amsService.getPolicies({ customerId: req.customerId });
+      if (allCustomerPolicies.length === 0) {
+        throw new Error(`No policies found for customer ${req.customerId}`);
+      }
+>>>>>>> origin/main
 
-    let selectedPolicies = allCustomerPolicies;
-    if (req.policyIds && req.policyIds.length > 0 && !req.policyIds.includes('ALL')) {
-      selectedPolicies = allCustomerPolicies.filter(p => req.policyIds.includes(p.policyId) || req.policyIds.includes(p.policyNumber));
-    }
+      selectedPolicies = allCustomerPolicies;
+      if (req.policyIds && req.policyIds.length > 0 && !req.policyIds.includes('ALL')) {
+        selectedPolicies = allCustomerPolicies.filter(p => req.policyIds.includes(p.policyId) || req.policyIds.includes(p.policyNumber));
+      }
 
-    if (selectedPolicies.length === 0) {
-      throw new Error('No matching policies selected for Certificate of Insurance');
+      if (selectedPolicies.length === 0) {
+        throw new Error('No matching policies selected for Certificate of Insurance');
+      }
     }
 
     // Gather carriers and assign Insurer Letters (A, B, C, D, E)
+<<<<<<< HEAD
     const carriers = context?.carriers || amsService.getCarriers();
 
     // ⚡ Bolt: Pre-compute a Map of carriers by ID to avoid O(N*M) lookups inside the policies loop
     const allCarriersMap = new Map(carriers.map(c => [c.carrierId, c]));
+=======
+    let allCarriersMap = context?.allCarriersMap;
+    if (!allCarriersMap) {
+      const carriers = amsService.getCarriers();
+      // ⚡ Bolt: Pre-compute a Map of carriers by ID to avoid O(N*M) lookups inside the policies loop
+      allCarriersMap = new Map(carriers.map(c => [c.carrierId, c]));
+    }
+>>>>>>> origin/main
 
     const insurerLetters: Array<'A' | 'B' | 'C' | 'D' | 'E'> = ['A', 'B', 'C', 'D', 'E'];
     const carrierMap = new Map<string, Acord25InsurerSlot>();
@@ -282,16 +306,42 @@ export class CertificateService {
       throw new Error('At least one holderId must be provided for bulk issuance');
     }
 
+<<<<<<< HEAD
     // ⚡ Bolt: Pre-fetch customer, policies, and carriers outside the loop to avoid N+1 lookups
+=======
+    // ⚡ Bolt: Pre-fetch customer, policies, and carrier map once to avoid O(H * (P + C)) redundant database scans
+>>>>>>> origin/main
     const amsService = AmsService.getInstance();
     const customer = amsService.getCustomerById(req.customerId);
     if (!customer) {
       throw new Error(`Customer with ID ${req.customerId} not found`);
     }
+<<<<<<< HEAD
     const allCustomerPolicies = amsService.getPolicies({ customerId: req.customerId });
     const carriers = amsService.getCarriers();
 
     const context = { customer, allCustomerPolicies, carriers };
+=======
+
+    const allCustomerPolicies = amsService.getPolicies({ customerId: req.customerId });
+    if (allCustomerPolicies.length === 0) {
+      throw new Error(`No policies found for customer ${req.customerId}`);
+    }
+
+    let selectedPolicies = allCustomerPolicies;
+    if (req.policyIds && req.policyIds.length > 0 && !req.policyIds.includes('ALL')) {
+      selectedPolicies = allCustomerPolicies.filter(p => req.policyIds.includes(p.policyId) || req.policyIds.includes(p.policyNumber));
+    }
+
+    if (selectedPolicies.length === 0) {
+      throw new Error('No matching policies selected for Certificate of Insurance');
+    }
+
+    const carriers = amsService.getCarriers();
+    const allCarriersMap = new Map(carriers.map(c => [c.carrierId, c]));
+
+    const context = { customer, selectedPolicies, allCarriersMap };
+>>>>>>> origin/main
 
     const issued: CertificateOfInsurance[] = [];
     for (const holderId of req.holderIds) {

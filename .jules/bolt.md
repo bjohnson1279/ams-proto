@@ -36,3 +36,10 @@
 ## 2026-08-28 - [Avoid N+1 Service Lookups in Bulk Operations]
 **Learning:** Found N+1 service lookups in `bulkIssueCertificates` where inner generator function (`generateCertificate`) was called in a loop, causing redundant `getCustomerById`, `getPolicies`, and `getCarriers` lookups on every iteration.
 **Action:** When optimizing bulk operations that invoke inner generator functions in a loop, avoid N+1 service lookups by pre-fetching necessary dependencies (e.g., customers, policies, carriers) outside the loop and passing them as an optional `context` parameter.
+## 2026-08-30 - Optimize Bulk Certificate Issue Context
+**Learning:** In bulk operations calling an inner generator function inside a loop (e.g., `bulkIssueCertificates` calling `generateCertificate`), running O(H * (P + C)) database array scans per loop iteration causes severe CPU overhead.
+**Action:** Pre-fetch necessary resources (customer, policies, carrier maps) outside the bulk loop and pass them as an optional  parameter to the generator function to reduce complexity to O(P + C + H).
+
+## 2026-08-30 - Optimize Bulk Certificate Issue Context
+**Learning:** In bulk operations calling an inner generator function inside a loop (e.g., bulkIssueCertificates calling generateCertificate), running O(H * (P + C)) database array scans per loop iteration causes severe CPU overhead.
+**Action:** Pre-fetch necessary resources (customer, policies, carrier maps) outside the bulk loop and pass them as an optional context parameter to the generator function to reduce complexity to O(P + C + H).
