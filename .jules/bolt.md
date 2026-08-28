@@ -32,3 +32,11 @@
 ## 2026-08-26 - [O(n*m) to O(n+m) Optimization in Certificate Generation]
 **Learning:** Found an `O(N)` array `.find()` operation (`carriers.find`) happening *inside* a `.forEach` loop over `selectedPolicies` in `generateCertificate` (src/services/certificate.service.ts). For each unique carrier across policies, it scanned the entire carriers array. This creates unnecessary CPU overhead, especially if the number of policies and carriers grows.
 **Action:** Always pre-compute a `Map` of lookup data (like carriers by ID) *before* entering a loop, enabling `O(1)` access inside the iteration and reducing the overall time complexity from `O(N*M)` to `O(N+M)`.
+
+## 2026-08-30 - Optimize Bulk Certificate Issue Context
+**Learning:** In bulk operations calling an inner generator function inside a loop (e.g., `bulkIssueCertificates` calling `generateCertificate`), running O(H * (P + C)) database array scans per loop iteration causes severe CPU overhead.
+**Action:** Pre-fetch necessary resources (customer, policies, carrier maps) outside the bulk loop and pass them as an optional  parameter to the generator function to reduce complexity to O(P + C + H).
+
+## 2026-08-30 - Optimize Bulk Certificate Issue Context
+**Learning:** In bulk operations calling an inner generator function inside a loop (e.g., bulkIssueCertificates calling generateCertificate), running O(H * (P + C)) database array scans per loop iteration causes severe CPU overhead.
+**Action:** Pre-fetch necessary resources (customer, policies, carrier maps) outside the bulk loop and pass them as an optional context parameter to the generator function to reduce complexity to O(P + C + H).
