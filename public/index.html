@@ -691,7 +691,7 @@
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">Agency Bill Invoices</span>
-            <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="openPaymentModal()">+ Receive Premium Payment</button>
+            <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="openPaymentModal(event)">+ Receive Premium Payment</button>
           </div>
           <div class="table-container">
             <table>
@@ -777,7 +777,7 @@
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Carrier Download Batches & Auto-Reconciliation Ledger</span>
-          <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="postSelectedBatchCommissions()">💰 Post Direct Bill Commissions to GL</button>
+          <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="postSelectedBatchCommissions(event)">💰 Post Direct Bill Commissions to GL</button>
         </div>
         <div class="table-container">
           <table>
@@ -997,7 +997,10 @@
       }
     }
 
-    function openPaymentModal() {
+    async function openPaymentModal(event) {
+      const btn = event ? event.target.closest('.btn') : null;
+      const originalText = btn ? btn.innerText : null;
+
       const invNum = prompt('Enter Invoice Number or ID to receive payment for (e.g. INV-1001):', 'INV-1001');
       if (!invNum) return;
       const amtStr = prompt('Enter Payment Amount ($):', '2500.00');
@@ -1005,24 +1008,38 @@
       const refStr = prompt('Enter Payment Reference Number / Check #:', 'CHK-99182');
       if (!refStr) return;
 
-      fetch('/api/v1/accounting/payments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          invoiceId: invNum,
-          amount: parseFloat(amtStr),
-          paymentMethod: 'Check',
-          referenceNumber: refStr,
-          depositAccount: '1010'
-        })
-      }).then(r => r.json()).then(res => {
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Processing...';
+      }
+
+      try {
+        const res = await fetch('/api/v1/accounting/payments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            invoiceId: invNum,
+            amount: parseFloat(amtStr),
+            paymentMethod: 'Check',
+            referenceNumber: refStr,
+            depositAccount: '1010'
+          })
+        }).then(r => r.json());
+
         if (res.success) {
           alert('Payment received and deposited into Fiduciary Trust Cash (1010)!');
           fetchAccountingData();
         } else {
           alert('Payment Error: ' + (res.error || 'Failed to post payment'));
         }
-      });
+      } catch (err) {
+        alert('Payment Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
+      }
     }
 
 
@@ -1620,11 +1637,17 @@
     document.getElementById('download-batches-table-body').addEventListener('click', (e) => {
       const btn = e.target.closest('.post-batch-btn');
       if (btn) {
-        postBatchCommissions(btn.getAttribute('data-batch-id'));
+        postBatchCommissions(btn.getAttribute('data-batch-id'), btn);
       }
     });
 
-    async function postBatchCommissions(batchId) {
+    async function postBatchCommissions(batchId, btn = null) {
+      const originalText = btn ? btn.innerText : null;
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Processing...';
+      }
+
       try {
         const batch = await fetch(`/api/v1/downloads/batches/${batchId}/post-commissions`, {
           method: 'POST',
@@ -1636,23 +1659,42 @@
         fetchAccountingData();
       } catch (err) {
         alert('Commission Posting Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
       }
     }
 
-    async function postSelectedBatchCommissions() {
-      const batches = await fetch('/api/v1/downloads/batches', {
-        headers: { 'x-tenant-id': currentTenantId }
-      }).then(r => r.json());
+    async function postSelectedBatchCommissions(event) {
+      const btn = event ? event.target.closest('.btn') : null;
+      const originalText = btn ? btn.innerText : null;
+      if (btn) {
+        btn.disabled = true;
+        btn.innerText = '⏳ Processing...';
+      }
 
-      if (Array.isArray(batches) && batches.length > 0) {
-        const unposted = batches.find(b => b.status !== 'Commissions Posted');
-        if (unposted) {
-          await postBatchCommissions(unposted.batchId);
+      try {
+        const batches = await fetch('/api/v1/downloads/batches', {
+          headers: { 'x-tenant-id': currentTenantId }
+        }).then(r => r.json());
+
+        if (Array.isArray(batches) && batches.length > 0) {
+          const unposted = batches.find(b => b.status !== 'Commissions Posted');
+          if (unposted) {
+            await postBatchCommissions(unposted.batchId);
+          } else {
+            alert('All carrier download batches have already posted commissions!');
+          }
         } else {
-          alert('All carrier download batches have already posted commissions!');
+          alert('No download batches available to post.');
         }
-      } else {
-        alert('No download batches available to post.');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
       }
     }
 
