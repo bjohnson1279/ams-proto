@@ -1157,36 +1157,48 @@
     document.getElementById('customers-table-body').addEventListener('click', (e) => {
       const btn = e.target.closest('.view-dec-btn');
       if (btn) {
-        viewDecPageForCustomer(btn.getAttribute('data-customer-id'));
+        viewDecPageForCustomer(btn.getAttribute('data-customer-id'), btn);
       }
     });
 
-    async function viewDecPageForCustomer(customerId) {
-      const polRes = await fetch('/api/v1/policies').then(r => r.json());
-      if (polRes.status === 'success') {
-        const custPolicy = polRes.data.find(p => p.customerId === customerId);
-        if (custPolicy) {
-          const decRes = await fetch(`/api/v1/policies/${custPolicy.policyId}/dec-page`).then(r => r.json());
-          if (decRes.status === 'success') {
-            const dec = decRes.data;
-            document.getElementById('dec-insured-name').innerText = dec.insuredHeader.name;
-            document.getElementById('dec-insured-tax').innerText = 'Tax Identifier: ' + dec.insuredHeader.taxId;
-            document.getElementById('dec-insured-addr').innerText = 'Location: ' + dec.insuredHeader.address;
-            document.getElementById('dec-policy-num').innerText = 'Policy #: ' + dec.policySummary.policyNumber + ' (' + dec.policySummary.lineOfBusiness + ')';
-            document.getElementById('dec-carrier-name').innerText = 'Carrier: ' + dec.carrierInfo.carrierName + ' (NAIC: ' + dec.carrierInfo.naicNumber + ')';
-            document.getElementById('dec-term').innerText = 'Term: ' + dec.policySummary.effectiveDate + ' to ' + dec.policySummary.expirationDate + ' (' + dec.policySummary.termLengthMonths + ' Months)';
-            
-            const covBox = document.getElementById('dec-coverages-list');
-            covBox.innerHTML = '';
-            dec.coverageDetails.forEach(c => {
-              covBox.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#fff;"><span>${escapeHtml(c.description)}</span><span>Limit: ${escapeHtml(c.limit.toString())} | Premium: ${escapeHtml(c.premium.toString())}</span></div>`;
-            });
+    async function viewDecPageForCustomer(customerId, btn = null) {
+      if (btn) {
+        btn.disabled = true;
+        btn.dataset.originalText = btn.innerText;
+        btn.innerText = '⏳ Loading...';
+      }
+      try {
+        const polRes = await fetch('/api/v1/policies').then(r => r.json());
+        if (polRes.status === 'success') {
+          const custPolicy = polRes.data.find(p => p.customerId === customerId);
+          if (custPolicy) {
+            const decRes = await fetch(`/api/v1/policies/${custPolicy.policyId}/dec-page`).then(r => r.json());
+            if (decRes.status === 'success') {
+              const dec = decRes.data;
+              document.getElementById('dec-insured-name').innerText = dec.insuredHeader.name;
+              document.getElementById('dec-insured-tax').innerText = 'Tax Identifier: ' + dec.insuredHeader.taxId;
+              document.getElementById('dec-insured-addr').innerText = 'Location: ' + dec.insuredHeader.address;
+              document.getElementById('dec-policy-num').innerText = 'Policy #: ' + dec.policySummary.policyNumber + ' (' + dec.policySummary.lineOfBusiness + ')';
+              document.getElementById('dec-carrier-name').innerText = 'Carrier: ' + dec.carrierInfo.carrierName + ' (NAIC: ' + dec.carrierInfo.naicNumber + ')';
+              document.getElementById('dec-term').innerText = 'Term: ' + dec.policySummary.effectiveDate + ' to ' + dec.policySummary.expirationDate + ' (' + dec.policySummary.termLengthMonths + ' Months)';
 
-            document.getElementById('dec-financials').innerText = 'Total Policy Premium: ' + dec.financials.totalPremium;
-            document.getElementById('dec-modal').classList.add('active');
+              const covBox = document.getElementById('dec-coverages-list');
+              covBox.innerHTML = '';
+              dec.coverageDetails.forEach(c => {
+                covBox.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#fff;"><span>${escapeHtml(c.description)}</span><span>Limit: ${escapeHtml(c.limit.toString())} | Premium: ${escapeHtml(c.premium.toString())}</span></div>`;
+              });
+
+              document.getElementById('dec-financials').innerText = 'Total Policy Premium: ' + dec.financials.totalPremium;
+              document.getElementById('dec-modal').classList.add('active');
+            }
+          } else {
+            alert('No policy associated with customer ' + customerId);
           }
-        } else {
-          alert('No policy associated with customer ' + customerId);
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = btn.dataset.originalText;
         }
       }
     }
@@ -1620,11 +1632,16 @@
     document.getElementById('download-batches-table-body').addEventListener('click', (e) => {
       const btn = e.target.closest('.post-batch-btn');
       if (btn) {
-        postBatchCommissions(btn.getAttribute('data-batch-id'));
+        postBatchCommissions(btn.getAttribute('data-batch-id'), btn);
       }
     });
 
-    async function postBatchCommissions(batchId) {
+    async function postBatchCommissions(batchId, btn = null) {
+      if (btn) {
+        btn.disabled = true;
+        btn.dataset.originalText = btn.innerText;
+        btn.innerText = '⏳ Posting...';
+      }
       try {
         const batch = await fetch(`/api/v1/downloads/batches/${batchId}/post-commissions`, {
           method: 'POST',
@@ -1636,6 +1653,11 @@
         fetchAccountingData();
       } catch (err) {
         alert('Commission Posting Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = btn.dataset.originalText;
+        }
       }
     }
 
