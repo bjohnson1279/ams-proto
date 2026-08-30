@@ -1196,7 +1196,7 @@
             const covBox = document.getElementById('dec-coverages-list');
             covBox.innerHTML = '';
             dec.coverageDetails.forEach(c => {
-              covBox.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#fff;"><span>${escapeHtml(c.description)}</span><span>Limit: ${escapeHtml(c.limit.toString())} | Premium: ${escapeHtml(c.premium.toString())}</span></div>`;
+              covBox.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#fff;"><span>${escapeHtml(c.description)}</span><span>Limit: ${escapeHtml(c.limit)} | Premium: ${escapeHtml(c.premium)}</span></div>`;
             });
 
             document.getElementById('dec-financials').innerText = 'Total Policy Premium: ' + dec.financials.totalPremium;
@@ -1619,7 +1619,7 @@
 
         const trailerDiv = document.createElement('div');
         trailerDiv.className = 'log-line log-INFO';
-        trailerDiv.innerHTML = `<strong>AL3 TRAILER (2EOS):</strong> Total Stream Records: ${escapeHtml(res.trailer.totalRecords.toString())}`;
+        trailerDiv.innerHTML = `<strong>AL3 TRAILER (2EOS):</strong> Total Stream Records: ${escapeHtml(res.trailer.totalRecords)}`;
         box.appendChild(trailerDiv);
 
       } catch (err) {
