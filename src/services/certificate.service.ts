@@ -170,8 +170,19 @@ export class CertificateService {
       const letter = insurerSlot ? insurerSlot.letter : 'A';
 
       if (pol.lineOfBusiness === 'General Liability') {
-        const eachOcc = pol.coverages.find(c => c.code.includes('OCCUR') || c.name.toLowerCase().includes('occurrence'))?.limitAmount || 1000000;
-        const genAgg = pol.coverages.find(c => c.code.includes('AGG') || c.name.toLowerCase().includes('aggregate'))?.limitAmount || 2000000;
+        // ⚡ Bolt: Replaced multiple .find() with a single pass to prevent redundant O(N) array scans and inline string allocations
+        let eachOccLimit;
+        let genAggLimit;
+        for (const c of pol.coverages) {
+          const lowerName = c.name.toLowerCase();
+          if (eachOccLimit === undefined && (c.code.includes('OCCUR') || lowerName.includes('occurrence'))) eachOccLimit = c.limitAmount;
+          if (genAggLimit === undefined && (c.code.includes('AGG') || lowerName.includes('aggregate'))) genAggLimit = c.limitAmount;
+          if (eachOccLimit !== undefined && genAggLimit !== undefined) break;
+        }
+
+        const eachOcc = eachOccLimit || 1000000;
+        const genAgg = genAggLimit || 2000000;
+
         generalLiability = {
           insurerLetter: letter,
           commercialGeneralLiability: true,
@@ -192,7 +203,18 @@ export class CertificateService {
           }
         };
       } else if (pol.lineOfBusiness === 'Commercial Auto') {
-        const csl = pol.coverages.find(c => c.code.includes('CSL') || c.name.toLowerCase().includes('liability') || c.name.toLowerCase().includes('combined'))?.limitAmount || 1000000;
+        // ⚡ Bolt: Replaced .find() with loop to prevent inline string allocations
+        let cslLimit;
+        for (const c of pol.coverages) {
+          const lowerName = c.name.toLowerCase();
+          if (c.code.includes('CSL') || lowerName.includes('liability') || lowerName.includes('combined')) {
+            cslLimit = c.limitAmount;
+            break;
+          }
+        }
+
+        const csl = cslLimit || 1000000;
+
         autoLiability = {
           insurerLetter: letter,
           anyAuto: true,
@@ -210,7 +232,18 @@ export class CertificateService {
           }
         };
       } else if (pol.lineOfBusiness === 'Workers Comp') {
-        const statLimit = pol.coverages.find(c => c.code.includes('WC') || c.name.toLowerCase().includes('workers'))?.limitAmount || 1000000;
+        // ⚡ Bolt: Replaced .find() with loop to prevent inline string allocations
+        let statLimitVal;
+        for (const c of pol.coverages) {
+          const lowerName = c.name.toLowerCase();
+          if (c.code.includes('WC') || lowerName.includes('workers')) {
+            statLimitVal = c.limitAmount;
+            break;
+          }
+        }
+
+        const statLimit = statLimitVal || 1000000;
+
         workersComp = {
           insurerLetter: letter,
           statutoryLimits: true,
