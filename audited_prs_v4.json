@@ -1,0 +1,312 @@
+[
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "baseRefName": "main",
+    "body": "\ud83d\udea8 Severity: HIGH\n\ud83d\udca1 Vulnerability: DOM-based XSS risks where numeric fields and formatted outputs (like `.toLocaleString()`) were injected unescaped directly into `.innerHTML` templates in `public/index.html`.\n\ud83c\udfaf Impact: While usually numeric, trusting implicit types without sanitization violates defense-in-depth principles and risks XSS if upstream data parsing changes or is manipulated to return executable strings instead of pure numbers.\n\ud83d\udd27 Fix: Wrapped all unprotected template interpolations of dynamic fields (e.g. `a.debitBalance`, `inv.grossPremium`, `b.totalTransactions`) with the existing `escapeHtml()` function. Logged this critical learning to `.jules/sentinel.md` to prevent future instances.\n\u2705 Verification: Ran `pnpm test` successfully (all 68 tests pass) and verified the UI structure was untouched.\n\n---\n*PR created automatically by Jules for task [855421140495999183](https://jules.google.com/task/855421140495999183) started by @bjohnson1279*",
+    "files": [
+      {
+        "path": ".jules/sentinel.md",
+        "additions": 5,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "public/index.html",
+        "additions": 8,
+        "deletions": 8,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "sentinel-fix-xss-numeric-fields-855421140495999183",
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "number": 48,
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-30T23:41:30Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/bjohnson1279/ams-proto/actions/runs/33342463042/job/99340451521",
+        "name": "build-and-test (20.x)",
+        "startedAt": "2026-08-30T23:41:06Z",
+        "status": "COMPLETED",
+        "workflowName": "CI Pipeline"
+      }
+    ],
+    "title": "\ud83d\udee1\ufe0f Sentinel: [HIGH] Fix XSS vulnerability in frontend template variables",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    },
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/48",
+    "category": "Group A",
+    "auditReasons": [],
+    "localZeroDiff": false,
+    "localMergeConflict": false,
+    "localTestsPassed": true,
+    "localTestsSummary": "No specific test fixtures found (clean)",
+    "staleBase": false,
+    "supersededBy": null
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "baseRefName": "main",
+    "body": "\ud83d\udca1 **What**: Implemented visual loading and disabled states for asynchronous action buttons in `public/index.html` (e.g., generating certificates, receiving payments, posting commissions). When clicked, the buttons are disabled and display a processing status (like \"\u23f3 Processing...\") until the fetch request completes.\n\ud83c\udfaf **Why**: To reduce user uncertainty during network latency and prevent accidental double-submissions by effectively communicating that an action is in progress.\n\ud83d\udcf8 **Before/After**: Buttons previously remained clickable without visual feedback. Now they transition to a disabled loading state during async operations.\n\u267f **Accessibility**: Prevents duplicate interaction and provides clear visual feedback of the current state of an action. Ensures that prompt cancellations do not permanently disable the interface.\n\n---\n*PR created automatically by Jules for task [4540828255669695455](https://jules.google.com/task/4540828255669695455) started by @bjohnson1279*",
+    "files": [
+      {
+        "path": ".jules/palette.md",
+        "additions": 3,
+        "deletions": 0,
+        "changeType": "ADDED"
+      },
+      {
+        "path": "public/index.html",
+        "additions": 118,
+        "deletions": 34,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "palette-ux-async-button-loading-states-4540828255669695455",
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "number": 47,
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-30T12:24:23Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/bjohnson1279/ams-proto/actions/runs/33311375641/job/99256936562",
+        "name": "build-and-test (20.x)",
+        "startedAt": "2026-08-30T12:24:05Z",
+        "status": "COMPLETED",
+        "workflowName": "CI Pipeline"
+      }
+    ],
+    "title": "\ud83c\udfa8 Palette: Add async loading states to action buttons",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    },
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/47",
+    "category": "Group A",
+    "auditReasons": [],
+    "localZeroDiff": false,
+    "localMergeConflict": false,
+    "localTestsPassed": true,
+    "localTestsSummary": "No specific test fixtures found (clean)",
+    "staleBase": false,
+    "supersededBy": null
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "baseRefName": "main",
+    "body": "\ud83d\udca1 **What**: Replaced multiple sequential `Array.prototype.find()` calls inside a policy loop with a single `for...of` loop when extracting coverage limits for ACORD Dec page and Certificate of Insurance generation. Pre-calculated inline lowercasing conditions.\n\n\ud83c\udfaf **Why**: The existing implementation called `.find()` 1-2 times per policy depending on the line of business, and executed `.toLowerCase()` inside the `.find()` callback over string fields on every element. On high volume policy datasets and during bulk operations (like `bulkIssueCertificates`), this created significant redundant array scans (O(N)) and wasteful temporary string allocations leading to thrashing GC and blocking the main CPU thread unnecessarily. \n\n\ud83d\udcca **Impact**: Reduces time complexity of coverage lookups from multiple `O(N)` scans to a single `O(N)` pass, saving memory allocations. The function now breaks early when limits are matched. \n\n\ud83d\udd2c **Measurement**: Verified by running `pnpm test` (68/68 passed). The memory and CPU improvements can be observed via node performance profiler during `bulkIssueCertificates` requests.\n\n---\n*PR created automatically by Jules for task [4475970581544750028](https://jules.google.com/task/4475970581544750028) started by @bjohnson1279*",
+    "files": [
+      {
+        "path": ".jules/bolt.md",
+        "additions": 4,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "src/services/certificate.service.ts",
+        "additions": 37,
+        "deletions": 4,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "bolt/optimize-coverage-lookups-4475970581544750028",
+    "mergeStateStatus": "CLEAN",
+    "mergeable": "MERGEABLE",
+    "number": 46,
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-30T12:19:41Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/bjohnson1279/ams-proto/actions/runs/33311162546/job/99256343763",
+        "name": "build-and-test (20.x)",
+        "startedAt": "2026-08-30T12:19:17Z",
+        "status": "COMPLETED",
+        "workflowName": "CI Pipeline"
+      }
+    ],
+    "title": "\u26a1 Bolt: [performance improvement] Optimize coverage lookups in certificate generation",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    },
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/46",
+    "category": "Group B",
+    "auditReasons": [
+      "Targeted test failure: TypeScript/Jest: FAILED"
+    ],
+    "localZeroDiff": false,
+    "localMergeConflict": false,
+    "localTestsPassed": false,
+    "localTestsSummary": "TypeScript/Jest: FAILED",
+    "staleBase": false,
+    "supersededBy": null
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "baseRefName": "main",
+    "body": "\ud83d\udea8 **Severity:** HIGH\n\ud83d\udca1 **Vulnerability:** The application was vulnerable to crashes (Denial of Service) and potential DOM-based issues by calling `.toString()` on dynamic backend properties before they were passed to `escapeHtml()`. If the backend sent a `null` or `undefined` property (such as `limit` or `premium`), the frontend would crash via `TypeError`, disrupting operations.\n\ud83c\udfaf **Impact:** If an attacker can manipulate or spoof data to return null properties, or if legitimate downstream legacy integrations map these properties to null, the frontend migration workbench and policy registry interfaces would become permanently un-renderable for that user/session.\n\ud83d\udd27 **Fix:** Removed the `.toString()` invocations inside string interpolation tags mapped to `.innerHTML` in `public/index.html`. The `escapeHtml()` sanitization function automatically checks for null/undefined values and safely casts existing numbers/floats to strings.\n\u2705 **Verification:** Ran `pnpm test` successfully (all 68 tests passing) and manually verified that `public/index.html` template structures retain `escapeHtml` without the brittle type cast.\n\n---\n*PR created automatically by Jules for task [15340568571152803569](https://jules.google.com/task/15340568571152803569) started by @bjohnson1279*",
+    "files": [
+      {
+        "path": "public/index.html",
+        "additions": 2,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "sentinel/fix-dom-xss-tostring-15340568571152803569",
+    "mergeStateStatus": "UNKNOWN",
+    "mergeable": "UNKNOWN",
+    "number": 45,
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-30T01:20:44Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/bjohnson1279/ams-proto/actions/runs/33285442130/job/99187726593",
+        "name": "build-and-test (20.x)",
+        "startedAt": "2026-08-30T01:20:24Z",
+        "status": "COMPLETED",
+        "workflowName": "CI Pipeline"
+      }
+    ],
+    "title": "\ud83d\udee1\ufe0f Sentinel: [HIGH] Fix UI crash / DoS vulnerability from `.toString()` type casting in frontend templates",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    },
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/45",
+    "category": "Group A",
+    "auditReasons": [],
+    "localZeroDiff": false,
+    "localMergeConflict": false,
+    "localTestsPassed": true,
+    "localTestsSummary": "No specific test fixtures found (clean)",
+    "staleBase": false,
+    "supersededBy": null
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "baseRefName": "main",
+    "body": "\ud83d\udca1 **What:** Added visual loading states (disabled button + text change) to the `View Dec-Page` and `Post to Ledger` buttons during async operations.\n\ud83c\udfaf **Why:** Users previously had no feedback when clicking these buttons, which could lead to confusion or duplicate clicks while waiting for the network requests to complete.\n\ud83d\udcf8 **Before/After:** Before, the button remained active and unchanged while the request was in flight. Now, it immediately disables and says \"\u23f3 Loading...\" or \"\u23f3 Posting...\" until the action completes.\n\u267f **Accessibility:** Prevents multiple submissions for users using assistive technologies or keyboard navigation, and provides clear text-based state indication.\n\n---\n*PR created automatically by Jules for task [14947072488883025186](https://jules.google.com/task/14947072488883025186) started by @bjohnson1279*",
+    "files": [
+      {
+        "path": "public/index.html",
+        "additions": 50,
+        "deletions": 28,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "palette-ux-loading-states-14947072488883025186",
+    "mergeStateStatus": "UNKNOWN",
+    "mergeable": "UNKNOWN",
+    "number": 44,
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-29T12:21:59Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/bjohnson1279/ams-proto/actions/runs/33252299187/job/99099966969",
+        "name": "build-and-test (20.x)",
+        "startedAt": "2026-08-29T12:21:38Z",
+        "status": "COMPLETED",
+        "workflowName": "CI Pipeline"
+      }
+    ],
+    "title": "\ud83c\udfa8 Palette: Add loading states to async action buttons",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    },
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/44",
+    "category": "Group A",
+    "auditReasons": [],
+    "localZeroDiff": false,
+    "localMergeConflict": false,
+    "localTestsPassed": true,
+    "localTestsSummary": "No specific test fixtures found (clean)",
+    "staleBase": false,
+    "supersededBy": null
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "baseRefName": "main",
+    "body": "\ud83d\udca1 What: Replaced two separate O(N) `.find()` passes with a single `for...of` loop in the `General Liability` section of `generateCertificate`.\n\ud83c\udfaf Why: Iterating over the same array multiple times to extract different limit values is inefficient.\n\ud83d\udcca Impact: Reduces O(2N) array scans to O(N) with early exit.\n\ud83d\udd2c Measurement: Code analysis and `pnpm test` passing successfully.\n\n---\n*PR created automatically by Jules for task [16817810082716196842](https://jules.google.com/task/16817810082716196842) started by @bjohnson1279*",
+    "files": [
+      {
+        "path": ".jules/bolt.md",
+        "additions": 4,
+        "deletions": 0,
+        "changeType": "MODIFIED"
+      },
+      {
+        "path": "src/services/certificate.service.ts",
+        "additions": 17,
+        "deletions": 2,
+        "changeType": "MODIFIED"
+      }
+    ],
+    "headRefName": "bolt-optimize-certificate-coverages-16817810082716196842",
+    "mergeStateStatus": "UNKNOWN",
+    "mergeable": "UNKNOWN",
+    "number": 43,
+    "state": "OPEN",
+    "statusCheckRollup": [
+      {
+        "__typename": "CheckRun",
+        "completedAt": "2026-08-29T12:16:39Z",
+        "conclusion": "SUCCESS",
+        "detailsUrl": "https://github.com/bjohnson1279/ams-proto/actions/runs/33252081742/job/99099377180",
+        "name": "build-and-test (20.x)",
+        "startedAt": "2026-08-29T12:16:16Z",
+        "status": "COMPLETED",
+        "workflowName": "CI Pipeline"
+      }
+    ],
+    "title": "\u26a1 Bolt: [performance improvement] Optimize array scans in Certificate Service",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    },
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/43",
+    "category": "Group B",
+    "auditReasons": [
+      "Targeted test failure: TypeScript/Jest: FAILED"
+    ],
+    "localZeroDiff": false,
+    "localMergeConflict": false,
+    "localTestsPassed": false,
+    "localTestsSummary": "TypeScript/Jest: FAILED",
+    "staleBase": false,
+    "supersededBy": null
+  }
+]

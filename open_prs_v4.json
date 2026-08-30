@@ -1,0 +1,92 @@
+[
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "createdAt": "2026-08-30T23:41:00Z",
+    "labels": [],
+    "number": 48,
+    "title": "\ud83d\udee1\ufe0f Sentinel: [HIGH] Fix XSS vulnerability in frontend template variables",
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/48",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    }
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "createdAt": "2026-08-30T12:24:00Z",
+    "labels": [],
+    "number": 47,
+    "title": "\ud83c\udfa8 Palette: Add async loading states to action buttons",
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/47",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    }
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "createdAt": "2026-08-30T12:19:12Z",
+    "labels": [],
+    "number": 46,
+    "title": "\u26a1 Bolt: [performance improvement] Optimize coverage lookups in certificate generation",
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/46",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    }
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "createdAt": "2026-08-30T01:20:18Z",
+    "labels": [],
+    "number": 45,
+    "title": "\ud83d\udee1\ufe0f Sentinel: [HIGH] Fix UI crash / DoS vulnerability from `.toString()` type casting in frontend templates",
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/45",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    }
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "createdAt": "2026-08-29T12:21:33Z",
+    "labels": [],
+    "number": 44,
+    "title": "\ud83c\udfa8 Palette: Add loading states to async action buttons",
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/44",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    }
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "createdAt": "2026-08-29T12:16:10Z",
+    "labels": [],
+    "number": 43,
+    "title": "\u26a1 Bolt: [performance improvement] Optimize array scans in Certificate Service",
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/43",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    }
+  }
+]
