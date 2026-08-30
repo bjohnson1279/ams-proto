@@ -588,9 +588,9 @@
         <div class="panel-header">
           <span class="panel-title">📜 ACORD 25 Certificates of Liability Insurance</span>
           <div class="btn-group">
-            <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openCreateCertModal()">+ Generate ACORD 25 Certificate</button>
-            <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openNewHolderModal()">🏢 Add Certificate Holder</button>
-            <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openBulkIssueModal()">⚡ Bulk Issue COIs</button>
+            <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openCreateCertModal(event)">+ Generate ACORD 25 Certificate</button>
+            <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openNewHolderModal(event)">🏢 Add Certificate Holder</button>
+            <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openBulkIssueModal(event)">⚡ Bulk Issue COIs</button>
           </div>
         </div>
         <div class="table-container">
@@ -691,7 +691,7 @@
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">Agency Bill Invoices</span>
-            <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="openPaymentModal()">+ Receive Premium Payment</button>
+            <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="openPaymentModal(event)">+ Receive Premium Payment</button>
           </div>
           <div class="table-container">
             <table>
@@ -777,7 +777,7 @@
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Carrier Download Batches & Auto-Reconciliation Ledger</span>
-          <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="postSelectedBatchCommissions()">💰 Post Direct Bill Commissions to GL</button>
+          <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="postSelectedBatchCommissions(event)">💰 Post Direct Bill Commissions to GL</button>
         </div>
         <div class="table-container">
           <table>
@@ -969,8 +969,8 @@
               <td style="font-family: monospace; font-weight: 600; color: var(--accent-cyan);">${escapeHtml(a.accountNumber)}</td>
               <td style="font-weight: 600;">${escapeHtml(a.accountName)}</td>
               <td><span class="badge badge-core">${escapeHtml(a.category)}</span></td>
-              <td style="font-family: monospace; text-align: right;">${a.debitBalance ? '$' + a.debitBalance.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</td>
-              <td style="font-family: monospace; text-align: right;">${a.creditBalance ? '$' + a.creditBalance.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</td>
+              <td style="font-family: monospace; text-align: right;">${a.debitBalance ? '$' + escapeHtml(a.debitBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })) : '-'}</td>
+              <td style="font-family: monospace; text-align: right;">${a.creditBalance ? '$' + escapeHtml(a.creditBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })) : '-'}</td>
             `;
             tbBody.appendChild(tr);
           });
@@ -984,9 +984,9 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
               <td style="font-family: monospace; font-weight: 600; color: #38bdf8;">${escapeHtml(inv.invoiceNumber)}</td>
-              <td style="font-family: monospace;">$${inv.grossPremium.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-              <td style="font-family: monospace; color: var(--accent-emerald);">$${inv.agencyCommissionAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-              <td style="font-family: monospace; color: var(--accent-rose);">$${inv.netCarrierPayable.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+              <td style="font-family: monospace;">$${escapeHtml(inv.grossPremium.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
+              <td style="font-family: monospace; color: var(--accent-emerald);">$${escapeHtml(inv.agencyCommissionAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
+              <td style="font-family: monospace; color: var(--accent-rose);">$${escapeHtml(inv.netCarrierPayable.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
               <td><span class="badge badge-fmt-b">${escapeHtml(inv.status)}</span></td>
             `;
             invBody.appendChild(tr);
@@ -997,7 +997,7 @@
       }
     }
 
-    function openPaymentModal() {
+    async function openPaymentModal(event) {
       const invNum = prompt('Enter Invoice Number or ID to receive payment for (e.g. INV-1001):', 'INV-1001');
       if (!invNum) return;
       const amtStr = prompt('Enter Payment Amount ($):', '2500.00');
@@ -1005,24 +1005,41 @@
       const refStr = prompt('Enter Payment Reference Number / Check #:', 'CHK-99182');
       if (!refStr) return;
 
-      fetch('/api/v1/accounting/payments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          invoiceId: invNum,
-          amount: parseFloat(amtStr),
-          paymentMethod: 'Check',
-          referenceNumber: refStr,
-          depositAccount: '1010'
-        })
-      }).then(r => r.json()).then(res => {
+      const btn = event ? event.target.closest('.btn') : null;
+      let originalText = '';
+      if (btn) {
+        originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = '⏳ Processing...';
+      }
+
+      try {
+        const res = await fetch('/api/v1/accounting/payments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            invoiceId: invNum,
+            amount: parseFloat(amtStr),
+            paymentMethod: 'Check',
+            referenceNumber: refStr,
+            depositAccount: '1010'
+          })
+        }).then(r => r.json());
+
         if (res.success) {
           alert('Payment received and deposited into Fiduciary Trust Cash (1010)!');
           fetchAccountingData();
         } else {
           alert('Payment Error: ' + (res.error || 'Failed to post payment'));
         }
-      });
+      } catch (err) {
+        alert('Payment request error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
+      }
     }
 
 
@@ -1157,10 +1174,32 @@
     document.getElementById('customers-table-body').addEventListener('click', (e) => {
       const btn = e.target.closest('.view-dec-btn');
       if (btn) {
-        viewDecPageForCustomer(btn.getAttribute('data-customer-id'));
+        viewDecPageForCustomer(btn.getAttribute('data-customer-id'), btn);
       }
     });
 
+<<<<<<< HEAD
+    async function viewDecPageForCustomer(customerId, btn = null) {
+      if (btn) {
+        btn.disabled = true;
+        btn.dataset.originalText = btn.innerText;
+        btn.innerText = '⏳ Loading...';
+      }
+      try {
+        const polRes = await fetch('/api/v1/policies').then(r => r.json());
+        if (polRes.status === 'success') {
+          const custPolicy = polRes.data.find(p => p.customerId === customerId);
+          if (custPolicy) {
+            const decRes = await fetch(`/api/v1/policies/${custPolicy.policyId}/dec-page`).then(r => r.json());
+            if (decRes.status === 'success') {
+              const dec = decRes.data;
+              document.getElementById('dec-insured-name').innerText = dec.insuredHeader.name;
+              document.getElementById('dec-insured-tax').innerText = 'Tax Identifier: ' + dec.insuredHeader.taxId;
+              document.getElementById('dec-insured-addr').innerText = 'Location: ' + dec.insuredHeader.address;
+              document.getElementById('dec-policy-num').innerText = 'Policy #: ' + dec.policySummary.policyNumber + ' (' + dec.policySummary.lineOfBusiness + ')';
+              document.getElementById('dec-carrier-name').innerText = 'Carrier: ' + dec.carrierInfo.carrierName + ' (NAIC: ' + dec.carrierInfo.naicNumber + ')';
+              document.getElementById('dec-term').innerText = 'Term: ' + dec.policySummary.effectiveDate + ' to ' + dec.policySummary.expirationDate + ' (' + dec.policySummary.termLengthMonths + ' Months)';
+=======
     async function viewDecPageForCustomer(customerId) {
       const polRes = await fetch('/api/v1/policies').then(r => r.json());
       if (polRes.status === 'success') {
@@ -1179,14 +1218,27 @@
             const covBox = document.getElementById('dec-coverages-list');
             covBox.innerHTML = '';
             dec.coverageDetails.forEach(c => {
-              covBox.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#fff;"><span>${escapeHtml(c.description)}</span><span>Limit: ${escapeHtml(c.limit.toString())} | Premium: ${escapeHtml(c.premium.toString())}</span></div>`;
+              covBox.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#fff;"><span>${escapeHtml(c.description)}</span><span>Limit: ${escapeHtml(c.limit)} | Premium: ${escapeHtml(c.premium)}</span></div>`;
             });
+>>>>>>> origin/main
 
-            document.getElementById('dec-financials').innerText = 'Total Policy Premium: ' + dec.financials.totalPremium;
-            document.getElementById('dec-modal').classList.add('active');
+              const covBox = document.getElementById('dec-coverages-list');
+              covBox.innerHTML = '';
+              dec.coverageDetails.forEach(c => {
+                covBox.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.85rem; color:#fff;"><span>${escapeHtml(c.description)}</span><span>Limit: ${escapeHtml(c.limit.toString())} | Premium: ${escapeHtml(c.premium.toString())}</span></div>`;
+              });
+
+              document.getElementById('dec-financials').innerText = 'Total Policy Premium: ' + dec.financials.totalPremium;
+              document.getElementById('dec-modal').classList.add('active');
+            }
+          } else {
+            alert('No policy associated with customer ' + customerId);
           }
-        } else {
-          alert('No policy associated with customer ' + customerId);
+        }
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = btn.dataset.originalText;
         }
       }
     }
@@ -1343,12 +1395,20 @@
       window.open(`/api/v1/certificates/${certId}/render`, '_blank');
     }
 
-    async function openCreateCertModal() {
+    async function openCreateCertModal(event) {
       const custId = prompt('Enter Insured Customer ID (e.g. CUST-1001):', 'CUST-1001');
       if (!custId) return;
       const holderId = prompt('Enter Certificate Holder ID (e.g. HOLDER-1001):', 'HOLDER-1001');
       if (!holderId) return;
       const desc = prompt('Enter Description of Operations / Special Provisions:', 'Certificate Holder is listed as Additional Insured on General Liability as required by written contract.');
+
+      const btn = event ? event.target.closest('.btn') : null;
+      let originalText = '';
+      if (btn) {
+        originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = '⏳ Generating...';
+      }
 
       try {
         const res = await fetch('/api/v1/certificates', {
@@ -1371,14 +1431,27 @@
         }
       } catch (err) {
         alert('Failed to generate certificate: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
       }
     }
 
-    async function openNewHolderModal() {
+    async function openNewHolderModal(event) {
       const name = prompt('Enter Certificate Holder Organization Name:', 'Apex Commercial Center LLC');
       if (!name) return;
       const attn = prompt('Enter Attention / Contact Name:', 'Risk Management Dept');
       const email = prompt('Enter Holder Email Address:', 'risk@apexcommercial.com');
+
+      const btn = event ? event.target.closest('.btn') : null;
+      let originalText = '';
+      if (btn) {
+        originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = '⏳ Saving...';
+      }
 
       try {
         const res = await fetch('/api/v1/holders', {
@@ -1400,12 +1473,25 @@
         }
       } catch (err) {
         alert('Failed to register holder: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
       }
     }
 
-    async function openBulkIssueModal() {
+    async function openBulkIssueModal(event) {
       const custId = prompt('Enter Customer ID for Bulk Issuance (e.g. CUST-1001):', 'CUST-1001');
       if (!custId) return;
+
+      const btn = event ? event.target.closest('.btn') : null;
+      let originalText = '';
+      if (btn) {
+        originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = '⏳ Processing...';
+      }
 
       try {
         const res = await fetch('/api/v1/certificates/bulk-issue', {
@@ -1427,6 +1513,11 @@
         }
       } catch (err) {
         alert('Bulk Issue Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
       }
     }
 
@@ -1506,9 +1597,9 @@
           <td style="font-family: monospace; font-weight: 700; color: var(--accent-cyan);">${escapeHtml(b.batchId)}</td>
           <td style="font-weight: 600;">${escapeHtml(b.carrierName)} (${escapeHtml(b.carrierCode)})</td>
           <td><span class="badge badge-fmt-d">${escapeHtml(b.source)}</span></td>
-          <td style="font-family: monospace; text-align: center;">${b.totalTransactions}</td>
-          <td style="font-family: monospace;">$${(b.totalPremium || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-          <td style="font-family: monospace; color: var(--accent-emerald);">$${(b.totalCommission || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td style="font-family: monospace; text-align: center;">${escapeHtml(b.totalTransactions)}</td>
+          <td style="font-family: monospace;">$${escapeHtml((b.totalPremium || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
+          <td style="font-family: monospace; color: var(--accent-emerald);">$${escapeHtml((b.totalCommission || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
           <td>${statusBadge}</td>
           <td>
             ${b.status !== 'Commissions Posted' 
@@ -1563,7 +1654,7 @@
 
         const trailerDiv = document.createElement('div');
         trailerDiv.className = 'log-line log-INFO';
-        trailerDiv.innerHTML = `<strong>AL3 TRAILER (2EOS):</strong> Total Stream Records: ${escapeHtml(res.trailer.totalRecords.toString())}`;
+        trailerDiv.innerHTML = `<strong>AL3 TRAILER (2EOS):</strong> Total Stream Records: ${escapeHtml(res.trailer.totalRecords)}`;
         box.appendChild(trailerDiv);
 
       } catch (err) {
@@ -1620,11 +1711,32 @@
     document.getElementById('download-batches-table-body').addEventListener('click', (e) => {
       const btn = e.target.closest('.post-batch-btn');
       if (btn) {
-        postBatchCommissions(btn.getAttribute('data-batch-id'));
+<<<<<<< HEAD
+        postBatchCommissions(btn.getAttribute('data-batch-id'), btn);
       }
     });
 
-    async function postBatchCommissions(batchId) {
+    async function postBatchCommissions(batchId, btn = null) {
+      if (btn) {
+        btn.disabled = true;
+        btn.dataset.originalText = btn.innerText;
+        btn.innerText = '⏳ Posting...';
+      }
+=======
+        postBatchCommissions(btn.getAttribute('data-batch-id'), e);
+      }
+    });
+
+    async function postBatchCommissions(batchId, event) {
+      const btn = event ? event.target.closest('.btn') : null;
+      let originalText = '';
+      if (btn) {
+        originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = '⏳ Posting...';
+      }
+
+>>>>>>> origin/main
       try {
         const batch = await fetch(`/api/v1/downloads/batches/${batchId}/post-commissions`, {
           method: 'POST',
@@ -1636,23 +1748,47 @@
         fetchAccountingData();
       } catch (err) {
         alert('Commission Posting Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+<<<<<<< HEAD
+          btn.innerText = btn.dataset.originalText;
+=======
+          btn.innerText = originalText;
+>>>>>>> origin/main
+        }
       }
     }
 
-    async function postSelectedBatchCommissions() {
-      const batches = await fetch('/api/v1/downloads/batches', {
-        headers: { 'x-tenant-id': currentTenantId }
-      }).then(r => r.json());
+    async function postSelectedBatchCommissions(event) {
+      const btn = event ? event.target.closest('.btn') : null;
+      let originalText = '';
+      if (btn) {
+        originalText = btn.innerText;
+        btn.disabled = true;
+        btn.innerText = '⏳ Processing...';
+      }
 
-      if (Array.isArray(batches) && batches.length > 0) {
-        const unposted = batches.find(b => b.status !== 'Commissions Posted');
-        if (unposted) {
-          await postBatchCommissions(unposted.batchId);
+      try {
+        const batches = await fetch('/api/v1/downloads/batches', {
+          headers: { 'x-tenant-id': currentTenantId }
+        }).then(r => r.json());
+
+        if (Array.isArray(batches) && batches.length > 0) {
+          const unposted = batches.find(b => b.status !== 'Commissions Posted');
+          if (unposted) {
+            await postBatchCommissions(unposted.batchId);
+          } else {
+            alert('All carrier download batches have already posted commissions!');
+          }
         } else {
-          alert('All carrier download batches have already posted commissions!');
+          alert('No download batches available to post.');
         }
-      } else {
-        alert('No download batches available to post.');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerText = originalText;
+        }
       }
     }
 
