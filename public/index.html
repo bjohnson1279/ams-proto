@@ -969,8 +969,8 @@
               <td style="font-family: monospace; font-weight: 600; color: var(--accent-cyan);">${escapeHtml(a.accountNumber)}</td>
               <td style="font-weight: 600;">${escapeHtml(a.accountName)}</td>
               <td><span class="badge badge-core">${escapeHtml(a.category)}</span></td>
-              <td style="font-family: monospace; text-align: right;">${a.debitBalance ? '$' + a.debitBalance.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</td>
-              <td style="font-family: monospace; text-align: right;">${a.creditBalance ? '$' + a.creditBalance.toLocaleString('en-US', { minimumFractionDigits: 2 }) : '-'}</td>
+              <td style="font-family: monospace; text-align: right;">${a.debitBalance ? '$' + escapeHtml(a.debitBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })) : '-'}</td>
+              <td style="font-family: monospace; text-align: right;">${a.creditBalance ? '$' + escapeHtml(a.creditBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })) : '-'}</td>
             `;
             tbBody.appendChild(tr);
           });
@@ -984,9 +984,9 @@
             const tr = document.createElement('tr');
             tr.innerHTML = `
               <td style="font-family: monospace; font-weight: 600; color: #38bdf8;">${escapeHtml(inv.invoiceNumber)}</td>
-              <td style="font-family: monospace;">$${inv.grossPremium.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-              <td style="font-family: monospace; color: var(--accent-emerald);">$${inv.agencyCommissionAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-              <td style="font-family: monospace; color: var(--accent-rose);">$${inv.netCarrierPayable.toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+              <td style="font-family: monospace;">$${escapeHtml(inv.grossPremium.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
+              <td style="font-family: monospace; color: var(--accent-emerald);">$${escapeHtml(inv.agencyCommissionAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
+              <td style="font-family: monospace; color: var(--accent-rose);">$${escapeHtml(inv.netCarrierPayable.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
               <td><span class="badge badge-fmt-b">${escapeHtml(inv.status)}</span></td>
             `;
             invBody.appendChild(tr);
@@ -1506,9 +1506,9 @@
           <td style="font-family: monospace; font-weight: 700; color: var(--accent-cyan);">${escapeHtml(b.batchId)}</td>
           <td style="font-weight: 600;">${escapeHtml(b.carrierName)} (${escapeHtml(b.carrierCode)})</td>
           <td><span class="badge badge-fmt-d">${escapeHtml(b.source)}</span></td>
-          <td style="font-family: monospace; text-align: center;">${b.totalTransactions}</td>
-          <td style="font-family: monospace;">$${(b.totalPremium || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
-          <td style="font-family: monospace; color: var(--accent-emerald);">$${(b.totalCommission || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}</td>
+          <td style="font-family: monospace; text-align: center;">${escapeHtml(b.totalTransactions)}</td>
+          <td style="font-family: monospace;">$${escapeHtml((b.totalPremium || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
+          <td style="font-family: monospace; color: var(--accent-emerald);">$${escapeHtml((b.totalCommission || 0).toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
           <td>${statusBadge}</td>
           <td>
             ${b.status !== 'Commissions Posted' 
