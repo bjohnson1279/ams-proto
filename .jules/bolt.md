@@ -41,6 +41,9 @@
 **Learning:** In bulk operations calling an inner generator function inside a loop (e.g., bulkIssueCertificates calling generateCertificate), running O(H * (P + C)) database array scans per loop iteration causes severe CPU overhead.
 **Action:** Pre-fetch necessary resources (customer, policies, carrier maps) outside the bulk loop and pass them as an optional context parameter to the generator function to reduce complexity to O(P + C + H).
 
+## 2026-08-31 - Reduce O(N) array scans with single loop
+**Learning:** Found multiple distinct `.find()` operations in `generateCertificate` that iterated over the same `pol.coverages` array to extract different attributes (`eachOcc` and `genAgg`).
+**Action:** When evaluating arrays for multiple attributes, replace multiple distinct `.find()` operations with a single `for...of` loop with early breaks to reduce redundant O(N) array scans and CPU overhead.
 ## 2026-08-30 - Replace Multiple find() with Single Loop in Array Scans
 **Learning:** Found multiple `.find()` operations being used sequentially on an array to extract different attributes (like specific coverages within a policy object) inside a loop (`generateCertificate` in `src/services/certificate.service.ts`). Each `.find()` causes a separate O(N) pass over the array and often includes inline string allocations (e.g. `.toLowerCase()`) in the condition, creating significant CPU/memory overhead.
 **Action:** When evaluating an array for multiple attributes, replace multiple distinct `.find()` operations with a single `for...of` loop. Pre-compute inline string allocations (like `.toLowerCase()`) once per element within the loop body to reduce redundant O(N) array scans and garbage collection pressure.
