@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { CarrierDownloadService } from '../services/carrierDownload.service.js';
 import { Al3ParserService } from '../services/al3Parser.service.js';
 
@@ -9,7 +9,7 @@ export class DownloadController {
   /**
    * Parse raw AL3 file string / stream
    */
-  public parseAl3(req: Request, res: Response): void {
+  public parseAl3(req: Request, res: Response, next: NextFunction): void {
     try {
       const { rawContent } = req.body;
       if (!rawContent) {
@@ -20,27 +20,27 @@ export class DownloadController {
       const result = al3Parser.parseAl3Content(rawContent);
       res.json(result);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      next(err);
     }
   }
 
   /**
    * List download batches
    */
-  public getBatches(req: Request, res: Response): void {
+  public getBatches(req: Request, res: Response, next: NextFunction): void {
     try {
       const tenantId = (req as any).tenantId || 'tenant-001';
       const batches = downloadService.getBatches(tenantId);
       res.json(batches);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      next(err);
     }
   }
 
   /**
    * Get single batch by ID
    */
-  public getBatchById(req: Request, res: Response): void {
+  public getBatchById(req: Request, res: Response, next: NextFunction): void {
     try {
       const tenantId = (req as any).tenantId || 'tenant-001';
       const batch = downloadService.getBatchById(req.params.batchId, tenantId);
@@ -50,35 +50,35 @@ export class DownloadController {
       }
       res.json(batch);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      next(err);
     }
   }
 
   /**
    * Ingest a new download batch or raw AL3 package
    */
-  public ingestBatch(req: Request, res: Response): void {
+  public ingestBatch(req: Request, res: Response, next: NextFunction): void {
     try {
       const tenantId = (req as any).tenantId || 'tenant-001';
       const payload = req.body;
       const batch = downloadService.ingestDownloadBatch(payload, tenantId);
       res.status(201).json(batch);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      next(err);
     }
   }
 
   /**
    * Post direct-bill commissions to General Ledger
    */
-  public postCommissions(req: Request, res: Response): void {
+  public postCommissions(req: Request, res: Response, next: NextFunction): void {
     try {
       const tenantId = (req as any).tenantId || 'tenant-001';
       const { batchId } = req.params;
       const batch = downloadService.postBatchCommissions(batchId, tenantId);
       res.json(batch);
     } catch (err: any) {
-      res.status(500).json({ error: err.message });
+      next(err);
     }
   }
 }
