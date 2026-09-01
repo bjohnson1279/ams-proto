@@ -47,3 +47,7 @@
 ## 2026-08-30 - Replace Multiple find() with Single Loop in Array Scans
 **Learning:** Found multiple `.find()` operations being used sequentially on an array to extract different attributes (like specific coverages within a policy object) inside a loop (`generateCertificate` in `src/services/certificate.service.ts`). Each `.find()` causes a separate O(N) pass over the array and often includes inline string allocations (e.g. `.toLowerCase()`) in the condition, creating significant CPU/memory overhead.
 **Action:** When evaluating an array for multiple attributes, replace multiple distinct `.find()` operations with a single `for...of` loop. Pre-compute inline string allocations (like `.toLowerCase()`) once per element within the loop body to reduce redundant O(N) array scans and garbage collection pressure.
+
+## 2026-08-31 - Replace multiple find() with single loop in AL3 parser
+**Learning:** In the `parseAl3Content` method of `Al3ParserService`, the fallback parsing logic called `parts.find(...)` five separate times on the same array to extract different attributes, resulting in O(5N) operations and unnecessary string manipulation.
+**Action:** Replaced the multiple `.find()` calls with a single `for...of` loop over the array, reducing the complexity to O(N) and significantly improving the parsing efficiency of legacy AL3 string streams.

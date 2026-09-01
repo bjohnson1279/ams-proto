@@ -72,11 +72,27 @@ export class Al3ParserService {
         // Key-Value fallback or unknown line parsing
         if (line.includes('POLICY:')) {
           const parts = line.split(',');
-          const polNum = parts.find(p => p.startsWith('POLICY:'))?.split(':')[1] || 'POL-UNKNOWN';
-          const insName = parts.find(p => p.startsWith('INSURED:'))?.split(':')[1] || 'Unknown Insured';
-          const prem = parseFloat(parts.find(p => p.startsWith('PREMIUM:'))?.split(':')[1] || '0');
-          const lob = parts.find(p => p.startsWith('LOB:'))?.split(':')[1] || 'Commercial Auto';
-          const carrier = parts.find(p => p.startsWith('CARRIER:'))?.split(':')[1] || 'TRAVELERS';
+
+          // ⚡ Bolt: Replaced multiple .find() with a single loop to reduce redundant O(N) array scans.
+          let polNum = 'POL-UNKNOWN';
+          let insName = 'Unknown Insured';
+          let prem = 0;
+          let lob = 'Commercial Auto';
+          let carrier = 'TRAVELERS';
+
+          for (const p of parts) {
+            if (p.startsWith('POLICY:')) {
+              polNum = p.split(':')[1] || polNum;
+            } else if (p.startsWith('INSURED:')) {
+              insName = p.split(':')[1] || insName;
+            } else if (p.startsWith('PREMIUM:')) {
+              prem = parseFloat(p.split(':')[1] || '0');
+            } else if (p.startsWith('LOB:')) {
+              lob = p.split(':')[1] || lob;
+            } else if (p.startsWith('CARRIER:')) {
+              carrier = p.split(':')[1] || carrier;
+            }
+          }
 
           currentPolicy = {
             recordType: '2PRT',
