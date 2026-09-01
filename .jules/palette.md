@@ -1,3 +1,3 @@
-## 2024-08-30 - [Consistent Async Button Loading States]
-**Learning:** Vanilla JS implementation of disabled states and loading text replacement is effective but verbose, requiring robust `try/finally` blocks and event targeting to prevent permanently disabled buttons on fetch failures.
-**Action:** When adding async button loading states, ensure that prompt/dialog interruptions cancel out *before* the UI state changes, and always use `finally` to restore the button reference securely.
+## 2025-02-14 - [Actionable Empty States for Vanilla JS Tables]
+**Learning:** In vanilla JS table rendering (like `renderCertificatesTable` or `renderHoldersTable`), returning an empty table body when the dataset is empty leaves users without guidance.
+**Action:** Always implement a dedicated `if (array.length === 0)` block to inject an empty state `<tr>` containing a descriptive message and a call-to-action button (reusing existing modal/creation functions) before the `.forEach` loop. Ensure to `return` early to skip the loop.
