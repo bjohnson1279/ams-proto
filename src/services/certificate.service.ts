@@ -170,7 +170,6 @@ export class CertificateService {
       const letter = insurerSlot ? insurerSlot.letter : 'A';
 
       if (pol.lineOfBusiness === 'General Liability') {
-<<<<<<< HEAD
         // ⚡ Bolt: Replaced multiple O(N) array scans with a single O(N) loop
         let eachOcc = 1000000;
         let genAgg = 2000000;
@@ -188,21 +187,6 @@ export class CertificateService {
           }
         }
 
-=======
-        // ⚡ Bolt: Replaced multiple .find() with a single pass to prevent redundant O(N) array scans and inline string allocations
-        let eachOccLimit;
-        let genAggLimit;
-        for (const c of pol.coverages) {
-          const lowerName = c.name.toLowerCase();
-          if (eachOccLimit === undefined && (c.code.includes('OCCUR') || lowerName.includes('occurrence'))) eachOccLimit = c.limitAmount;
-          if (genAggLimit === undefined && (c.code.includes('AGG') || lowerName.includes('aggregate'))) genAggLimit = c.limitAmount;
-          if (eachOccLimit !== undefined && genAggLimit !== undefined) break;
-        }
-
-        const eachOcc = eachOccLimit || 1000000;
-        const genAgg = genAggLimit || 2000000;
-
->>>>>>> origin/main
         generalLiability = {
           insurerLetter: letter,
           commercialGeneralLiability: true,
