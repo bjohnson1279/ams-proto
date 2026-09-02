@@ -51,3 +51,7 @@
 ## 2026-09-02 - Replace Multiple find() with Single Loop in AL3 Parsing
 **Learning:** Found multiple `.find()` operations being used sequentially on an array to extract different attributes (like specific keys from AL3 parsing parts) inside a loop (`parseAl3Content` in `src/services/al3Parser.service.ts`). Each `.find()` causes a separate O(N) pass over the array, creating CPU overhead when processing large payloads.
 **Action:** When evaluating an array for multiple attributes, replace multiple distinct `.find()` operations with a single `for...of` loop with inline checks to prevent redundant O(N) array scans and garbage collection pressure.
+
+## 2026-09-08 - Consolidate Multiple Array Reduces
+**Learning:** Found multiple `.reduce()` operations being used sequentially on the same array to calculate distinct aggregates (like `totalPremium` and `totalCommission` in `src/services/carrierDownload.service.ts`). Each `.reduce()` causes a separate O(N) pass over the array, creating unnecessary iteration overhead for large datasets.
+**Action:** When calculating multiple aggregates over the same array, combine them into a single `for...of` loop to calculate all metrics in one O(N) pass and prevent redundant array iterations.
