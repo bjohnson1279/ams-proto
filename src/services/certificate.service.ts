@@ -182,6 +182,7 @@ export class CertificateService {
 
         const eachOcc = eachOccLimit || 1000000;
         const genAgg = genAggLimit || 2000000;
+
         generalLiability = {
           insurerLetter: letter,
           commercialGeneralLiability: true,
