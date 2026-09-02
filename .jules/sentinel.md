@@ -12,3 +12,13 @@
 **Vulnerability:** The `DownloadController` caught exceptions in a `try...catch` block and returned the raw `err.message` in 500 responses (`res.status(500).json({ error: err.message })`), which can expose sensitive internal system details to API clients.
 **Learning:** Returning raw error messages directly to clients circumvents the global error handler, potentially leaking stack traces or internal mechanics (e.g. database schema details or file paths).
 **Prevention:** In Express controllers, always pass caught errors to the `next()` middleware (e.g., `next(err)`) instead of returning raw `err.message` in 500 responses. This ensures errors are handled centrally, where details can be sanitized for production environments.
+
+## 2024-05-21 - [Prevent stack trace leakage in fail-open configuration]
+**Vulnerability:** The global error handler in `src/middleware/errorHandler.ts` was modified to expose the stack trace for all environments *except* 'production' (`stack: isProduction ? undefined : err.stack`). This fail-open approach risks leaking sensitive stack trace details if `NODE_ENV` is unset, misspelled (e.g., 'prod'), or set to a non-production intermediate environment.
+**Learning:** Security controls related to information exposure must default to deny (fail-safe). Stack traces should only be exposed when an environment is explicitly recognized as safe for debugging (e.g., 'development').
+**Prevention:** Always use an allow-list approach for exposing sensitive debugging information. Restore the condition to `process.env.NODE_ENV === 'development' ? err.stack : undefined` to ensure stack traces are safely hidden by default.
+
+## 2024-05-22 - [Preserve observability while sanitizing error messages]
+**Vulnerability:** Sanitizing `err.message` in the global error handler *before* logging it to the console (or external logging service) masks the true underlying error from developers, severely degrading production observability.
+**Learning:** While it is critical to sanitize the error payload sent in the HTTP response to the client, the original error object must remain intact when passed to logging functions to ensure developers can diagnose issues.
+**Prevention:** Perform sanitization logic only on the variables passed into the `res.json()` payload construction, and ensure `console.error(..., err)` happens with the original, unmodified error object.
