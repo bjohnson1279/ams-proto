@@ -102,8 +102,14 @@ export class CarrierDownloadService {
     // Run Auto-Reconciliation Engine against CoreAMS policies
     this.reconcileItems(items);
 
-    const totalPremium = items.reduce((acc, i) => acc + i.grossPremium, 0);
-    const totalCommission = items.reduce((acc, i) => acc + i.commissionAmount, 0);
+    // ⚡ Bolt: Combined sequential .reduce() loops into a single for...of loop
+    // to calculate both totalPremium and totalCommission in one O(N) pass, avoiding redundant iterations.
+    let totalPremium = 0;
+    let totalCommission = 0;
+    for (const item of items) {
+      totalPremium += item.grossPremium;
+      totalCommission += item.commissionAmount;
+    }
 
     const batch: DownloadBatch = {
       batchId,
