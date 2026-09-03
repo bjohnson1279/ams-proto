@@ -55,3 +55,7 @@
 ## 2026-09-08 - Consolidate Multiple Array Reduces
 **Learning:** Found multiple `.reduce()` operations being used sequentially on the same array to calculate distinct aggregates (like `totalPremium` and `totalCommission` in `src/services/carrierDownload.service.ts`). Each `.reduce()` causes a separate O(N) pass over the array, creating unnecessary iteration overhead for large datasets.
 **Action:** When calculating multiple aggregates over the same array, combine them into a single `for...of` loop to calculate all metrics in one O(N) pass and prevent redundant array iterations.
+
+## 2026-09-03 - Consolidate Multiple find() array scans into a single loop
+**Learning:** Found multiple distinct `.find()` lookups operating on the same array to fetch different elements (like fetching 5 separate accounts from `this.accounts` in `getFinancialSummary`). Each `.find()` triggered a separate O(N) array scan, degrading performance to O(5*N).
+**Action:** When evaluating an array to find multiple distinct matching elements, replace multiple `.find()` operations with a single `for...of` loop to locate all target elements in one O(N) pass, maintaining `.find()` early-exit behavior by tracking a found count and breaking.

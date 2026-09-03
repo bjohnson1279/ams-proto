@@ -310,11 +310,19 @@ export class AccountingService {
 
     const isBalanced = Math.abs(totalDebits - totalCredits) < 0.01;
 
-    const arAcct = this.getAccountByNumber('1200');
-    const apAcct = this.getAccountByNumber('2000');
-    const opCashAcct = this.getAccountByNumber('1000');
-    const trustCashAcct = this.getAccountByNumber('1010');
-    const revAcct = this.getAccountByNumber('4000');
+    // ⚡ Bolt: Replaced multiple distinct .find() lookups with a single for...of loop to prevent redundant O(N) array scans.
+    // Preserves .find() behavior by breaking early when all targets are matched.
+    let arAcct, apAcct, opCashAcct, trustCashAcct, revAcct;
+    let foundCount = 0;
+    for (const acct of this.accounts) {
+      if (!arAcct && acct.accountNumber === '1200') { arAcct = acct; foundCount++; }
+      else if (!apAcct && acct.accountNumber === '2000') { apAcct = acct; foundCount++; }
+      else if (!opCashAcct && acct.accountNumber === '1000') { opCashAcct = acct; foundCount++; }
+      else if (!trustCashAcct && acct.accountNumber === '1010') { trustCashAcct = acct; foundCount++; }
+      else if (!revAcct && acct.accountNumber === '4000') { revAcct = acct; foundCount++; }
+
+      if (foundCount === 5) break;
+    }
 
     return {
       trialBalance,
