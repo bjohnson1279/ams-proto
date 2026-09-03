@@ -19,7 +19,20 @@ app.use(
     contentSecurityPolicy: false, // Allows embedded UI fonts and styles
   })
 );
-app.use(cors());
+
+// 🛡️ Sentinel: Fix overly permissive CORS configuration to prevent unauthorized cross-origin requests
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',')
+  : ['http://localhost:3000'];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  })
+);
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 

@@ -22,3 +22,8 @@
 **Vulnerability:** Sanitizing `err.message` in the global error handler *before* logging it to the console (or external logging service) masks the true underlying error from developers, severely degrading production observability.
 **Learning:** While it is critical to sanitize the error payload sent in the HTTP response to the client, the original error object must remain intact when passed to logging functions to ensure developers can diagnose issues.
 **Prevention:** Perform sanitization logic only on the variables passed into the `res.json()` payload construction, and ensure `console.error(..., err)` happens with the original, unmodified error object.
+
+## 2024-05-23 - [Fix overly permissive CORS configuration]
+**Vulnerability:** The application was configured with `app.use(cors())` which by default allows cross-origin requests from any origin (`*`), leading to potential unwanted data exposure or CSRF-like risks.
+**Learning:** Default configuration for security middlewares like `cors` is often overly permissive for real-world applications. Express's default `cors()` without options allows all origins, which should be explicitly constrained.
+**Prevention:** Always define an explicit options object for `cors()` specifying an allowlist of allowed origins (e.g., pulling from environment variables like `CORS_ORIGIN` with a safe local fallback), alongside restricted HTTP methods and allowed headers to enforce the principle of least privilege.
