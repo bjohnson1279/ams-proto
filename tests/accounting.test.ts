@@ -1,4 +1,5 @@
 import request from 'supertest';
+import { jest } from '@jest/globals';
 import app from '../src/app.js';
 import { AccountingService } from '../src/services/accounting.service.js';
 
@@ -61,6 +62,31 @@ describe('Accounting & General Ledger Module (/api/v1/accounting)', () => {
     expect(res.status).toBe(400);
     expect(res.body.success).toBe(false);
     expect(res.body.error).toContain('Unbalanced Journal Entry');
+  });
+
+  it('POST /api/v1/accounting/journal-entries should handle errors from service', async () => {
+    const mockPostJournalEntry = jest.spyOn(AccountingService.prototype, 'postJournalEntry').mockImplementation(() => {
+      throw new Error('Test error from service');
+    });
+
+    const payload = {
+      reference: 'TEST-001',
+      memo: 'Test',
+      lines: [
+        { accountNumber: '1000', description: 'Test', debit: 0, credit: 100 },
+        { accountNumber: '1010', description: 'Test', debit: 100, credit: 0 }
+      ]
+    };
+
+    const res = await request(app)
+      .post('/api/v1/accounting/journal-entries')
+      .send(payload);
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.error).toBe('Test error from service');
+
+    mockPostJournalEntry.mockRestore();
   });
 
   it('GET /api/v1/accounting/invoices should return list of invoices', async () => {
