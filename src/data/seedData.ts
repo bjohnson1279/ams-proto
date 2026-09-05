@@ -1,4 +1,5 @@
-import { Customer, Carrier, Policy, Claim, CertificateHolder, CertificateOfInsurance } from '../types/domain.js';
+import { Customer, Carrier, Policy, Claim, CertificateHolder, CertificateOfInsurance, GlAccount, JournalEntry } from '../types/domain.js';
+import { DownloadBatch } from '../types/download.js';
 
 export const INITIAL_CARRIERS: Carrier[] = [
   {
@@ -201,6 +202,21 @@ export const INITIAL_POLICIES: Policy[] = [
     ],
     createdAt: '2025-06-15T09:00:00Z',
     updatedAt: '2025-06-15T09:00:00Z'
+  },
+  {
+    policyId: 'POL-COMM-1001',
+    policyNumber: 'POL-COMM-1001',
+    customerId: 'CUST-1001',
+    carrierId: 'CARRIER-001',
+    lineOfBusiness: 'Commercial Auto',
+    effectiveDate: '2025-08-01',
+    expirationDate: '2026-08-01',
+    status: 'Active',
+    premiumAmount: 12500.00,
+    billingType: 'Direct Bill',
+    coverages: [],
+    createdAt: '2025-08-01T00:00:00Z',
+    updatedAt: '2025-08-01T00:00:00Z'
   }
 ];
 
@@ -355,6 +371,108 @@ export const INITIAL_CERTIFICATES: CertificateOfInsurance[] = [
     authorizedRepresentative: 'Sarah Jenkins, CIC',
     createdAt: '2026-02-15T10:00:00Z',
     updatedAt: '2026-02-15T10:00:00Z'
+  }
+];
+
+export const DEFAULT_CHART_OF_ACCOUNTS: GlAccount[] = [
+  { accountNumber: '1000', accountName: 'Cash - Operating Account', category: 'Asset', isTrustAccount: false, normalBalance: 'Debit', currentBalance: 125000.00 },
+  { accountNumber: '1010', accountName: 'Cash - Premium Fiduciary Trust Account', category: 'Asset', isTrustAccount: true, normalBalance: 'Debit', currentBalance: 45000.00 },
+  { accountNumber: '1200', accountName: 'Accounts Receivable - Agency Bill', category: 'Asset', isTrustAccount: false, normalBalance: 'Debit', currentBalance: 18500.00 },
+  { accountNumber: '1300', accountName: 'Commission Receivable - Direct Bill', category: 'Asset', isTrustAccount: false, normalBalance: 'Debit', currentBalance: 3200.00 },
+  { accountNumber: '2000', accountName: 'Accounts Payable - Carrier Premiums Due', category: 'Liability', isTrustAccount: true, normalBalance: 'Credit', currentBalance: 38250.00 },
+  { accountNumber: '3000', accountName: 'Retained Earnings / Agency Equity', category: 'Equity', isTrustAccount: false, normalBalance: 'Credit', currentBalance: 128450.00 },
+  { accountNumber: '4000', accountName: 'Agency Commission Revenue', category: 'Revenue', isTrustAccount: false, normalBalance: 'Credit', currentBalance: 25000.00 },
+  { accountNumber: '5000', accountName: 'Producer Commission Expense', category: 'Expense', isTrustAccount: false, normalBalance: 'Debit', currentBalance: 0.00 }
+];
+
+export const INITIAL_JOURNAL_ENTRIES: JournalEntry[] = [
+  {
+    entryId: 'JE-SEED-001',
+    entryDate: '2026-01-01',
+    reference: 'OPENING-BALANCE',
+    memo: 'Initial Chart of Accounts Trial Balance Opening Entry',
+    lines: [
+      { accountNumber: '1000', description: 'Opening Operating Cash', debit: 125000.00, credit: 0 },
+      { accountNumber: '1010', description: 'Opening Fiduciary Trust Cash', debit: 45000.00, credit: 0 },
+      { accountNumber: '1200', description: 'Opening Accounts Receivable', debit: 18500.00, credit: 0 },
+      { accountNumber: '1300', description: 'Opening Direct Bill Comm Rec', debit: 3200.00, credit: 0 },
+      { accountNumber: '2000', description: 'Opening Carrier Payables', debit: 0, credit: 38250.00 },
+      { accountNumber: '3000', description: 'Opening Agency Equity', debit: 0, credit: 128450.00 },
+      { accountNumber: '4000', description: 'Opening YTD Commission Revenue', debit: 0, credit: 25000.00 }
+    ],
+    createdAt: '2026-01-01T00:00:00.000Z'
+  }
+];
+
+export const INITIAL_DOWNLOAD_BATCHES: DownloadBatch[] = [
+  {
+    batchId: 'BATCH-DL-SEED-001',
+    tenantId: 'tenant-001',
+    carrierCode: 'TRV01',
+    carrierName: 'Travelers Insurance',
+    source: 'IVANS Exchange',
+    receivedAt: '2026-01-01T00:00:00.000Z',
+    totalTransactions: 3,
+    totalPremium: 37100,
+    totalCommission: 5079,
+    status: 'Reconciled',
+    reconciledAt: '2026-01-01T00:00:00.000Z',
+    items: [
+      {
+        itemId: 'DL-ITEM-SEED-1',
+        batchId: 'BATCH-DL-SEED-001',
+        carrierCode: 'TRV01',
+        carrierName: 'Travelers Insurance',
+        policyNumber: 'POL-COMM-1001',
+        insuredName: 'Acme Logistics LLC',
+        insuredFeinOrSsn: '36-9876543',
+        lineOfBusiness: 'Commercial Auto',
+        transactionType: 'RENE',
+        effectiveDate: '2026-01-01',
+        grossPremium: 12500,
+        commissionRate: 0.15,
+        commissionAmount: 1875,
+        netCarrierPayable: 10625,
+        reconciliationStatus: 'Policy Renewed',
+        createdAt: '2026-01-01T00:00:00.000Z'
+      },
+      {
+        itemId: 'DL-ITEM-SEED-2',
+        batchId: 'BATCH-DL-SEED-001',
+        carrierCode: 'TRV01',
+        carrierName: 'Travelers Insurance',
+        policyNumber: 'POL-COMM-1002',
+        insuredName: 'Midwest Industrial Supplies',
+        insuredFeinOrSsn: '36-1122334',
+        lineOfBusiness: 'General Liability',
+        transactionType: 'DBST',
+        effectiveDate: '2026-01-01',
+        grossPremium: 8400,
+        commissionRate: 0.15,
+        commissionAmount: 1260,
+        netCarrierPayable: 7140,
+        reconciliationStatus: 'Policy Renewed',
+        createdAt: '2026-01-01T00:00:00.000Z'
+      },
+      {
+        itemId: 'DL-ITEM-SEED-3',
+        batchId: 'BATCH-DL-SEED-001',
+        carrierCode: 'TRV01',
+        carrierName: 'Travelers Insurance',
+        policyNumber: 'POL-NEW-9044',
+        insuredName: 'Apex Transport Group',
+        insuredFeinOrSsn: '36-7788990',
+        lineOfBusiness: 'Workers Compensation',
+        transactionType: 'NEWB',
+        effectiveDate: '2026-01-01',
+        grossPremium: 16200,
+        commissionRate: 0.12,
+        commissionAmount: 1944,
+        netCarrierPayable: 14256,
+        reconciliationStatus: 'New Policy Created',
+        createdAt: '2026-01-01T00:00:00.000Z'
+      }
+    ]
   }
 ];
 

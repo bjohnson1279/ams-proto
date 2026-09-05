@@ -7,14 +7,27 @@ import {
   Customer, Policy, Carrier, CertificateHolder, CertificateOfInsurance,
   GlAccount, JournalEntry, Invoice, Payment, FinancialSummary
 } from '../types/domain.js';
-import { INITIAL_CUSTOMERS, INITIAL_POLICIES, INITIAL_CARRIERS, INITIAL_CERTIFICATE_HOLDERS, INITIAL_CERTIFICATES } from '../data/seedData.js';
+import {
+  INITIAL_CUSTOMERS, INITIAL_POLICIES, INITIAL_CARRIERS,
+  INITIAL_CERTIFICATE_HOLDERS, INITIAL_CERTIFICATES,
+  DEFAULT_CHART_OF_ACCOUNTS, INITIAL_JOURNAL_ENTRIES, INITIAL_DOWNLOAD_BATCHES
+} from '../data/seedData.js';
 import { randomUUID } from 'crypto';
 
 export class MemoryCustomerRepository implements ICustomerRepository {
   private customers = [...INITIAL_CUSTOMERS];
 
   async getAll(tenantId: string, filter?: any): Promise<Customer[]> {
-    return Promise.resolve(this.customers);
+    if (!filter || !filter.name) {
+      return Promise.resolve([...this.customers]);
+    }
+    const q = filter.name.toLowerCase();
+    return Promise.resolve(this.customers.filter(c => {
+      const fullIndName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
+      const busName = (c.businessName || '').toLowerCase();
+      const dba = (c.dba || '').toLowerCase();
+      return fullIndName.includes(q) || busName.includes(q) || dba.includes(q);
+    }));
   }
 
   async getById(tenantId: string, id: string): Promise<Customer | null> {
@@ -33,7 +46,18 @@ export class MemoryPolicyRepository implements IPolicyRepository {
   private policies = [...INITIAL_POLICIES];
 
   async getAll(tenantId: string, filter?: any): Promise<Policy[]> {
-    return Promise.resolve(this.policies);
+    if (!filter || (!filter.customerId && !filter.carrierId && !filter.status && !filter.effectiveDate)) {
+      return Promise.resolve([...this.policies]);
+    }
+    const st = filter.status?.toLowerCase();
+    const targetDate = filter.effectiveDate;
+    return Promise.resolve(this.policies.filter(p => {
+      if (filter.customerId && p.customerId !== filter.customerId) return false;
+      if (filter.carrierId && p.carrierId !== filter.carrierId) return false;
+      if (st && p.status.toLowerCase() !== st) return false;
+      if (targetDate && p.effectiveDate < targetDate) return false;
+      return true;
+    }));
   }
 
   async getById(tenantId: string, id: string): Promise<Policy | null> {
@@ -125,57 +149,129 @@ export class MemoryCertificateRepository implements ICertificateRepository {
 }
 
 export class MemoryAccountingRepository implements IAccountingRepository {
-  private accounts: GlAccount[] = [];
-  private journalEntries: JournalEntry[] = [];
+  private accounts: GlAccount[] = DEFAULT_CHART_OF_ACCOUNTS.map(a => ({ ...a }));
+  private journalEntries: JournalEntry[] = INITIAL_JOURNAL_ENTRIES.map(je => ({
+    ...je,
+    lines: je.lines.map(l => ({ ...l }))
+  }));
   private invoices: Invoice[] = [];
   private payments: Payment[] = [];
 
   async getAccounts(tenantId: string): Promise<GlAccount[]> { return Promise.resolve(this.accounts); }
   async getJournalEntries(tenantId: string): Promise<JournalEntry[]> { return Promise.resolve(this.journalEntries); }
+
   async createJournalEntry(tenantId: string, entry: Partial<JournalEntry>): Promise<JournalEntry> {
-    const je = { ...entry, entryId: entry.entryId || randomUUID() } as JournalEntry;
+    const je = { ...entry, entryId: entry.entryId || randomUUID(), tenantId } as JournalEntry;
     this.journalEntries.push(je);
+
+    // Update account balances based on debits and credits
+    if (je.lines) {
+      for (const line of je.lines) {
+        const acct = this.accounts.find(a => a.accountNumber === line.accountNumber);
+        if (acct) {
+          const netChange = (line.debit || 0) - (line.credit || 0);
+          if (acct.normalBalance === 'Debit') {
+            acct.currentBalance += netChange;
+          } else {
+            acct.currentBalance += ((line.credit || 0) - (line.debit || 0));
+          }
+        }
+      }
+    }
+
     return Promise.resolve(je);
   }
+
   async getInvoices(tenantId: string): Promise<Invoice[]> { return Promise.resolve(this.invoices); }
+
   async createInvoice(tenantId: string, invoice: Partial<Invoice>): Promise<Invoice> {
-    const inv = { ...invoice, invoiceId: invoice.invoiceId || randomUUID() } as Invoice;
+    const inv = { ...invoice, invoiceId: invoice.invoiceId || randomUUID(), tenantId } as Invoice;
     this.invoices.push(inv);
     return Promise.resolve(inv);
   }
+
   async getPayments(tenantId: string): Promise<Payment[]> { return Promise.resolve(this.payments); }
+
   async createPayment(tenantId: string, payment: Partial<Payment>): Promise<Payment> {
-    const pmt = { ...payment, paymentId: payment.paymentId || randomUUID() } as Payment;
+    const pmt = { ...payment, paymentId: payment.paymentId || randomUUID(), tenantId } as Payment;
     this.payments.push(pmt);
     return Promise.resolve(pmt);
   }
+
   async getFinancialSummary(tenantId: string): Promise<FinancialSummary> {
+    let totalDebits = 0;
+    let totalCredits = 0;
+
+    const trialBalance = this.accounts.map(acct => {
+      let debitBalance = 0;
+      let creditBalance = 0;
+
+      if (acct.normalBalance === 'Debit') {
+        debitBalance = Math.max(0, acct.currentBalance);
+        creditBalance = acct.currentBalance < 0 ? Math.abs(acct.currentBalance) : 0;
+      } else {
+        creditBalance = Math.max(0, acct.currentBalance);
+        debitBalance = acct.currentBalance < 0 ? Math.abs(acct.currentBalance) : 0;
+      }
+
+      totalDebits += debitBalance;
+      totalCredits += creditBalance;
+
+      return {
+        accountNumber: acct.accountNumber,
+        accountName: acct.accountName,
+        category: acct.category,
+        debitBalance: Math.round(debitBalance * 100) / 100,
+        creditBalance: Math.round(creditBalance * 100) / 100
+      };
+    });
+
+    const isBalanced = Math.abs(totalDebits - totalCredits) < 0.01;
+
+    const arAcct = this.accounts.find(a => a.accountNumber === '1200');
+    const apAcct = this.accounts.find(a => a.accountNumber === '2000');
+    const opCashAcct = this.accounts.find(a => a.accountNumber === '1000');
+    const trustCashAcct = this.accounts.find(a => a.accountNumber === '1010');
+    const revAcct = this.accounts.find(a => a.accountNumber === '4000');
+
     return Promise.resolve({
-      trialBalance: [],
-      totalDebits: 0,
-      totalCredits: 0,
-      isBalanced: true,
+      trialBalance,
+      totalDebits: Math.round(totalDebits * 100) / 100,
+      totalCredits: Math.round(totalCredits * 100) / 100,
+      isBalanced,
       metrics: {
-        totalAccountsReceivable: 0,
-        totalCarrierPayables: 0,
-        operatingCashBalance: 0,
-        trustCashBalance: 0,
-        ytdCommissionRevenue: 0
+        totalAccountsReceivable: arAcct ? arAcct.currentBalance : 0,
+        totalCarrierPayables: apAcct ? apAcct.currentBalance : 0,
+        operatingCashBalance: opCashAcct ? opCashAcct.currentBalance : 0,
+        trustCashBalance: trustCashAcct ? trustCashAcct.currentBalance : 0,
+        ytdCommissionRevenue: revAcct ? revAcct.currentBalance : 0
       }
     });
   }
 }
 
 export class MemoryDownloadRepository implements IDownloadRepository {
-  private batches: any[] = [];
+  private batches: any[] = INITIAL_DOWNLOAD_BATCHES.map(b => ({
+    ...b,
+    items: b.items ? b.items.map(i => ({ ...i })) : []
+  }));
   private txs: any[] = [];
 
-  async getBatches(tenantId: string): Promise<any[]> { return Promise.resolve(this.batches); }
-  async getBatchById(tenantId: string, id: string): Promise<any | null> { return Promise.resolve(this.batches.find(b => b.batchId === id) || null); }
+  async getBatches(tenantId: string): Promise<any[]> {
+    return Promise.resolve(this.batches.filter(b => !b.tenantId || b.tenantId === tenantId));
+  }
+
+  async getBatchById(tenantId: string, id: string): Promise<any | null> {
+    return Promise.resolve(this.batches.find(b => b.batchId === id && (!b.tenantId || b.tenantId === tenantId)) || null);
+  }
+
   async createBatch(tenantId: string, batch: any): Promise<any> {
-    const b = { ...batch, batchId: batch.batchId || randomUUID() };
+    const b = { ...batch, batchId: batch.batchId || randomUUID(), tenantId };
     this.batches.push(b);
     return Promise.resolve(b);
   }
-  async getTransactions(tenantId: string, batchId: string): Promise<any[]> { return Promise.resolve(this.txs.filter(t => t.batchId === batchId)); }
+
+  async getTransactions(tenantId: string, batchId: string): Promise<any[]> {
+    return Promise.resolve(this.txs.filter(t => t.batchId === batchId));
+  }
 }

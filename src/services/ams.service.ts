@@ -30,10 +30,20 @@ export class AmsService {
 
   // CUSTOMER OPERATIONS
   public async getCustomers(tenantId: string, filter?: { name?: string; policyNumber?: string }): Promise<Customer[]> {
-    const filters: any = {};
-    if (filter?.name) filters.name = filter.name;
-    if (filter?.policyNumber) filters.policyNumber = filter.policyNumber;
-    return this.repos.customers.getAll(tenantId, filters);
+    let customers = await this.repos.customers.getAll(tenantId, filter);
+
+    if (filter?.policyNumber) {
+      const pNum = filter.policyNumber.toLowerCase();
+      const allPolicies = await this.repos.policies.getAll(tenantId);
+      const matchingPolicies = allPolicies.filter(p =>
+        (p.policyNumber && p.policyNumber.toLowerCase().includes(pNum)) ||
+        (p.policyId && p.policyId.toLowerCase().includes(pNum))
+      );
+      const customerIdsWithPolicy = new Set(matchingPolicies.map(p => p.customerId));
+      customers = customers.filter(c => customerIdsWithPolicy.has(c.customerId));
+    }
+
+    return customers;
   }
 
   public async getCustomerById(tenantId: string, customerId: string): Promise<Customer | undefined> {
