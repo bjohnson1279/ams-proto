@@ -1,5 +1,5 @@
-import pg from 'pg';
-const { Pool } = pg;
+import * as pg from 'pg';
+const { Pool } = pg.default ? pg.default : pg;
 
 let pool: pg.Pool | null = null;
 

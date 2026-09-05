@@ -133,7 +133,7 @@ export class MemoryCertificateRepository implements ICertificateRepository {
       return Promise.resolve([...this.certs]);
     }
     return Promise.resolve(this.certs.filter(c => {
-      if (filter.customerId && c.customerId !== filter.customerId) return false;
+      if (filter.customerId && c.insured?.customerId !== filter.customerId) return false;
       if (filter.status && c.status !== filter.status) return false;
       return true;
     }));
