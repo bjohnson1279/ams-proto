@@ -60,14 +60,10 @@ export class AccountingController {
         data: entry
       });
     } catch (err: any) {
-      if (err.message && err.message.includes('Unbalanced')) {
-        res.status(400).json({
-          success: false,
-          error: err.message
-        });
-        return;
-      }
-      next(err);
+      res.status(400).json({
+        success: false,
+        error: err.message || 'Failed to post Journal Entry'
+      });
     }
   };
 
