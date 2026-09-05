@@ -232,8 +232,71 @@ export class AccountingService {
     return this.repos.accounting.createPayment(tenantId, payment);
   }
 
+<<<<<<< HEAD
+  /**
+   * Generates full Trial Balance and key financial health metrics.
+   */
+  public getFinancialSummary(): FinancialSummary {
+    let totalDebits = 0;
+    let totalCredits = 0;
+
+    const trialBalance = this.accounts.map(acct => {
+      let debitBalance = 0;
+      let creditBalance = 0;
+
+      if (acct.normalBalance === 'Debit') {
+        debitBalance = Math.max(0, acct.currentBalance);
+        creditBalance = acct.currentBalance < 0 ? Math.abs(acct.currentBalance) : 0;
+      } else {
+        creditBalance = Math.max(0, acct.currentBalance);
+        debitBalance = acct.currentBalance < 0 ? Math.abs(acct.currentBalance) : 0;
+      }
+
+      totalDebits += debitBalance;
+      totalCredits += creditBalance;
+
+      return {
+        accountNumber: acct.accountNumber,
+        accountName: acct.accountName,
+        category: acct.category,
+        debitBalance: Math.round(debitBalance * 100) / 100,
+        creditBalance: Math.round(creditBalance * 100) / 100
+      };
+    });
+
+    const isBalanced = Math.abs(totalDebits - totalCredits) < 0.01;
+
+    // ⚡ Bolt: Replaced multiple distinct .find() lookups with a single for...of loop to prevent redundant O(N) array scans.
+    // Preserves .find() behavior by breaking early when all targets are matched.
+    let arAcct, apAcct, opCashAcct, trustCashAcct, revAcct;
+    let foundCount = 0;
+    for (const acct of this.accounts) {
+      if (!arAcct && acct.accountNumber === '1200') { arAcct = acct; foundCount++; }
+      else if (!apAcct && acct.accountNumber === '2000') { apAcct = acct; foundCount++; }
+      else if (!opCashAcct && acct.accountNumber === '1000') { opCashAcct = acct; foundCount++; }
+      else if (!trustCashAcct && acct.accountNumber === '1010') { trustCashAcct = acct; foundCount++; }
+      else if (!revAcct && acct.accountNumber === '4000') { revAcct = acct; foundCount++; }
+
+      if (foundCount === 5) break;
+    }
+
+    return {
+      trialBalance,
+      totalDebits: Math.round(totalDebits * 100) / 100,
+      totalCredits: Math.round(totalCredits * 100) / 100,
+      isBalanced,
+      metrics: {
+        totalAccountsReceivable: arAcct ? arAcct.currentBalance : 0,
+        totalCarrierPayables: apAcct ? apAcct.currentBalance : 0,
+        operatingCashBalance: opCashAcct ? opCashAcct.currentBalance : 0,
+        trustCashBalance: trustCashAcct ? trustCashAcct.currentBalance : 0,
+        ytdCommissionRevenue: revAcct ? revAcct.currentBalance : 0
+      }
+    };
+=======
   public async getFinancialSummary(tenantId: string): Promise<FinancialSummary> {
     return this.repos.accounting.getFinancialSummary(tenantId);
+>>>>>>> origin/main
   }
 
   public async getTrialBalance(tenantId: string): Promise<FinancialSummary> {
