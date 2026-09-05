@@ -23,6 +23,10 @@
 **Learning:** While it is critical to sanitize the error payload sent in the HTTP response to the client, the original error object must remain intact when passed to logging functions to ensure developers can diagnose issues.
 **Prevention:** Perform sanitization logic only on the variables passed into the `res.json()` payload construction, and ensure `console.error(..., err)` happens with the original, unmodified error object.
 
+## 2024-05-23 - [Fix overly permissive CORS configuration]
+**Vulnerability:** The application was configured with `app.use(cors())` which by default allows cross-origin requests from any origin (`*`), leading to potential unwanted data exposure or CSRF-like risks.
+**Learning:** Default configuration for security middlewares like `cors` is often overly permissive for real-world applications. Express's default `cors()` without options allows all origins, which should be explicitly constrained.
+**Prevention:** Always define an explicit options object for `cors()` specifying an allowlist of allowed origins (e.g., pulling from environment variables like `CORS_ORIGIN` with a safe local fallback), alongside restricted HTTP methods and allowed headers to enforce the principle of least privilege.
 ## 2024-05-23 - [Fix Overly Permissive CORS Configuration]
 **Vulnerability:** The Express backend was configured with a wildcard `cors()` middleware without options. This overly permissive setup allows requests from any origin, which is a significant risk for cross-origin request forgery (CSRF) and unauthorized data access in API endpoints.
 **Learning:** Defaulting to `cors()` without specifying origins effectively disables the same-origin policy enforcement by the browser for cross-origin requests.

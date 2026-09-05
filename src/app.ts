@@ -20,6 +20,22 @@ app.use(
   })
 );
 <<<<<<< HEAD
+
+// 🛡️ Sentinel: Fix overly permissive CORS configuration to prevent unauthorized cross-origin requests
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(',')
+  : ['http://localhost:3000'];
+
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  })
+);
+
+=======
+<<<<<<< HEAD
 // 🛡️ Sentinel: Restrict CORS origin to prevent unauthorized cross-origin requests
 const corsOptions = {
   origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
@@ -33,6 +49,7 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+>>>>>>> origin/main
 >>>>>>> origin/main
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
