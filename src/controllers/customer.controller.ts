@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { AmsService } from '../services/ams.service.js';
+import { TenantRequest } from '../middleware/tenant.middleware.js';
 
 export class CustomerController {
   private amsService: AmsService;
@@ -10,8 +11,9 @@ export class CustomerController {
 
   public getCustomers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
       const { name, policyNumber } = req.query;
-      const customers = this.amsService.getCustomers({
+      const customers = await this.amsService.getCustomers(tenantId, {
         name: typeof name === 'string' ? name : undefined,
         policyNumber: typeof policyNumber === 'string' ? policyNumber : undefined
       });
@@ -28,8 +30,9 @@ export class CustomerController {
 
   public getCustomerById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
       const { id } = req.params;
-      const customer = this.amsService.getCustomerById(id);
+      const customer = await this.amsService.getCustomerById(tenantId, id);
       if (!customer) {
         res.status(404).json({
           status: 'error',
@@ -49,6 +52,7 @@ export class CustomerController {
 
   public createCustomer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
+      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
       const payload = req.body;
       if (!payload || (!payload.businessName && !payload.lastName)) {
         res.status(400).json({
@@ -58,7 +62,7 @@ export class CustomerController {
         return;
       }
 
-      const created = this.amsService.createCustomer(payload);
+      const created = await this.amsService.createCustomer(tenantId, payload);
       res.status(201).json({
         status: 'success',
         message: 'Customer successfully registered in Core AMS.',

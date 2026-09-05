@@ -19,11 +19,11 @@ router.use('/downloads', downloadRoutes);
 
 
 // Additional helper endpoints for carrier and claim inspection
-router.get('/carriers', (req, res) => {
+router.get('/carriers', async (req, res) => {
   const amsService = AmsService.getInstance();
   res.json({
     status: 'success',
-    data: amsService.getCarriers()
+    data: await amsService.getCarriers((req as any).tenantId || 'tenant-001')
   });
 });
 
