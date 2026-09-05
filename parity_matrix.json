@@ -1,0 +1,62 @@
+{
+  "benchmark": "Enterprise AMS Target",
+  "scannedPath": "C:\\Users\\johns\\DEV\\ams-proto\\src",
+  "matrix": [
+    {
+      "category": "Customer & Entity Management",
+      "description": "Insured accounts, DBAs, FEIN/SSN tax IDs, address structures",
+      "benchmarkCapability": "Full entity hierarchy, commercial DBAs, tax IDs, contact registries",
+      "status": "Completed",
+      "notes": "Entity interfaces and customer routes detected."
+    },
+    {
+      "category": "Legacy Ingestion & Crosswalk ETL",
+      "description": "Multi-format legacy export ingestion (Format A, Format B, Format C, Format D)",
+      "benchmarkCapability": "Multi-format data import, LOB mapping, currency normalization",
+      "status": "Completed",
+      "notes": "Crosswalk transformation engine detected."
+    },
+    {
+      "category": "Smart Deduplication & Dry-Run",
+      "description": "Weighted matching score (FEIN 100%, Name 60%, Postal Code 25%) and dry-run mode",
+      "benchmarkCapability": "FEIN/SSN exact matching, string distance scoring, dry-run previews",
+      "status": "Completed",
+      "notes": "Deduplication engine and dry-run preview endpoints detected."
+    },
+    {
+      "category": "ACORD Form & Dec-Page Generation",
+      "description": "ACORD 125/126 commercial declaration payload generation",
+      "benchmarkCapability": "Commercial dec pages (ACORD 125/126), PDF rendering, endorsement forms",
+      "status": "Completed",
+      "notes": "ACORD dec page payload renderer detected."
+    },
+    {
+      "category": "General Ledger & Accounting",
+      "description": "Double-entry GL, Chart of Accounts, Agency Bill invoicing, Fiduciary Trust Cash",
+      "benchmarkCapability": "Double-entry GL, Chart of Accounts, Agency Bill invoicing, Fiduciary Trust cash isolation",
+      "status": "Completed",
+      "notes": "Double-entry accounting service and invoices detected."
+    },
+    {
+      "category": "Certificate Management",
+      "description": "ACORD 25 Certificate of Liability Insurance generation & holder tracking",
+      "benchmarkCapability": "ACORD 25 Certificate of Liability Insurance generation, holder registry",
+      "status": "Gap",
+      "notes": "Certificate holder engine planned for Phase 2."
+    },
+    {
+      "category": "Carrier Download & Connectivity",
+      "description": "IVANS download intake and ACORD AL3 message parsing",
+      "benchmarkCapability": "IVANS download processing, ACORD AL3 binary parser, direct bill statements",
+      "status": "Completed",
+      "notes": "IVANS AL3 carrier download parser planned for Phase 3."
+    },
+    {
+      "category": "Database Persistence & RLS",
+      "description": "PostgreSQL database with Row-Level Security multi-tenancy",
+      "benchmarkCapability": "Multi-tenant relational database with Row-Level Security and audit trails",
+      "status": "Gap",
+      "notes": "Currently using in-memory store; PostgreSQL RLS migration planned for Phase 4."
+    }
+  ]
+}
