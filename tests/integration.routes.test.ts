@@ -1,5 +1,7 @@
 import request from 'supertest';
+import { jest } from '@jest/globals';
 import app from '../src/app.js';
+import { AmsService } from '../src/services/ams.service.js';
 import formatAPayload from '../sample_payloads/format_a_payload.json';
 import formatBPayload from '../sample_payloads/format_b_payload.json';
 import formatCPayload from '../sample_payloads/format_c_payload.json';
@@ -83,6 +85,22 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
     expect(res.status).toBe(400);
     expect(res.body.status).toBe('error');
     expect(res.body.message).toContain('Missing "data" field');
+  });
+
+  it('POST /api/v1/integration/import should pass errors to next() middleware', async () => {
+    const spy = jest.spyOn(AmsService.prototype, 'importLegacyPayload').mockImplementationOnce(() => {
+      throw new Error('Test integration error');
+    });
+
+    const res = await request(app)
+      .post('/api/v1/integration/import')
+      .send(formatAPayload);
+
+    expect(res.status).toBe(500);
+    expect(res.body.status).toBe('error');
+    expect(res.body.message).toBe('Test integration error');
+
+    spy.mockRestore();
   });
 
   it('GET /api/v1/carriers should return pre-seeded carrier list', async () => {
