@@ -27,3 +27,7 @@
 **Vulnerability:** The Express backend was configured with a wildcard `cors()` middleware without options. This overly permissive setup allows requests from any origin, which is a significant risk for cross-origin request forgery (CSRF) and unauthorized data access in API endpoints.
 **Learning:** Defaulting to `cors()` without specifying origins effectively disables the same-origin policy enforcement by the browser for cross-origin requests.
 **Prevention:** Always restrict CORS origins to trusted domains (using environment variables like `process.env.CORS_ORIGIN` with a fallback) and explicitly specify allowed HTTP methods and headers to follow the principle of least privilege.
+## 2025-02-27 - [Overly Permissive CORS Configuration]
+**Vulnerability:** The application was configured with `app.use(cors())`, which defaults to allowing all origins (`*`), opening the API up to unauthorized cross-origin requests.
+**Learning:** Default configurations of security middleware like `cors` often prioritize ease of use over security, leading to overly permissive access controls.
+**Prevention:** Always explicitly configure `cors` with restricted `origin`, `methods`, and `allowedHeaders` appropriately scoped for the application's needs. Ensure fallback defaults are secure (e.g., `http://localhost:3000`).

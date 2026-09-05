@@ -1,0 +1,77 @@
+[
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "createdAt": "2026-09-01T15:35:40Z",
+    "labels": [],
+    "number": 53,
+    "title": "\ud83c\udfa8 Palette: Add Actionable Empty States to Certificates and Holders Tables",
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/53",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    }
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "createdAt": "2026-09-01T15:05:26Z",
+    "labels": [],
+    "number": 52,
+    "title": "\u26a1 Bolt: [performance improvement] Replace multiple find() with single loop in AL3 parser",
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/52",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    }
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "createdAt": "2026-09-01T13:39:14Z",
+    "labels": [],
+    "number": 51,
+    "title": "\ud83d\udee1\ufe0f Sentinel: [MEDIUM] Fix error handling info leak",
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/51",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    }
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "createdAt": "2026-08-31T12:29:33Z",
+    "labels": [],
+    "number": 50,
+    "title": "\ud83d\udee1\ufe0f Sentinel: [MEDIUM] Fix error information leakage in download controller",
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/50",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    }
+  },
+  {
+    "author": {
+      "is_bot": true,
+      "login": "app/google-labs-jules"
+    },
+    "createdAt": "2026-08-31T12:13:18Z",
+    "labels": [],
+    "number": 49,
+    "title": "\u26a1 Bolt: [performance improvement] Replace multiple find() with a single pass in AL3 parsing",
+    "url": "https://github.com/bjohnson1279/ams-proto/pull/49",
+    "repository": {
+      "nameWithOwner": "bjohnson1279/ams-proto",
+      "name": "ams-proto"
+    }
+  }
+]

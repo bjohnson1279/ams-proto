@@ -299,6 +299,7 @@ export interface CertificateHolder {
   deliveryPreference?: 'Email' | 'Mail' | 'Portal';
   createdAt: string;
   updatedAt: string;
+  deactivatedAt?: string;
 }
 
 export interface Acord25InsurerSlot {
@@ -431,6 +432,8 @@ export interface CertificateOfInsurance {
   authorizedRepresentative: string;
   createdAt: string;
   updatedAt: string;
+  revokedAt?: string;
+  revocationReason?: string;
 }
 
 export interface CreateCertificateRequest {
