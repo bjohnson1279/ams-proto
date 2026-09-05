@@ -26,10 +26,17 @@ export class PgAccountingRepository implements IAccountingRepository {
   async createJournalEntry(tenantId: string, entry: Partial<JournalEntry>): Promise<JournalEntry> {
     return withTenantTransaction(tenantId, async (client) => {
       const id = entry.entryId || randomUUID();
-      await client.query(`ALTER TABLE journal_entries ADD COLUMN IF NOT EXISTS lines JSONB`);
-      const linesJson = JSON.stringify(entry.lines || []);
-      const totalDebit = (entry.lines || []).reduce((sum, l) => sum + (l.debit || 0), 0);
-      const totalCredit = (entry.lines || []).reduce((sum, l) => sum + (l.credit || 0), 0);
+      // ⚡ Bolt: Removed ALTER TABLE DDL execution on every transaction insert to eliminate severe database bottleneck
+      const lines = entry.lines || [];
+      const linesJson = JSON.stringify(lines);
+
+      // ⚡ Bolt: Consolidated multiple array reduces into a single loop to prevent redundant O(N) array iterations
+      let totalDebit = 0;
+      let totalCredit = 0;
+      for (const l of lines) {
+        totalDebit += l.debit || 0;
+        totalCredit += l.credit || 0;
+      }
       
       const res = await client.query(
         `INSERT INTO journal_entries (entry_id, tenant_id, description, reference_id, source, total_debit, total_credit, lines)
