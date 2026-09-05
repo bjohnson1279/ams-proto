@@ -89,7 +89,12 @@ export class MemoryCertificateHolderRepository implements ICertificateHolderRepo
   private holders = [...INITIAL_CERTIFICATE_HOLDERS];
 
   async getAll(tenantId: string, filter?: any): Promise<CertificateHolder[]> {
-    return Promise.resolve(this.holders.filter(h => !h.deactivatedAt));
+    let holders = this.holders.filter(h => !h.deactivatedAt);
+    if (filter?.name) {
+      const q = filter.name.toLowerCase();
+      holders = holders.filter(h => h.name.toLowerCase().includes(q));
+    }
+    return Promise.resolve(holders);
   }
 
   async getById(tenantId: string, id: string): Promise<CertificateHolder | null> {
@@ -124,7 +129,14 @@ export class MemoryCertificateRepository implements ICertificateRepository {
   private certs = [...INITIAL_CERTIFICATES];
 
   async getAll(tenantId: string, filter?: any): Promise<CertificateOfInsurance[]> {
-    return Promise.resolve(this.certs);
+    if (!filter || (!filter.customerId && !filter.status)) {
+      return Promise.resolve([...this.certs]);
+    }
+    return Promise.resolve(this.certs.filter(c => {
+      if (filter.customerId && c.customerId !== filter.customerId) return false;
+      if (filter.status && c.status !== filter.status) return false;
+      return true;
+    }));
   }
 
   async getById(tenantId: string, id: string): Promise<CertificateOfInsurance | null> {
