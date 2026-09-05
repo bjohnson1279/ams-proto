@@ -1,0 +1,17 @@
+---
+services:
+  postgres:
+    image: postgres:16
+    container_name: ams-postgres-fallback
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_PORT: 5433  # Fallback port when 5432 is unavailable
+      PGDATA: /var/lib/postgresql/data
+      POSTGRES_USER: ams
+      POSTGRES_PASSWORD: secret123
+      POSTGRES_DB: ams
+    volumes:
+      - ../data:/var/lib/postgresql/data
+      - ../sql:/docker-entrypoint-dml
+      - ..../schema:/docker-entrypoint-schema

@@ -1,0 +1,141 @@
+[
+  {
+    "repository": "bjohnson1279/ams-proto",
+    "pr_number": 53,
+    "title": "\ud83c\udfa8 Palette: Add Actionable Empty States to Certificates and Holders Tables",
+    "author": "app/google-labs-jules",
+    "state": "OPEN",
+    "mergeable": "MERGEABLE",
+    "score": 65,
+    "tier": "Moderate Value (Safe to Merge)",
+    "recommendation": "MERGE",
+    "patterns": {
+      "complexity_optimizations": [],
+      "memory_optimizations": [
+        "Hoisted string case transformations out of innermost comparison loops"
+      ],
+      "security_improvements": [],
+      "accessibility_improvements": [],
+      "potential_risks": [],
+      "lines_added": 31,
+      "lines_deleted": 19
+    },
+    "files_changed": [
+      ".jules/palette.md",
+      "public/index.html",
+      "src/services/certificate.service.ts"
+    ]
+  },
+  {
+    "repository": "bjohnson1279/ams-proto",
+    "pr_number": 52,
+    "title": "\u26a1 Bolt: [performance improvement] Replace multiple find() with single loop in AL3 parser",
+    "author": "app/google-labs-jules",
+    "state": "OPEN",
+    "mergeable": "MERGEABLE",
+    "score": 65,
+    "tier": "Moderate Value (Safe to Merge)",
+    "recommendation": "MERGE",
+    "patterns": {
+      "complexity_optimizations": [],
+      "memory_optimizations": [
+        "Hoisted string case transformations out of innermost comparison loops"
+      ],
+      "security_improvements": [],
+      "accessibility_improvements": [],
+      "potential_risks": [],
+      "lines_added": 27,
+      "lines_deleted": 27
+    },
+    "files_changed": [
+      ".jules/bolt.md",
+      "src/services/al3Parser.service.ts",
+      "src/services/certificate.service.ts"
+    ]
+  },
+  {
+    "repository": "bjohnson1279/ams-proto",
+    "pr_number": 51,
+    "title": "\ud83d\udee1\ufe0f Sentinel: [MEDIUM] Fix error handling info leak",
+    "author": "app/google-labs-jules",
+    "state": "OPEN",
+    "mergeable": "MERGEABLE",
+    "score": 95,
+    "tier": "High Value (Merge Recommended)",
+    "recommendation": "MERGE",
+    "patterns": {
+      "complexity_optimizations": [],
+      "memory_optimizations": [
+        "Hoisted string case transformations out of innermost comparison loops"
+      ],
+      "security_improvements": [
+        "Added HTML/XSS entity escaping on dynamic template inputs"
+      ],
+      "accessibility_improvements": [],
+      "potential_risks": [],
+      "lines_added": 21,
+      "lines_deleted": 27
+    },
+    "files_changed": [
+      ".jules/sentinel.md",
+      "src/controllers/download.controller.ts",
+      "src/services/certificate.service.ts"
+    ]
+  },
+  {
+    "repository": "bjohnson1279/ams-proto",
+    "pr_number": 50,
+    "title": "\ud83d\udee1\ufe0f Sentinel: [MEDIUM] Fix error information leakage in download controller",
+    "author": "app/google-labs-jules",
+    "state": "OPEN",
+    "mergeable": "MERGEABLE",
+    "score": 95,
+    "tier": "High Value (Merge Recommended)",
+    "recommendation": "MERGE",
+    "patterns": {
+      "complexity_optimizations": [],
+      "memory_optimizations": [
+        "Hoisted string case transformations out of innermost comparison loops"
+      ],
+      "security_improvements": [
+        "Added HTML/XSS entity escaping on dynamic template inputs"
+      ],
+      "accessibility_improvements": [],
+      "potential_risks": [],
+      "lines_added": 16,
+      "lines_deleted": 31
+    },
+    "files_changed": [
+      ".jules/sentinel.md",
+      "src/controllers/download.controller.ts",
+      "src/services/certificate.service.ts"
+    ]
+  },
+  {
+    "repository": "bjohnson1279/ams-proto",
+    "pr_number": 49,
+    "title": "\u26a1 Bolt: [performance improvement] Replace multiple find() with a single pass in AL3 parsing",
+    "author": "app/google-labs-jules",
+    "state": "OPEN",
+    "mergeable": "MERGEABLE",
+    "score": 65,
+    "tier": "Moderate Value (Safe to Merge)",
+    "recommendation": "MERGE",
+    "patterns": {
+      "complexity_optimizations": [],
+      "memory_optimizations": [
+        "Hoisted string case transformations out of innermost comparison loops"
+      ],
+      "security_improvements": [],
+      "accessibility_improvements": [],
+      "potential_risks": [],
+      "lines_added": 19,
+      "lines_deleted": 26
+    },
+    "files_changed": [
+      ".jules/bolt.md",
+      "src/services/al3Parser.service.ts",
+      "src/services/certificate.service.ts"
+    ]
+  }
+]

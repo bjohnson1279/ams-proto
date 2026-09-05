@@ -21,7 +21,7 @@ export class IntegrationController {
         return;
       }
 
-      const crosswalkResult = this.amsService.importLegacyPayload(payload);
+      const crosswalkResult = await this.amsService.importLegacyPayload((req as any).tenantId || 'tenant-001', payload);
       const hasCriticalExceptions = crosswalkResult.exceptions.some(e => e.severity === 'CRITICAL');
 
       res.status(hasCriticalExceptions ? 207 : 200).json({
@@ -55,7 +55,7 @@ export class IntegrationController {
         return;
       }
 
-      const crosswalkResult = this.amsService.dryRunImport(payload);
+      const crosswalkResult = await this.amsService.dryRunImport((req as any).tenantId || 'tenant-001', payload);
       const hasCriticalExceptions = crosswalkResult.exceptions.some(e => e.severity === 'CRITICAL');
 
       res.status(hasCriticalExceptions ? 207 : 200).json({
@@ -80,7 +80,7 @@ export class IntegrationController {
 
   public getCrosswalkMatrix = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const matrix = this.amsService.getCrosswalkMatrix();
+      const matrix = await this.amsService.getCrosswalkMatrix((req as any).tenantId || 'tenant-001');
       res.status(200).json({
         status: 'success',
         count: matrix.length,

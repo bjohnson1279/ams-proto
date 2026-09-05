@@ -7,21 +7,21 @@ describe('CertificateService (ACORD 25 Engine)', () => {
     certService = CertificateService.getInstance();
   });
 
-  it('should list initial certificate holders', () => {
-    const holders = certService.getCertificateHolders();
+  it('should list initial certificate holders', async () => {
+    const holders = await certService.getCertificateHolders('tenant-001');
     expect(Array.isArray(holders)).toBe(true);
     expect(holders.length).toBeGreaterThanOrEqual(2);
     expect(holders[0].holderId).toBe('HOLDER-1001');
   });
 
-  it('should filter certificate holders by name', () => {
-    const results = certService.getCertificateHolders({ name: 'Chicago' });
+  it('should filter certificate holders by name', async () => {
+    const results = await certService.getCertificateHolders('tenant-001', { name: 'Chicago' });
     expect(results.length).toBeGreaterThanOrEqual(1);
     expect(results[0].name).toContain('Chicago');
   });
 
-  it('should create a new certificate holder', () => {
-    const newHolder = certService.createCertificateHolder({
+  it('should create a new certificate holder', async () => {
+    const newHolder = await certService.createCertificateHolder('tenant-001', {
       name: 'Metro Construction Authority',
       attention: 'Insurance Desk',
       address: {
@@ -38,8 +38,8 @@ describe('CertificateService (ACORD 25 Engine)', () => {
     expect(newHolder.name).toBe('Metro Construction Authority');
   });
 
-  it('should generate an ACORD 25 Certificate of Insurance', () => {
-    const cert = certService.generateCertificate({
+  it('should generate an ACORD 25 Certificate of Insurance', async () => {
+    const cert = await certService.generateCertificate('tenant-001', {
       customerId: 'CUST-1001',
       holderId: 'HOLDER-1001',
       policyIds: ['POL-GL-2026-002', 'POL-CA-2026-001'],
@@ -54,8 +54,8 @@ describe('CertificateService (ACORD 25 Engine)', () => {
     expect(cert.descriptionOfOperations).toContain('Special Project #9090');
   });
 
-  it('should bulk issue certificates to multiple holders', () => {
-    const issued = certService.bulkIssueCertificates({
+  it('should bulk issue certificates to multiple holders', async () => {
+    const issued = await certService.bulkIssueCertificates('tenant-001', {
       customerId: 'CUST-1001',
       holderIds: ['HOLDER-1001', 'HOLDER-1002'],
       policyIds: ['ALL'],
@@ -68,17 +68,15 @@ describe('CertificateService (ACORD 25 Engine)', () => {
     expect(issued[1].insured.customerId).toBe('CUST-1001');
   });
 
-  it('should render ACORD 25 HTML certificate view', () => {
-    const html = certService.renderAcord25Html('CERT-2026-001');
+  it('should render ACORD 25 HTML certificate view', async () => {
+    const html = await certService.renderAcord25Html('tenant-001', 'CERT-2026-001');
     expect(typeof html).toBe('string');
     expect(html).toContain('ACORD 25');
     expect(html).toContain('CERTIFICATE OF LIABILITY INSURANCE');
     expect(html).toContain('Chicago Commercial Properties LLC');
   });
 
-  it('should throw error when rendering non-existent certificate', () => {
-    expect(() => {
-      certService.renderAcord25Html('CERT-INVALID-999');
-    }).toThrow();
+  it('should throw error when rendering non-existent certificate', async () => {
+    await expect(certService.renderAcord25Html('tenant-001', 'CERT-INVALID-999')).rejects.toThrow();
   });
 });

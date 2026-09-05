@@ -5,14 +5,14 @@ describe('Carrier Download Processing Service', () => {
   const downloadService = CarrierDownloadService.getInstance();
   const accountingService = AccountingService.getInstance();
 
-  it('should list initial seed download batches', () => {
-    const batches = downloadService.getBatches('tenant-001');
+  it('should list initial seed download batches', async () => {
+    const batches = await downloadService.getBatches('tenant-001');
     expect(batches.length).toBeGreaterThan(0);
     expect(batches[0].carrierCode).toBe('TRV01');
   });
 
-  it('should ingest and auto-reconcile a download payload', () => {
-    const batch = downloadService.ingestDownloadBatch({
+  it('should ingest and auto-reconcile a download payload', async () => {
+    const batch = await downloadService.ingestDownloadBatch('tenant-001', {
       carrierCode: 'HART01',
       carrierName: 'The Hartford',
       source: 'IVANS Exchange',
@@ -28,7 +28,7 @@ describe('Carrier Download Processing Service', () => {
           commissionRate: 0.15
         }
       ]
-    }, 'tenant-001');
+    });
 
     expect(batch.batchId).toBeDefined();
     expect(batch.status).toBe('Reconciled');
@@ -37,8 +37,8 @@ describe('Carrier Download Processing Service', () => {
     expect(batch.items[0].commissionAmount).toBe(1500);
   });
 
-  it('should post direct-bill commissions to the General Ledger', () => {
-    const batch = downloadService.ingestDownloadBatch({
+  it('should post direct-bill commissions to the General Ledger', async () => {
+    const batch = await downloadService.ingestDownloadBatch('tenant-001', {
       carrierCode: 'TRV01',
       carrierName: 'Travelers Insurance',
       source: 'Direct Download',
@@ -53,16 +53,16 @@ describe('Carrier Download Processing Service', () => {
           commissionRate: 0.15
         }
       ]
-    }, 'tenant-001');
+    });
 
-    const updatedBatch = downloadService.postBatchCommissions(batch.batchId, 'tenant-001');
+    const updatedBatch = await downloadService.postBatchCommissions('tenant-001', batch.batchId);
     expect(updatedBatch.status).toBe('Commissions Posted');
     expect(updatedBatch.items[0].glJournalEntryId).toBeDefined();
 
     // Verify trial balance reflected cash receipt & commission revenue
-    const tb = accountingService.getTrialBalance('tenant-001');
-    const cashAcc = tb.trialBalance.find(a => a.accountNumber === '1000');
-    const revAcc = tb.trialBalance.find(a => a.accountNumber === '4000');
+    const tb = await accountingService.getTrialBalance('tenant-001');
+    const cashAcc = tb.trialBalance.find((a: any) => a.accountNumber === '1000');
+    const revAcc = tb.trialBalance.find((a: any) => a.accountNumber === '4000');
 
     expect(cashAcc?.debitBalance).toBeGreaterThan(0);
     expect(revAcc?.creditBalance).toBeGreaterThan(0);
