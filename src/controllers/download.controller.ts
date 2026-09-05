@@ -6,6 +6,9 @@ const downloadService = CarrierDownloadService.getInstance();
 const al3Parser = Al3ParserService.getInstance();
 
 export class DownloadController {
+  /**
+   * Parse raw AL3 file string / stream
+   */
   public parseAl3(req: Request, res: Response, next: NextFunction): void {
     try {
       const { rawContent } = req.body;
@@ -17,53 +20,70 @@ export class DownloadController {
       const result = al3Parser.parseAl3Content(rawContent);
       res.json(result);
     } catch (err: any) {
+      // 🛡️ Sentinel: Pass error to global handler to avoid info leak
       next(err);
     }
   }
 
-  public getBatches = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  /**
+   * List download batches
+   */
+  public getBatches(req: Request, res: Response, next: NextFunction): void {
     try {
       const tenantId = (req as any).tenantId || 'tenant-001';
-      const batches = await downloadService.getBatches(tenantId);
+      const batches = downloadService.getBatches(tenantId);
       res.json(batches);
     } catch (err: any) {
+      // 🛡️ Sentinel: Pass error to global handler to avoid info leak
       next(err);
     }
-  };
+  }
 
-  public getBatchById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  /**
+   * Get single batch by ID
+   */
+  public getBatchById(req: Request, res: Response, next: NextFunction): void {
     try {
       const tenantId = (req as any).tenantId || 'tenant-001';
-      const batch = await downloadService.getBatchById(tenantId, req.params.batchId);
+      const batch = downloadService.getBatchById(req.params.batchId, tenantId);
       if (!batch) {
         res.status(404).json({ error: 'Batch not found' });
         return;
       }
       res.json(batch);
     } catch (err: any) {
+      // 🛡️ Sentinel: Pass error to global handler to avoid info leak
       next(err);
     }
-  };
+  }
 
-  public ingestBatch = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  /**
+   * Ingest a new download batch or raw AL3 package
+   */
+  public ingestBatch(req: Request, res: Response, next: NextFunction): void {
     try {
       const tenantId = (req as any).tenantId || 'tenant-001';
       const payload = req.body;
-      const batch = await downloadService.ingestDownloadBatch(tenantId, payload);
+      const batch = downloadService.ingestDownloadBatch(payload, tenantId);
       res.status(201).json(batch);
     } catch (err: any) {
+      // 🛡️ Sentinel: Pass error to global handler to avoid info leak
       next(err);
     }
-  };
+  }
 
-  public postCommissions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  /**
+   * Post direct-bill commissions to General Ledger
+   */
+  public postCommissions(req: Request, res: Response, next: NextFunction): void {
     try {
       const tenantId = (req as any).tenantId || 'tenant-001';
       const { batchId } = req.params;
-      const batch = await downloadService.postBatchCommissions(tenantId, batchId);
+      const batch = downloadService.postBatchCommissions(batchId, tenantId);
       res.json(batch);
     } catch (err: any) {
+      // 🛡️ Sentinel: Pass error to global handler to avoid info leak
       next(err);
     }
-  };
+  }
 }

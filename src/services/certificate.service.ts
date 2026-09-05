@@ -6,24 +6,22 @@ import {
   Acord25AutoLiability,
   Acord25WorkersComp,
   Acord25UmbrellaLiability,
-  Acord25OtherCoverage,
   CreateCertificateRequest,
   BulkIssueCertificateRequest,
   Customer,
   Policy,
   Carrier
 } from '../types/domain.js';
+import { INITIAL_CERTIFICATE_HOLDERS, INITIAL_CERTIFICATES } from '../data/seedData.js';
 import { AmsService } from './ams.service.js';
-import { getRepositories, Repositories } from '../db/repository.factory.js';
 
 export class CertificateService {
   private static instance: CertificateService;
 
-  private repos: Repositories;
+  private certificateHolders: CertificateHolder[] = [...INITIAL_CERTIFICATE_HOLDERS];
+  private certificates: CertificateOfInsurance[] = [...INITIAL_CERTIFICATES];
 
-  private constructor() {
-    this.repos = getRepositories();
-  }
+  private constructor() {}
 
   public static getInstance(): CertificateService {
     if (!CertificateService.instance) {
@@ -33,21 +31,28 @@ export class CertificateService {
   }
 
   // CERTIFICATE HOLDER MANAGEMENT
-  public async getCertificateHolders(tenantId: string, filter?: { name?: string }): Promise<CertificateHolder[]> {
-    return this.repos.certificateHolders.getAll(tenantId, filter);
+  public getCertificateHolders(filter?: { name?: string }): CertificateHolder[] {
+    // ⚡ Bolt: Removed wasteful initial O(N) array copy `[...this.certificateHolders]`.
+    // Only spread at the end if returning the unfiltered list to protect the original array.
+    let result = this.certificateHolders;
+    if (filter?.name) {
+      const q = filter.name.toLowerCase();
+      result = result.filter(h => h.name.toLowerCase().includes(q) || (h.attention && h.attention.toLowerCase().includes(q)));
+    }
+    return result === this.certificateHolders ? [...result] : result;
   }
 
-  public async getCertificateHolderById(tenantId: string, holderId: string): Promise<CertificateHolder | undefined> {
-    const holder = await this.repos.certificateHolders.getById(tenantId, holderId);
-    return holder || undefined;
+  public getCertificateHolderById(holderId: string): CertificateHolder | undefined {
+    return this.certificateHolders.find(h => h.holderId === holderId);
   }
 
-  public async createCertificateHolder(tenantId: string, payload: Partial<CertificateHolder>): Promise<CertificateHolder> {
+  public createCertificateHolder(payload: Partial<CertificateHolder>): CertificateHolder {
     if (!payload.name) {
       throw new Error('Certificate Holder name is required');
     }
-    const nextId = `HOLDER-${1000 + Math.floor(Math.random()*10000) + 1}`;
-    const newHolder: Partial<CertificateHolder> = {
+
+    const nextId = `HOLDER-${1000 + this.certificateHolders.length + 1}`;
+    const newHolder: CertificateHolder = {
       holderId: nextId,
       name: payload.name,
       attention: payload.attention,
@@ -61,73 +66,49 @@ export class CertificateService {
       email: payload.email || 'holder@example.com',
       phone: payload.phone,
       defaultSpecialWording: payload.defaultSpecialWording,
-      deliveryPreference: payload.deliveryPreference || 'Email'
+      deliveryPreference: payload.deliveryPreference || 'Email',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
-    return this.repos.certificateHolders.create(tenantId, newHolder);
-  }
 
-  public async updateCertificateHolder(tenantId: string, holderId: string, payload: Partial<CertificateHolder>): Promise<CertificateHolder> {
-    const existing = await this.repos.certificateHolders.getById(tenantId, holderId);
-    if (!existing) {
-      throw new Error(`Certificate Holder with ID ${holderId} not found`);
-    }
-    if (existing.deactivatedAt) {
-      throw new Error(`Certificate Holder ${holderId} has been deactivated and cannot be updated`);
-    }
-    return this.repos.certificateHolders.update(tenantId, holderId, payload);
-  }
-
-  public async deactivateCertificateHolder(tenantId: string, holderId: string): Promise<boolean> {
-    const existing = await this.repos.certificateHolders.getById(tenantId, holderId);
-    if (!existing) {
-      throw new Error(`Certificate Holder with ID ${holderId} not found`);
-    }
-    if (existing.deactivatedAt) {
-      throw new Error(`Certificate Holder ${holderId} is already deactivated`);
-    }
-    await this.repos.certificateHolders.deactivate(tenantId, holderId);
-    return true;
+    this.certificateHolders.push(newHolder);
+    return newHolder;
   }
 
   // CERTIFICATE OPERATIONS
-  public async getCertificates(tenantId: string, filter?: { customerId?: string; holderId?: string; status?: string }): Promise<CertificateOfInsurance[]> {
-    return this.repos.certificates.getAll(tenantId, filter);
+  public getCertificates(filter?: { customerId?: string; holderId?: string; status?: string }): CertificateOfInsurance[] {
+    // ⚡ Bolt: Removed wasteful initial O(N) array copy `[...this.certificates]`.
+    // Only spread at the end if returning the unfiltered list to protect the original array.
+    // ⚡ Bolt: Combined sequential .filter() calls into a single pass to avoid intermediate array allocations and redundant iterations.
+
+    if (!filter || (!filter.customerId && !filter.holderId && !filter.status)) {
+      return [...this.certificates];
+    }
+
+    return this.certificates.filter(c => {
+      if (filter.customerId && c.insured.customerId !== filter.customerId) return false;
+      if (filter.holderId && c.certificateHolder.holderId !== filter.holderId) return false;
+      if (filter.status && c.status !== filter.status) return false;
+      return true;
+    });
   }
 
-  public async getCertificateById(tenantId: string, certificateId: string): Promise<CertificateOfInsurance | undefined> {
-    const cert = await this.repos.certificates.getById(tenantId, certificateId);
-    return cert || undefined;
+  public getCertificateById(certificateId: string): CertificateOfInsurance | undefined {
+    return this.certificates.find(c => c.certificateId === certificateId || c.certificateNumber === certificateId);
   }
 
-  public async revokeCertificate(tenantId: string, certificateId: string, reason?: string): Promise<CertificateOfInsurance> {
-    const cert = await this.getCertificateById(tenantId, certificateId);
-    if (!cert) {
-      throw new Error(`Certificate with ID ${certificateId} not found`);
-    }
-    if (cert.status === 'Revoked') {
-      throw new Error(`Certificate ${certificateId} is already revoked`);
-    }
-    if (cert.status === 'Expired') {
-      throw new Error(`Certificate ${certificateId} is expired and cannot be revoked`);
-    }
-    await this.repos.certificates.revoke(tenantId, certificateId, reason);
-    const updated = await this.getCertificateById(tenantId, certificateId);
-    return updated!;
-  }
-
-  public async generateCertificate(
-    tenantId: string,
+  public generateCertificate(
     req: CreateCertificateRequest,
     context?: { customer: Customer; selectedPolicies: Policy[]; allCarriersMap: Map<string, Carrier> }
-  ): Promise<CertificateOfInsurance> {
+  ): CertificateOfInsurance {
     const amsService = AmsService.getInstance();
 
-    const customer = context?.customer || await amsService.getCustomerById(tenantId, req.customerId);
+    const customer = context?.customer || amsService.getCustomerById(req.customerId);
     if (!customer) {
       throw new Error(`Customer with ID ${req.customerId} not found`);
     }
 
-    const holder = await this.getCertificateHolderById(tenantId, req.holderId);
+    const holder = this.getCertificateHolderById(req.holderId);
     if (!holder) {
       throw new Error(`Certificate Holder with ID ${req.holderId} not found`);
     }
@@ -135,7 +116,7 @@ export class CertificateService {
     let selectedPolicies = context?.selectedPolicies;
     if (!selectedPolicies) {
       // Get policies for customer
-      const allCustomerPolicies = await amsService.getPolicies(tenantId, { customerId: req.customerId });
+      const allCustomerPolicies = amsService.getPolicies({ customerId: req.customerId });
       if (allCustomerPolicies.length === 0) {
         throw new Error(`No policies found for customer ${req.customerId}`);
       }
@@ -153,7 +134,7 @@ export class CertificateService {
     // Gather carriers and assign Insurer Letters (A, B, C, D, E)
     let allCarriersMap = context?.allCarriersMap;
     if (!allCarriersMap) {
-      const carriers = await amsService.getCarriers(tenantId);
+      const carriers = amsService.getCarriers();
       // ⚡ Bolt: Pre-compute a Map of carriers by ID to avoid O(N*M) lookups inside the policies loop
       allCarriersMap = new Map(carriers.map(c => [c.carrierId, c]));
     }
@@ -164,7 +145,7 @@ export class CertificateService {
     selectedPolicies.forEach(pol => {
       if (!carrierMap.has(pol.carrierId)) {
         // ⚡ Bolt: Replace O(N) array search with O(1) Map lookup
-        const foundCarrier = allCarriersMap!.get(pol.carrierId);
+        const foundCarrier = allCarriersMap.get(pol.carrierId);
         const letter = insurerLetters[carrierMap.size] || 'E';
         carrierMap.set(pol.carrierId, {
           letter,
@@ -183,7 +164,6 @@ export class CertificateService {
     let autoLiability: Acord25AutoLiability | undefined;
     let umbrellaLiability: Acord25UmbrellaLiability | undefined;
     let workersComp: Acord25WorkersComp | undefined;
-    const otherCoverages: Acord25OtherCoverage[] = [];
 
     selectedPolicies.forEach(pol => {
       const insurerSlot = carrierMap.get(pol.carrierId);
@@ -280,47 +260,6 @@ export class CertificateService {
             elDiseaseEAEmployee: statLimit
           }
         };
-      } else if (pol.lineOfBusiness === 'BOP' || pol.lineOfBusiness.toLowerCase().includes('umbrella')) {
-        // Map Umbrella / Excess Liability policies
-        let occLimit;
-        let aggLimit;
-        for (const c of pol.coverages) {
-          const lowerName = c.name.toLowerCase();
-          if (occLimit === undefined && (c.code.includes('OCCUR') || lowerName.includes('occurrence'))) occLimit = c.limitAmount;
-          if (aggLimit === undefined && (c.code.includes('AGG') || lowerName.includes('aggregate'))) aggLimit = c.limitAmount;
-          if (occLimit !== undefined && aggLimit !== undefined) break;
-        }
-
-        umbrellaLiability = {
-          insurerLetter: letter,
-          umbrellaLiab: true,
-          excessLiab: false,
-          occur: true,
-          claimsMade: false,
-          addlInsd: true,
-          subrWvd: true,
-          policyNumber: pol.policyNumber,
-          effectiveDate: pol.effectiveDate,
-          expirationDate: pol.expirationDate,
-          limits: {
-            eachOccurrence: occLimit || 5000000,
-            aggregate: aggLimit || 5000000
-          }
-        };
-      } else {
-        // Catch-all: map Commercial Property, Cyber, Professional Liability, Inland Marine, etc. to otherCoverages
-        const totalLimit = pol.coverages.reduce((sum, c) => sum + c.limitAmount, 0);
-        const otherCov: Acord25OtherCoverage = {
-          insurerLetter: letter,
-          coverageDescription: pol.lineOfBusiness,
-          addlInsd: true,
-          subrWvd: false,
-          policyNumber: pol.policyNumber,
-          effectiveDate: pol.effectiveDate,
-          expirationDate: pol.expirationDate,
-          limitsDescription: `Per Occurrence: $${(totalLimit || 1000000).toLocaleString('en-US')}`
-        };
-        otherCoverages.push(otherCov);
       }
     });
 
@@ -336,10 +275,9 @@ export class CertificateService {
       descParts.push('Certificate Holder is listed as Additional Insured as required by written contract subject to policy terms and conditions.');
     }
 
-    const allCerts = await this.repos.certificates.getAll(tenantId);
-    const certSeq = allCerts.length + 101;
+    const certSeq = this.certificates.length + 101;
     const todayStr = new Date().toISOString().split('T')[0];
-    const newCert: Partial<CertificateOfInsurance> = {
+    const newCert: CertificateOfInsurance = {
       certificateId: `CERT-2026-${certSeq}`,
       certificateNumber: `COI-2026-${9900 + certSeq}`,
       issueDate: todayStr,
@@ -363,31 +301,33 @@ export class CertificateService {
         generalLiability,
         autoLiability,
         umbrellaLiability,
-        workersComp,
-        otherCoverages
+        workersComp
       },
       descriptionOfOperations: descParts.join(' '),
       certificateHolder: holder,
       cancellationNoticeDays: req.cancellationNoticeDays || 30,
-      authorizedRepresentative: 'Sarah Jenkins, CIC'
+      authorizedRepresentative: 'Sarah Jenkins, CIC',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
-    return this.repos.certificates.create(tenantId, newCert);
+    this.certificates.push(newCert);
+    return newCert;
   }
 
-  public async bulkIssueCertificates(tenantId: string, req: BulkIssueCertificateRequest): Promise<CertificateOfInsurance[]> {
+  public bulkIssueCertificates(req: BulkIssueCertificateRequest): CertificateOfInsurance[] {
     if (!req.holderIds || req.holderIds.length === 0) {
       throw new Error('At least one holderId must be provided for bulk issuance');
     }
 
     // ⚡ Bolt: Pre-fetch customer, policies, and carrier map once to avoid O(H * (P + C)) redundant database scans
     const amsService = AmsService.getInstance();
-    const customer = await amsService.getCustomerById(tenantId, req.customerId);
+    const customer = amsService.getCustomerById(req.customerId);
     if (!customer) {
       throw new Error(`Customer with ID ${req.customerId} not found`);
     }
 
-    const allCustomerPolicies = await amsService.getPolicies(tenantId, { customerId: req.customerId });
+    const allCustomerPolicies = amsService.getPolicies({ customerId: req.customerId });
     if (allCustomerPolicies.length === 0) {
       throw new Error(`No policies found for customer ${req.customerId}`);
     }
@@ -401,14 +341,14 @@ export class CertificateService {
       throw new Error('No matching policies selected for Certificate of Insurance');
     }
 
-    const carriers = await amsService.getCarriers(tenantId);
+    const carriers = amsService.getCarriers();
     const allCarriersMap = new Map(carriers.map(c => [c.carrierId, c]));
 
     const context = { customer, selectedPolicies, allCarriersMap };
 
     const issued: CertificateOfInsurance[] = [];
     for (const holderId of req.holderIds) {
-      const cert = await this.generateCertificate(tenantId, {
+      const cert = this.generateCertificate({
         customerId: req.customerId,
         holderId,
         policyIds: req.policyIds,
@@ -421,8 +361,8 @@ export class CertificateService {
   }
 
   // RENDER HIGH-FIDELITY ACORD 25 HTML
-  public async renderAcord25Html(tenantId: string, certificateId: string): Promise<string> {
-    const cert = await this.getCertificateById(tenantId, certificateId);
+  public renderAcord25Html(certificateId: string): string {
+    const cert = this.getCertificateById(certificateId);
     if (!cert) {
       throw new Error(`Certificate with ID ${certificateId} not found`);
     }

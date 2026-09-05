@@ -1,25 +1,37 @@
 import { randomInt } from "crypto";
 import { Customer, Policy, Carrier, Claim, AcordDecPagePayload, LineOfBusiness, PolicyStatus } from '../types/domain.js';
-import { INITIAL_CLAIMS } from '../data/seedData.js';
+import { INITIAL_CARRIERS, INITIAL_CUSTOMERS, INITIAL_POLICIES, INITIAL_CLAIMS } from '../data/seedData.js';
 import { CrosswalkEngine } from '../transformers/crosswalk.engine.js';
 import { IngestionPayload, CrosswalkResult } from '../types/legacy.js';
 import { AccountingService } from './accounting.service.js';
-import { getRepositories, Repositories } from '../db/repository.factory.js';
 
 export class AmsService {
   private static instance: AmsService;
 
+  private customers: Customer[] = [...INITIAL_CUSTOMERS];
+  private policies: Policy[] = [...INITIAL_POLICIES];
+  private carriers: Carrier[] = [...INITIAL_CARRIERS];
   private claims: Claim[] = [...INITIAL_CLAIMS];
   private crosswalkEngine: CrosswalkEngine;
   private accountingService: AccountingService;
-  private repos: Repositories;
 
   private constructor() {
-    this.repos = getRepositories();
-    // Initialize crosswalkEngine with empty carriers, we will update it in importLegacyPayload
-    this.crosswalkEngine = new CrosswalkEngine([]);
+    this.crosswalkEngine = new CrosswalkEngine(this.carriers);
     this.accountingService = AccountingService.getInstance();
+
+    // Auto-generate invoices for initial seed agency bill policies
+    for (const pol of this.policies) {
+      if (pol.billingType === 'Agency Bill') {
+        try {
+          this.accountingService.generateInvoiceForPolicy(pol);
+          pol.billingStatus = 'Invoiced';
+        } catch {
+          // Ignore duplicates during seed init
+        }
+      }
+    }
   }
+
 
   public static getInstance(): AmsService {
     if (!AmsService.instance) {
@@ -29,23 +41,52 @@ export class AmsService {
   }
 
   // CUSTOMER OPERATIONS
-  public async getCustomers(tenantId: string, filter?: { name?: string; policyNumber?: string }): Promise<Customer[]> {
-    const filters: any = {};
-    if (filter?.name) filters.name = filter.name;
-    if (filter?.policyNumber) filters.policyNumber = filter.policyNumber;
-    return this.repos.customers.getAll(tenantId, filters);
+  public getCustomers(filter?: { name?: string; policyNumber?: string }): Customer[] {
+    // ⚡ Bolt: Removed wasteful initial O(N) copy `[...this.customers]`.
+    // Only spread at the end if no filters are applied, saving significant memory allocation.
+    // ⚡ Bolt: Combined sequential .filter() calls into a single pass to avoid intermediate array allocations and redundant iterations.
+
+    if (!filter || (!filter.name && !filter.policyNumber)) {
+      return [...this.customers];
+    }
+
+    const q = filter.name?.toLowerCase();
+
+    let customerIdsWithPolicy: Set<string> | undefined;
+    if (filter.policyNumber) {
+      const pNum = filter.policyNumber.toLowerCase();
+      const matchingPolicies = this.policies.filter(p =>
+        p.policyNumber.toLowerCase().includes(pNum) || p.policyId.toLowerCase().includes(pNum)
+      );
+      customerIdsWithPolicy = new Set(matchingPolicies.map(p => p.customerId));
+    }
+
+    return this.customers.filter(c => {
+      if (q) {
+        const fullIndName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
+        const busName = (c.businessName || '').toLowerCase();
+        const dba = (c.dba || '').toLowerCase();
+        if (!fullIndName.includes(q) && !busName.includes(q) && !dba.includes(q)) {
+          return false;
+        }
+      }
+
+      if (customerIdsWithPolicy && !customerIdsWithPolicy.has(c.customerId)) {
+        return false;
+      }
+
+      return true;
+    });
   }
 
-  public async getCustomerById(tenantId: string, customerId: string): Promise<Customer | undefined> {
-    const customer = await this.repos.customers.getById(tenantId, customerId);
-    return customer || undefined;
+  public getCustomerById(customerId: string): Customer | undefined {
+    return this.customers.find(c => c.customerId === customerId);
   }
 
-  public async createCustomer(tenantId: string, payload: Partial<Customer>): Promise<Customer> {
-    // Rely on repository to assign IDs or use default logic
-    const nextId = `CUST-${1000 + randomInt(100, 9999)}`;
-    const newCustomer: Partial<Customer> = {
-      customerId: payload.customerId || nextId,
+  public createCustomer(payload: Partial<Customer>): Customer {
+    const nextId = `CUST-${1000 + this.customers.length + 1}`;
+    const newCustomer: Customer = {
+      customerId: nextId,
       entityType: payload.entityType || (payload.businessName ? 'Commercial' : 'Individual'),
       firstName: payload.firstName,
       lastName: payload.lastName,
@@ -64,25 +105,44 @@ export class AmsService {
         phone: '312-555-0100'
       },
       status: payload.status || 'Active',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
       legacyCrosswalks: payload.legacyCrosswalks || []
     };
 
-    return this.repos.customers.create(tenantId, newCustomer);
+    this.customers.push(newCustomer);
+    return newCustomer;
   }
 
   // POLICY OPERATIONS
-  public async getPolicies(tenantId: string, filter?: { customerId?: string; carrierId?: string; status?: string; effectiveDate?: string }): Promise<Policy[]> {
-    return this.repos.policies.getAll(tenantId, filter);
+  public getPolicies(filter?: { customerId?: string; carrierId?: string; status?: string; effectiveDate?: string }): Policy[] {
+    // ⚡ Bolt: Removed wasteful initial O(N) copy `[...this.policies]`.
+    // Only spread at the end if no filters are applied.
+    // ⚡ Bolt: Combined sequential .filter() calls into a single pass to avoid intermediate array allocations and redundant iterations.
+
+    if (!filter || (!filter.customerId && !filter.carrierId && !filter.status && !filter.effectiveDate)) {
+      return [...this.policies];
+    }
+
+    const st = filter.status?.toLowerCase();
+    const targetDate = filter.effectiveDate;
+
+    return this.policies.filter(p => {
+      if (filter.customerId && p.customerId !== filter.customerId) return false;
+      if (filter.carrierId && p.carrierId !== filter.carrierId) return false;
+      if (st && p.status.toLowerCase() !== st) return false;
+      if (targetDate && p.effectiveDate < targetDate) return false;
+      return true;
+    });
   }
 
-  public async getPolicyById(tenantId: string, policyId: string): Promise<Policy | undefined> {
-    const policy = await this.repos.policies.getById(tenantId, policyId);
-    return policy || undefined;
+  public getPolicyById(policyId: string): Policy | undefined {
+    return this.policies.find(p => p.policyId === policyId || p.policyNumber === policyId);
   }
 
-  public async createPolicy(tenantId: string, payload: Partial<Policy>): Promise<Policy> {
+  public createPolicy(payload: Partial<Policy>): Policy {
     const nextNum = randomInt(100000, 1000000);
-    const newPolicy: Partial<Policy> = {
+    const newPolicy: Policy = {
       policyId: payload.policyId || `POL-${Date.now()}`,
       policyNumber: payload.policyNumber || `POL-NUM-${nextNum}`,
       customerId: payload.customerId || 'CUST-1001',
@@ -101,44 +161,45 @@ export class AmsService {
           deductibleAmount: 1000,
           premiumAmount: Number(payload.premiumAmount) || 5000
         }
-      ]
+      ],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     };
 
-    const createdPolicy = await this.repos.policies.create(tenantId, newPolicy);
+    this.policies.push(newPolicy);
 
-    if (createdPolicy.billingType === 'Agency Bill') {
+    if (newPolicy.billingType === 'Agency Bill') {
       try {
-        await this.accountingService.generateInvoiceForPolicy(tenantId, createdPolicy);
-        createdPolicy.billingStatus = 'Invoiced';
+        this.accountingService.generateInvoiceForPolicy(newPolicy);
+        newPolicy.billingStatus = 'Invoiced';
       } catch (err) {
         console.error('Failed to auto-generate invoice for policy:', err);
       }
     }
 
-    return createdPolicy;
+    return newPolicy;
   }
 
   // CARRIER OPERATIONS
-  public async getCarriers(tenantId: string): Promise<Carrier[]> {
-    return this.repos.carriers.getAll(tenantId);
+  public getCarriers(): Carrier[] {
+    return this.carriers;
   }
 
   // ACORD DEC-PAGE GENERATOR
-  public async generateDecPage(tenantId: string, policyIdOrNumber: string): Promise<AcordDecPagePayload> {
-    const policy = await this.getPolicyById(tenantId, policyIdOrNumber);
+  public generateDecPage(policyIdOrNumber: string): AcordDecPagePayload {
+    const policy = this.getPolicyById(policyIdOrNumber);
     if (!policy) {
       throw new Error(`Policy '${policyIdOrNumber}' not found in AMS registry.`);
     }
 
-    const customer = await this.getCustomerById(tenantId, policy.customerId);
-    const carriers = await this.getCarriers(tenantId);
-    const carrier = carriers.find(c => c.carrierId === policy.carrierId) || carriers[0];
+    const customer = this.getCustomerById(policy.customerId);
+    const carrier = this.carriers.find(c => c.carrierId === policy.carrierId) || this.carriers[0];
 
     const insuredName = customer?.entityType === 'Commercial'
       ? (customer.businessName || 'Insured Commercial Entity')
       : `${customer?.firstName || ''} ${customer?.lastName || ''}`.trim() || 'Insured Individual';
 
-    const insuredAddressStr = customer && customer.address
+    const insuredAddressStr = customer
       ? `${customer.address.street1}${customer.address.street2 ? ', ' + customer.address.street2 : ''}, ${customer.address.city}, ${customer.address.state} ${customer.address.postalCode}`
       : 'Address Unspecified';
 
@@ -172,8 +233,8 @@ export class AmsService {
         entityType: customer?.entityType || 'Commercial',
         taxId: customer?.feinOrSsn || '12-3456789',
         address: insuredAddressStr,
-        email: customer?.contactInfo?.email || 'insured@domain.com',
-        phone: customer?.contactInfo?.phone || '(312) 555-0100'
+        email: customer?.contactInfo.email || 'insured@domain.com',
+        phone: customer?.contactInfo.phone || '(312) 555-0100'
       },
       carrierInfo: {
         carrierId: carrier.carrierId,
@@ -206,38 +267,57 @@ export class AmsService {
   }
 
   // LEGACY INGESTION & CROSSWALK
-  public async importLegacyPayload(tenantId: string, ingestionPayload: IngestionPayload): Promise<CrosswalkResult> {
-    const carriers = await this.getCarriers(tenantId);
-    this.crosswalkEngine.updateCarrierMap(carriers);
-    
-    const customers = await this.getCustomers(tenantId);
-    this.crosswalkEngine.updateExistingCustomers(customers);
-    
+  public importLegacyPayload(ingestionPayload: IngestionPayload): CrosswalkResult {
+    this.crosswalkEngine.updateCarrierMap(this.carriers);
+    this.crosswalkEngine.updateExistingCustomers(this.customers);
     const result = this.crosswalkEngine.processIngestion(ingestionPayload);
 
     if (!ingestionPayload.dryRun) {
+      // ⚡ Bolt: Replace O(n^2) nested array scan with O(n) hash map lookups
+      const customerIdxMap = new Map<string, number>();
+      for (let i = 0; i < this.customers.length; i++) {
+        customerIdxMap.set(this.customers[i].customerId, i);
+      }
+
       for (const newCust of result.customers) {
-        // Just create them since our memory/DB repos will handle insert/update
-        await this.repos.customers.create(tenantId, newCust);
+        const existingIdx = customerIdxMap.get(newCust.customerId);
+        if (existingIdx !== undefined) {
+          this.customers[existingIdx] = { ...this.customers[existingIdx], ...newCust };
+        } else {
+          this.customers.push(newCust);
+          // Update map for potentially duplicate new customers in the payload
+          customerIdxMap.set(newCust.customerId, this.customers.length - 1);
+        }
+      }
+
+      const policyIdxMap = new Map<string, number>();
+      for (let i = 0; i < this.policies.length; i++) {
+        policyIdxMap.set(this.policies[i].policyId, i);
       }
 
       for (const newPol of result.policies) {
-        await this.repos.policies.create(tenantId, newPol);
+        const existingIdx = policyIdxMap.get(newPol.policyId);
+        if (existingIdx !== undefined) {
+          this.policies[existingIdx] = newPol;
+        } else {
+          this.policies.push(newPol);
+          policyIdxMap.set(newPol.policyId, this.policies.length - 1);
+        }
       }
     }
 
     return result;
   }
 
-  public async dryRunImport(tenantId: string, ingestionPayload: IngestionPayload): Promise<CrosswalkResult> {
-    return this.importLegacyPayload(tenantId, { ...ingestionPayload, dryRun: true });
+  public dryRunImport(ingestionPayload: IngestionPayload): CrosswalkResult {
+    return this.importLegacyPayload({ ...ingestionPayload, dryRun: true });
   }
 
-  public async getClaims(tenantId: string): Promise<Claim[]> {
+  public getClaims(): Claim[] {
     return this.claims;
   }
 
-  public async getCrosswalkMatrix(tenantId: string) {
+  public getCrosswalkMatrix() {
     return [
       {
         format: 'FORMAT_A',

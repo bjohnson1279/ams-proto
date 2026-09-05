@@ -7,7 +7,6 @@ import {
   FinancialSummary,
   Policy
 } from '../types/domain.js';
-import { getRepositories, Repositories } from '../db/repository.factory.js';
 
 export const DEFAULT_CHART_OF_ACCOUNTS: GlAccount[] = [
   { accountNumber: '1000', accountName: 'Cash - Operating Account', category: 'Asset', isTrustAccount: false, normalBalance: 'Debit', currentBalance: 125000.00 },
@@ -22,10 +21,14 @@ export const DEFAULT_CHART_OF_ACCOUNTS: GlAccount[] = [
 
 export class AccountingService {
   private static instance: AccountingService;
-  private repos: Repositories;
+
+  private accounts: GlAccount[] = [...DEFAULT_CHART_OF_ACCOUNTS];
+  private journalEntries: JournalEntry[] = [];
+  private invoices: Invoice[] = [];
+  private payments: Payment[] = [];
 
   private constructor() {
-    this.repos = getRepositories();
+    this.seedInitialTransactions();
   }
 
   public static getInstance(): AccountingService {
@@ -35,46 +38,65 @@ export class AccountingService {
     return AccountingService.instance;
   }
 
-  public async getAccounts(tenantId: string): Promise<GlAccount[]> {
-    return this.repos.accounting.getAccounts(tenantId);
+  private seedInitialTransactions() {
+    // Seed initial balancing journal entry
+    const initialEntry: JournalEntry = {
+      entryId: 'JE-SEED-001',
+      entryDate: '2026-01-01',
+      reference: 'OPENING-BALANCE',
+      memo: 'Initial Chart of Accounts Trial Balance Opening Entry',
+      lines: [
+        { accountNumber: '1000', description: 'Opening Operating Cash', debit: 125000.00, credit: 0 },
+        { accountNumber: '1010', description: 'Opening Fiduciary Trust Cash', debit: 45000.00, credit: 0 },
+        { accountNumber: '1200', description: 'Opening Accounts Receivable', debit: 18500.00, credit: 0 },
+        { accountNumber: '1300', description: 'Opening Direct Bill Comm Rec', debit: 3200.00, credit: 0 },
+        { accountNumber: '2000', description: 'Opening Carrier Payables', debit: 0, credit: 38250.00 },
+        { accountNumber: '3000', description: 'Opening Agency Equity', debit: 0, credit: 128450.00 },
+        { accountNumber: '4000', description: 'Opening YTD Commission Revenue', debit: 0, credit: 25000.00 }
+      ],
+      createdAt: '2026-01-01T00:00:00.000Z'
+    };
+    this.journalEntries.push(initialEntry);
   }
 
-  public async getAccountByNumber(tenantId: string, accountNumber: string): Promise<GlAccount | undefined> {
-    const accounts = await this.getAccounts(tenantId);
-    return accounts.find(a => a.accountNumber === accountNumber);
+  public getAccounts(): GlAccount[] {
+    return this.accounts;
   }
 
-  public async getJournalEntries(tenantId: string): Promise<JournalEntry[]> {
-    return this.repos.accounting.getJournalEntries(tenantId);
+  public getAccountByNumber(accountNumber: string): GlAccount | undefined {
+    return this.accounts.find(a => a.accountNumber === accountNumber);
   }
 
-  public async getInvoices(tenantId: string): Promise<Invoice[]> {
-    return this.repos.accounting.getInvoices(tenantId);
+  public getJournalEntries(): JournalEntry[] {
+    return this.journalEntries;
   }
 
-  public async getInvoiceById(tenantId: string, invoiceId: string): Promise<Invoice | undefined> {
-    const invoices = await this.getInvoices(tenantId);
-    return invoices.find(i => i.invoiceId === invoiceId || i.invoiceNumber === invoiceId);
+  public getInvoices(): Invoice[] {
+    return this.invoices;
   }
 
-  public async getPayments(tenantId: string): Promise<Payment[]> {
-    return this.repos.accounting.getPayments(tenantId);
+  public getInvoiceById(invoiceId: string): Invoice | undefined {
+    return this.invoices.find(i => i.invoiceId === invoiceId || i.invoiceNumber === invoiceId);
+  }
+
+  public getPayments(): Payment[] {
+    return this.payments;
   }
 
   /**
    * Posts a double-entry journal entry. Enforces strict Debit === Credit balance rules.
    */
-  public async postJournalEntry(tenantId: string, payload: {
+  public postJournalEntry(payload: {
     reference: string;
     memo: string;
     lines: JournalLine[];
     entryDate?: string;
-  }): Promise<JournalEntry> {
+  }): JournalEntry {
     let totalDebit = 0;
     let totalCredit = 0;
 
     for (const line of payload.lines) {
-      const acct = await this.getAccountByNumber(tenantId, line.accountNumber);
+      const acct = this.getAccountByNumber(line.accountNumber);
       if (!acct) {
         throw new Error(`Invalid GL Account Number '${line.accountNumber}' in journal entry line.`);
       }
@@ -90,28 +112,43 @@ export class AccountingService {
       throw new Error(`Unbalanced Journal Entry! Total Debits ($${roundedDebit.toFixed(2)}) must equal Total Credits ($${roundedCredit.toFixed(2)}).`);
     }
 
-    const newEntry: Partial<JournalEntry> = {
+    const newEntry: JournalEntry = {
       entryId: `JE-${Date.now()}`,
       entryDate: payload.entryDate || new Date().toISOString().split('T')[0],
       reference: payload.reference,
       memo: payload.memo,
-      lines: payload.lines
+      lines: payload.lines,
+      createdAt: new Date().toISOString()
     };
 
-    return this.repos.accounting.createJournalEntry(tenantId, newEntry);
+    // Update GL account current balances
+    for (const line of payload.lines) {
+      const acct = this.getAccountByNumber(line.accountNumber)!;
+      const netChange = (line.debit || 0) - (line.credit || 0);
+      if (acct.normalBalance === 'Debit') {
+        acct.currentBalance += netChange;
+      } else {
+        acct.currentBalance -= netChange;
+      }
+    }
+
+    this.journalEntries.push(newEntry);
+    return newEntry;
   }
 
   /**
    * Auto-generates an Agency Bill invoice for a policy and posts the double-entry GL transaction.
+   * Debit: Accounts Receivable (1200) - Gross Premium
+   * Credit: Carrier Premium Payable (2000) - Net Premium (85%)
+   * Credit: Agency Commission Revenue (4000) - Commission (15%)
    */
-  public async generateInvoiceForPolicy(tenantId: string, policy: Policy, commissionRateOverride?: number): Promise<Invoice> {
+  public generateInvoiceForPolicy(policy: Policy, commissionRateOverride?: number): Invoice {
     const grossPremium = policy.premiumAmount;
     const commRate = commissionRateOverride ?? policy.commissionRate ?? 15.0; // Default 15%
     const commAmount = Math.round((grossPremium * (commRate / 100)) * 100) / 100;
     const netCarrierPayable = Math.round((grossPremium - commAmount) * 100) / 100;
 
-    const invoices = await this.getInvoices(tenantId);
-    const nextInvNum = 1000 + invoices.length + 1;
+    const nextInvNum = 1000 + this.invoices.length + 1;
     const invoiceId = `INV-${nextInvNum}`;
     const invoiceNumber = `INV-2026-${nextInvNum}`;
 
@@ -136,13 +173,13 @@ export class AccountingService {
       }
     ];
 
-    const je = await this.postJournalEntry(tenantId, {
+    const je = this.postJournalEntry({
       reference: invoiceNumber,
       memo: `Agency Bill Invoicing for Policy ${policy.policyNumber} (Insured ${policy.customerId})`,
       lines
     });
 
-    const newInvoice: Partial<Invoice> = {
+    const newInvoice: Invoice = {
       invoiceId,
       invoiceNumber,
       customerId: policy.customerId,
@@ -163,23 +200,27 @@ export class AccountingService {
           accountNumber: '1200'
         }
       ],
-      journalEntryId: je.entryId
+      journalEntryId: je.entryId,
+      createdAt: new Date().toISOString()
     };
 
-    return this.repos.accounting.createInvoice(tenantId, newInvoice);
+    this.invoices.push(newInvoice);
+    return newInvoice;
   }
 
   /**
    * Receives customer premium payment for an invoice and posts GL entry to Fiduciary Trust Cash.
+   * Debit: Cash - Premium Fiduciary Trust (1010)
+   * Credit: Accounts Receivable (1200)
    */
-  public async receivePayment(tenantId: string, payload: {
+  public receivePayment(payload: {
     invoiceId: string;
     amount: number;
     paymentMethod: 'Check' | 'ACH' | 'Credit_Card' | 'Wire';
     referenceNumber: string;
     depositAccount?: string; // Default 1010 (Trust)
-  }): Promise<Payment> {
-    const invoice = await this.getInvoiceById(tenantId, payload.invoiceId);
+  }): Payment {
+    const invoice = this.getInvoiceById(payload.invoiceId);
     if (!invoice) {
       throw new Error(`Invoice '${payload.invoiceId}' not found.`);
     }
@@ -192,7 +233,7 @@ export class AccountingService {
     const payId = `PAY-${Date.now()}`;
 
     // Post double-entry payment transaction
-    const je = await this.postJournalEntry(tenantId, {
+    const je = this.postJournalEntry({
       reference: `PAY-${payload.referenceNumber}`,
       memo: `Payment Received for Invoice ${invoice.invoiceNumber} (${payload.paymentMethod})`,
       lines: [
@@ -211,7 +252,7 @@ export class AccountingService {
       ]
     });
 
-    const payment: Partial<Payment> = {
+    const payment: Payment = {
       paymentId: payId,
       invoiceId: invoice.invoiceId,
       customerId: invoice.customerId,
@@ -219,20 +260,23 @@ export class AccountingService {
       amount: payload.amount,
       paymentMethod: payload.paymentMethod,
       referenceNumber: payload.referenceNumber,
-      depositedToAccount: depositAccount
+      depositedToAccount: depositAccount,
+      createdAt: new Date().toISOString()
     };
 
-    // Since our MemoryRepository doesn't do complex cascading updates implicitly,
-    // we should ideally update the invoice here if we had an updateInvoice repo method.
-    // However, the instructions say to use the accounting repository which only has createInvoice.
-    // For now, we will just create the payment and trust that the repository or subsequent calls handle the invoice update,
-    // or if it's the pg repository, it will handle it.
-    // To strictly follow instructions, we rely on the repository to abstract this or we skip updating the invoice instance in memory here since we don't hold it.
+    // Update invoice status & balance
+    invoice.amountPaid += payload.amount;
+    invoice.balanceDue = Math.max(0, invoice.grossPremium - invoice.amountPaid);
+    if (invoice.balanceDue === 0) {
+      invoice.status = 'Paid';
+    } else {
+      invoice.status = 'Partially_Paid';
+    }
 
-    return this.repos.accounting.createPayment(tenantId, payment);
+    this.payments.push(payment);
+    return payment;
   }
 
-<<<<<<< HEAD
   /**
    * Generates full Trial Balance and key financial health metrics.
    */
@@ -266,19 +310,11 @@ export class AccountingService {
 
     const isBalanced = Math.abs(totalDebits - totalCredits) < 0.01;
 
-    // ⚡ Bolt: Replaced multiple distinct .find() lookups with a single for...of loop to prevent redundant O(N) array scans.
-    // Preserves .find() behavior by breaking early when all targets are matched.
-    let arAcct, apAcct, opCashAcct, trustCashAcct, revAcct;
-    let foundCount = 0;
-    for (const acct of this.accounts) {
-      if (!arAcct && acct.accountNumber === '1200') { arAcct = acct; foundCount++; }
-      else if (!apAcct && acct.accountNumber === '2000') { apAcct = acct; foundCount++; }
-      else if (!opCashAcct && acct.accountNumber === '1000') { opCashAcct = acct; foundCount++; }
-      else if (!trustCashAcct && acct.accountNumber === '1010') { trustCashAcct = acct; foundCount++; }
-      else if (!revAcct && acct.accountNumber === '4000') { revAcct = acct; foundCount++; }
-
-      if (foundCount === 5) break;
-    }
+    const arAcct = this.getAccountByNumber('1200');
+    const apAcct = this.getAccountByNumber('2000');
+    const opCashAcct = this.getAccountByNumber('1000');
+    const trustCashAcct = this.getAccountByNumber('1010');
+    const revAcct = this.getAccountByNumber('4000');
 
     return {
       trialBalance,
@@ -293,13 +329,9 @@ export class AccountingService {
         ytdCommissionRevenue: revAcct ? revAcct.currentBalance : 0
       }
     };
-=======
-  public async getFinancialSummary(tenantId: string): Promise<FinancialSummary> {
-    return this.repos.accounting.getFinancialSummary(tenantId);
->>>>>>> origin/main
   }
 
-  public async getTrialBalance(tenantId: string): Promise<FinancialSummary> {
-    return this.getFinancialSummary(tenantId);
+  public getTrialBalance(_tenantId?: string): FinancialSummary {
+    return this.getFinancialSummary();
   }
 }

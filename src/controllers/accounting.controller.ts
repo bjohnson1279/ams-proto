@@ -1,43 +1,31 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { AccountingService } from '../services/accounting.service.js';
 import { AmsService } from '../services/ams.service.js';
-import { TenantRequest } from '../middleware/tenant.middleware.js';
 
 export class AccountingController {
   private accountingService = AccountingService.getInstance();
   private amsService = AmsService.getInstance();
 
-  public getAccounts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
-      const accounts = await this.accountingService.getAccounts(tenantId);
-      res.status(200).json({
-        success: true,
-        count: accounts.length,
-        data: accounts
-      });
-    } catch (err) {
-      next(err);
-    }
+  public getAccounts = (_req: Request, res: Response): void => {
+    const accounts = this.accountingService.getAccounts();
+    res.status(200).json({
+      success: true,
+      count: accounts.length,
+      data: accounts
+    });
   };
 
-  public getJournalEntries = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
-      const entries = await this.accountingService.getJournalEntries(tenantId);
-      res.status(200).json({
-        success: true,
-        count: entries.length,
-        data: entries
-      });
-    } catch (err) {
-      next(err);
-    }
+  public getJournalEntries = (_req: Request, res: Response): void => {
+    const entries = this.accountingService.getJournalEntries();
+    res.status(200).json({
+      success: true,
+      count: entries.length,
+      data: entries
+    });
   };
 
-  public postJournalEntry = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public postJournalEntry = (req: Request, res: Response): void => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
       const { reference, memo, lines, entryDate } = req.body;
       if (!reference || !lines || !Array.isArray(lines) || lines.length === 0) {
         res.status(400).json({
@@ -47,7 +35,7 @@ export class AccountingController {
         return;
       }
 
-      const entry = await this.accountingService.postJournalEntry(tenantId, {
+      const entry = this.accountingService.postJournalEntry({
         reference,
         memo: memo || 'Manual Journal Entry',
         lines,
@@ -60,55 +48,40 @@ export class AccountingController {
         data: entry
       });
     } catch (err: any) {
-      if (err.message && err.message.includes('Unbalanced')) {
-        res.status(400).json({
-          success: false,
-          error: err.message
-        });
-        return;
-      }
-      next(err);
-    }
-  };
-
-  public getInvoices = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
-      const invoices = await this.accountingService.getInvoices(tenantId);
-      res.status(200).json({
-        success: true,
-        count: invoices.length,
-        data: invoices
+      res.status(400).json({
+        success: false,
+        error: err.message || 'Failed to post Journal Entry'
       });
-    } catch (err) {
-      next(err);
     }
   };
 
-  public getInvoiceById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
-      const { id } = req.params;
-      const invoice = await this.accountingService.getInvoiceById(tenantId, id);
-      if (!invoice) {
-        res.status(404).json({
-          success: false,
-          error: `Invoice '${id}' not found.`
-        });
-        return;
-      }
-      res.status(200).json({
-        success: true,
-        data: invoice
+  public getInvoices = (_req: Request, res: Response): void => {
+    const invoices = this.accountingService.getInvoices();
+    res.status(200).json({
+      success: true,
+      count: invoices.length,
+      data: invoices
+    });
+  };
+
+  public getInvoiceById = (req: Request, res: Response): void => {
+    const { id } = req.params;
+    const invoice = this.accountingService.getInvoiceById(id);
+    if (!invoice) {
+      res.status(404).json({
+        success: false,
+        error: `Invoice '${id}' not found.`
       });
-    } catch (err) {
-      next(err);
+      return;
     }
+    res.status(200).json({
+      success: true,
+      data: invoice
+    });
   };
 
-  public generateInvoice = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public generateInvoice = (req: Request, res: Response): void => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
       const { policyId, commissionRate } = req.body;
       if (!policyId) {
         res.status(400).json({
@@ -118,7 +91,7 @@ export class AccountingController {
         return;
       }
 
-      const policy = await this.amsService.getPolicyById(tenantId, policyId);
+      const policy = this.amsService.getPolicyById(policyId);
       if (!policy) {
         res.status(404).json({
           success: false,
@@ -127,10 +100,8 @@ export class AccountingController {
         return;
       }
 
-      const invoice = await this.accountingService.generateInvoiceForPolicy(tenantId, policy, commissionRate);
-      
-      // Update policy billingStatus (since we don't have an updatePolicy in IPolicyRepository per the interface, 
-      // we might skip this or just trust the DB will get it eventually. Assuming memory repo doesn't save mutated policy automatically without save method)
+      const invoice = this.accountingService.generateInvoiceForPolicy(policy, commissionRate);
+      policy.billingStatus = 'Invoiced';
 
       res.status(201).json({
         success: true,
@@ -145,23 +116,17 @@ export class AccountingController {
     }
   };
 
-  public getPayments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
-      const payments = await this.accountingService.getPayments(tenantId);
-      res.status(200).json({
-        success: true,
-        count: payments.length,
-        data: payments
-      });
-    } catch (err) {
-      next(err);
-    }
+  public getPayments = (_req: Request, res: Response): void => {
+    const payments = this.accountingService.getPayments();
+    res.status(200).json({
+      success: true,
+      count: payments.length,
+      data: payments
+    });
   };
 
-  public receivePayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  public receivePayment = (req: Request, res: Response): void => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
       const { invoiceId, amount, paymentMethod, referenceNumber, depositAccount } = req.body;
       if (!invoiceId || !amount || !paymentMethod || !referenceNumber) {
         res.status(400).json({
@@ -171,7 +136,7 @@ export class AccountingController {
         return;
       }
 
-      const payment = await this.accountingService.receivePayment(tenantId, {
+      const payment = this.accountingService.receivePayment({
         invoiceId,
         amount: Number(amount),
         paymentMethod,
@@ -192,16 +157,11 @@ export class AccountingController {
     }
   };
 
-  public getFinancialSummary = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
-      const summary = await this.accountingService.getFinancialSummary(tenantId);
-      res.status(200).json({
-        success: true,
-        data: summary
-      });
-    } catch (err) {
-      next(err);
-    }
+  public getFinancialSummary = (_req: Request, res: Response): void => {
+    const summary = this.accountingService.getFinancialSummary();
+    res.status(200).json({
+      success: true,
+      data: summary
+    });
   };
 }

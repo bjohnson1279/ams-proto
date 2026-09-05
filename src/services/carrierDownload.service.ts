@@ -2,24 +2,22 @@ import { DownloadBatch, DownloadTransactionItem, IngestDownloadBatchPayload } fr
 import { Al3ParserService } from './al3Parser.service.js';
 import { AmsService } from './ams.service.js';
 import { AccountingService } from './accounting.service.js';
-import { getRepositories, Repositories } from '../db/repository.factory.js';
 
 export class CarrierDownloadService {
   private static instance: CarrierDownloadService;
 
+  private batches: DownloadBatch[] = [];
   private al3Parser: Al3ParserService;
   private amsService: AmsService;
   private accountingService: AccountingService;
-  private repos: Repositories;
 
   private constructor() {
     this.al3Parser = Al3ParserService.getInstance();
     this.amsService = AmsService.getInstance();
     this.accountingService = AccountingService.getInstance();
-    this.repos = getRepositories();
 
-    // The seed method relies on async so we shouldn't call it here directly. 
-    // Usually seed data should be handled by a dedicated seeder in the DB setup.
+    // Initialize with a seed download batch for demonstration
+    this.seedInitialDownloadBatch();
   }
 
   public static getInstance(): CarrierDownloadService {
@@ -29,19 +27,18 @@ export class CarrierDownloadService {
     return CarrierDownloadService.instance;
   }
 
-  public async getBatches(tenantId: string = 'tenant-001'): Promise<DownloadBatch[]> {
-    return this.repos.downloads.getBatches(tenantId);
+  public getBatches(tenantId: string = 'tenant-001'): DownloadBatch[] {
+    return this.batches.filter(b => b.tenantId === tenantId || !b.tenantId);
   }
 
-  public async getBatchById(tenantId: string = 'tenant-001', batchId: string): Promise<DownloadBatch | undefined> {
-    const batch = await this.repos.downloads.getBatchById(tenantId, batchId);
-    return batch || undefined;
+  public getBatchById(batchId: string, tenantId: string = 'tenant-001'): DownloadBatch | undefined {
+    return this.batches.find(b => b.batchId === batchId && (b.tenantId === tenantId || !b.tenantId));
   }
 
   /**
    * Ingests a new carrier download package or AL3 stream.
    */
-  public async ingestDownloadBatch(tenantId: string = 'tenant-001', payload: IngestDownloadBatchPayload): Promise<DownloadBatch> {
+  public ingestDownloadBatch(payload: IngestDownloadBatchPayload, tenantId: string = 'tenant-001'): DownloadBatch {
     const batchId = `BATCH-DL-${Date.now().toString().slice(-6)}`;
     const items: DownloadTransactionItem[] = [];
 
@@ -102,8 +99,11 @@ export class CarrierDownloadService {
       });
     }
 
-    await this.reconcileItems(tenantId, items);
+    // Run Auto-Reconciliation Engine against CoreAMS policies
+    this.reconcileItems(items);
 
+    // ⚡ Bolt: Combined sequential .reduce() loops into a single for...of loop
+    // to calculate both totalPremium and totalCommission in one O(N) pass, avoiding redundant iterations.
     let totalPremium = 0;
     let totalCommission = 0;
     for (const item of items) {
@@ -126,16 +126,20 @@ export class CarrierDownloadService {
       reconciledAt: new Date().toISOString()
     };
 
-    return this.repos.downloads.createBatch(tenantId, batch);
+    this.batches.unshift(batch);
+    return batch;
   }
 
   /**
    * Reconciles incoming transaction items against existing CoreAMS policies.
    */
-  private async reconcileItems(tenantId: string, items: DownloadTransactionItem[]) {
-    const existingPolicies = await this.amsService.getPolicies(tenantId);
-    const existingCustomers = await this.amsService.getCustomers(tenantId);
+  private reconcileItems(items: DownloadTransactionItem[]) {
+    const existingPolicies = this.amsService.getPolicies();
+    const existingCustomers = this.amsService.getCustomers();
 
+    // PERFORMANCE OPTIMIZATION:
+    // 1. Pre-compute a map for O(1) policy lookups instead of O(N) array scans.
+    // 2. Pre-compute lowercased customer names outside the loop to avoid redundant string operations.
     const policyMap = new Map<string, any>();
     for (const p of existingPolicies) {
       policyMap.set(p.policyNumber.toLowerCase(), p);
@@ -147,6 +151,7 @@ export class CarrierDownloadService {
       searchIndName: `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase()
     }));
 
+    // 3. Pre-compute a map for O(1) customer lookups by FEIN
     const customerFeinMap = new Map<string, any>();
     for (const sd of customerSearchData) {
       if (sd.customer.feinOrSsn) {
@@ -155,6 +160,7 @@ export class CarrierDownloadService {
     }
 
     for (const item of items) {
+      // 1. Direct Policy Number Match (O(1) lookup)
       const matchedPol = policyMap.get(item.policyNumber.toLowerCase());
 
       if (matchedPol) {
@@ -169,8 +175,10 @@ export class CarrierDownloadService {
           item.reconciliationStatus = 'Matched';
         }
       } else {
+        // 2. Customer FEIN/Name Fuzzy Match
         const searchName = item.insuredName.toLowerCase();
 
+        // ⚡ Bolt: Fast O(1) FEIN match before falling back to O(N) fuzzy search
         let matchedCust = item.insuredFeinOrSsn ? customerFeinMap.get(item.insuredFeinOrSsn) : undefined;
 
         if (!matchedCust) {
@@ -183,8 +191,9 @@ export class CarrierDownloadService {
           item.matchedCustomerId = matchedCust.customer.customerId;
           item.reconciliationStatus = 'New Policy Created';
 
+          // Auto-create policy for customer
           try {
-            const newPol = await this.amsService.createPolicy(tenantId, {
+            const newPol = this.amsService.createPolicy({
               customerId: matchedCust.customer.customerId,
               policyNumber: item.policyNumber,
               lineOfBusiness: item.lineOfBusiness as any,
@@ -208,8 +217,12 @@ export class CarrierDownloadService {
     }
   }
 
-  public async postBatchCommissions(tenantId: string = 'tenant-001', batchId: string): Promise<DownloadBatch> {
-    const batch = await this.getBatchById(tenantId, batchId);
+  /**
+   * Posts direct-bill commissions for a download batch directly into the General Ledger.
+   * Debits Trust/Operating Cash (1000), Credits Commission Revenue (4000) & Carrier Payable (2000).
+   */
+  public postBatchCommissions(batchId: string, tenantId: string = 'tenant-001') {
+    const batch = this.getBatchById(batchId, tenantId);
     if (!batch) {
       throw new Error(`Download batch ${batchId} not found`);
     }
@@ -218,10 +231,9 @@ export class CarrierDownloadService {
       return batch;
     }
 
-    let modified = false;
     for (const item of batch.items) {
       if (item.commissionAmount > 0 && item.reconciliationStatus !== 'Discrepancy') {
-        const je = await this.accountingService.postJournalEntry(tenantId, {
+        const je = this.accountingService.postJournalEntry({
           memo: `Direct Bill Commission Posting - Policy #${item.policyNumber} (${item.carrierName})`,
           reference: item.itemId,
           lines: [
@@ -240,18 +252,53 @@ export class CarrierDownloadService {
 
         item.glJournalEntryId = je.entryId;
         item.reconciliationStatus = 'Commissions Posted';
-        modified = true;
       }
     }
 
-    if (modified) {
-      batch.status = 'Commissions Posted';
-      batch.postedAt = new Date().toISOString();
-      // Wait, there's no updateBatch in the interface but the instruction doesn't specify creating updateBatch.
-      // We will just re-create or assume memory repository reflects changes.
-      // If we need to save, we'd do it here. For now, returning batch is fine.
-    }
-    
+    batch.status = 'Commissions Posted';
+    batch.postedAt = new Date().toISOString();
     return batch;
+  }
+
+  private seedInitialDownloadBatch() {
+    const seedPayload: IngestDownloadBatchPayload = {
+      carrierCode: 'TRV01',
+      carrierName: 'Travelers Insurance',
+      source: 'IVANS Exchange',
+      items: [
+        {
+          policyNumber: 'POL-COMM-1001',
+          insuredName: 'Acme Logistics LLC',
+          insuredFeinOrSsn: '36-9876543',
+          lineOfBusiness: 'Commercial Auto',
+          transactionType: 'RENE',
+          effectiveDate: new Date().toISOString().split('T')[0],
+          grossPremium: 12500,
+          commissionRate: 0.15
+        },
+        {
+          policyNumber: 'POL-COMM-1002',
+          insuredName: 'Midwest Industrial Supplies',
+          insuredFeinOrSsn: '36-1122334',
+          lineOfBusiness: 'General Liability',
+          transactionType: 'DBST',
+          effectiveDate: new Date().toISOString().split('T')[0],
+          grossPremium: 8400,
+          commissionRate: 0.15
+        },
+        {
+          policyNumber: 'POL-NEW-9044',
+          insuredName: 'Apex Transport Group',
+          insuredFeinOrSsn: '36-7788990',
+          lineOfBusiness: 'Workers Compensation',
+          transactionType: 'NEWB',
+          effectiveDate: new Date().toISOString().split('T')[0],
+          grossPremium: 16200,
+          commissionRate: 0.12
+        }
+      ]
+    };
+
+    this.ingestDownloadBatch(seedPayload, 'tenant-001');
   }
 }

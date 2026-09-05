@@ -5,7 +5,3 @@
 ## 2024-10-25 - [Actionable Empty States in Vanilla JS Data Tables]
 **Learning:** When datasets are empty, leaving the table blank causes user confusion. Injecting an actionable empty state (with a clear message and a primary call-to-action button mapped to the creation modal) directly into the rendering container's `innerHTML` by returning early prevents rendering errors and significantly improves discoverability.
 **Action:** Always implement empty states with an actionable CTA button for data tables that can be empty, utilizing existing design system classes (e.g., `btn`, `btn-primary`) rather than introducing inline styles to adhere to strict framework boundaries.
-
-## 2024-11-20 - [Sequential Empty States for Multi-Table Fetches]
-**Learning:** When a single function (like `fetchAccountingData`) fetches and populates multiple tables sequentially, returning early after rendering the first empty state prevents subsequent tables from rendering correctly (either with data or their own empty state).
-**Action:** Use an `if/else` block for each dataset within the sequential process instead of early returns to ensure all tables are processed independently and their respective empty states or data populate as intended.

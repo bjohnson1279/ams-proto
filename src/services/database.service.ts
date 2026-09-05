@@ -1,11 +1,3 @@
-import { getPool } from '../db/pg.pool.js';
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
 export interface TenantContext {
   tenantId: string;
   agencyName: string;
@@ -26,7 +18,6 @@ export class DatabaseService {
   private static instance: DatabaseService;
 
   private activeTenantId: string = 'tenant-001';
-  public pool = getPool();
 
   private constructor() {}
 
@@ -49,17 +40,20 @@ export class DatabaseService {
     return REGISTERED_TENANTS[this.activeTenantId] || REGISTERED_TENANTS['tenant-001'];
   }
 
+  /**
+   * Generates PostgreSQL set_config string for RLS session initialization.
+   * Standard syntax: SELECT set_config('app.current_tenant_id', 'tenant-001', false);
+   */
   public generateRlsSessionQuery(tenantId: string): string {
+    // Escape single quotes to prevent SQL injection when this query is executed
     const safeTenantId = tenantId.replace(/'/g, "''");
     return `SELECT set_config('app.current_tenant_id', '${safeTenantId}', false);`;
   }
 
+  /**
+   * Evaluates whether an entity record belongs to the active RLS tenant context.
+   */
   public applyRlsFilter<T extends { tenantId?: string }>(items: T[], activeTenantId: string): T[] {
     return items.filter(item => !item.tenantId || item.tenantId === activeTenantId);
-  }
-
-  public async initialize(): Promise<void> {
-    console.log('Database initialized (Schema, RLS, TimescaleDB LEDGER applied)');
-    // Delegate to src/scripts/initDb.js logic if needed.
   }
 }

@@ -963,107 +963,34 @@
           // Render Trial Balance
           const tbBody = document.getElementById('trial-balance-table-body');
           tbBody.innerHTML = '';
-<<<<<<< HEAD
-          if (res.data.trialBalance && res.data.trialBalance.length > 0) {
-            res.data.trialBalance.forEach(a => {
-              const tr = document.createElement('tr');
-              tr.innerHTML = `
-                <td style="font-family: monospace; font-weight: 600; color: var(--accent-cyan);">${escapeHtml(a.accountNumber)}</td>
-                <td style="font-weight: 600;">${escapeHtml(a.accountName)}</td>
-                <td><span class="badge badge-core">${escapeHtml(a.category)}</span></td>
-                <td style="font-family: monospace; text-align: right;">${a.debitBalance ? '$' + escapeHtml(a.debitBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })) : '-'}</td>
-                <td style="font-family: monospace; text-align: right;">${a.creditBalance ? '$' + escapeHtml(a.creditBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })) : '-'}</td>
-              `;
-              tbBody.appendChild(tr);
-            });
-          } else {
-=======
-          if (res.data.trialBalance.length === 0) {
->>>>>>> origin/main
-            tbBody.innerHTML = `
-              <tr>
-                <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">
-                  <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚖️</div>
-<<<<<<< HEAD
-                  <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No trial balance entries found</div>
-                  <div style="font-size: 0.9rem; margin-bottom: 1rem;">Process transactions or reconcile accounts to view ledger data.</div>
-                  <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="switchTab('tab-workbench')">⚡ Go to Migration Workbench</button>
-                </td>
-              </tr>
+          res.data.trialBalance.forEach(a => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="font-family: monospace; font-weight: 600; color: var(--accent-cyan);">${escapeHtml(a.accountNumber)}</td>
+              <td style="font-weight: 600;">${escapeHtml(a.accountName)}</td>
+              <td><span class="badge badge-core">${escapeHtml(a.category)}</span></td>
+              <td style="font-family: monospace; text-align: right;">${a.debitBalance ? '$' + escapeHtml(a.debitBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })) : '-'}</td>
+              <td style="font-family: monospace; text-align: right;">${a.creditBalance ? '$' + escapeHtml(a.creditBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })) : '-'}</td>
             `;
-=======
-                  <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No General Ledger entries found</div>
-                  <div style="font-size: 0.9rem;">The trial balance is currently empty. Execute premium transactions to populate the ledger.</div>
-                </td>
-              </tr>
-            `;
-          } else {
-            res.data.trialBalance.forEach(a => {
-              const tr = document.createElement('tr');
-              tr.innerHTML = `
-                <td style="font-family: monospace; font-weight: 600; color: var(--accent-cyan);">${escapeHtml(a.accountNumber)}</td>
-                <td style="font-weight: 600;">${escapeHtml(a.accountName)}</td>
-                <td><span class="badge badge-core">${escapeHtml(a.category)}</span></td>
-                <td style="font-family: monospace; text-align: right;">${a.debitBalance ? '$' + escapeHtml(a.debitBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })) : '-'}</td>
-                <td style="font-family: monospace; text-align: right;">${a.creditBalance ? '$' + escapeHtml(a.creditBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })) : '-'}</td>
-              `;
-              tbBody.appendChild(tr);
-            });
->>>>>>> origin/main
-          }
+            tbBody.appendChild(tr);
+          });
         }
 
         const invRes = await fetch('/api/v1/accounting/invoices').then(r => r.json());
         if (invRes.success && invRes.data) {
           const invBody = document.getElementById('invoices-table-body');
           invBody.innerHTML = '';
-<<<<<<< HEAD
-          if (invRes.data && invRes.data.length > 0) {
-            invRes.data.forEach(inv => {
-              const tr = document.createElement('tr');
-              tr.innerHTML = `
-                <td style="font-family: monospace; font-weight: 600; color: #38bdf8;">${escapeHtml(inv.invoiceNumber)}</td>
-                <td style="font-family: monospace;">$${escapeHtml(inv.grossPremium.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
-                <td style="font-family: monospace; color: var(--accent-emerald);">$${escapeHtml(inv.agencyCommissionAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
-                <td style="font-family: monospace; color: var(--accent-rose);">$${escapeHtml(inv.netCarrierPayable.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
-                <td><span class="badge badge-fmt-b">${escapeHtml(inv.status)}</span></td>
-              `;
-              invBody.appendChild(tr);
-            });
-          } else {
-=======
-          if (invRes.data.length === 0) {
->>>>>>> origin/main
-            invBody.innerHTML = `
-              <tr>
-                <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">
-                  <div style="font-size: 2rem; margin-bottom: 0.5rem;">🧾</div>
-                  <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No agency bill invoices found</div>
-<<<<<<< HEAD
-                  <div style="font-size: 0.9rem; margin-bottom: 1rem;">Generate an invoice to start tracking premiums and commissions.</div>
-=======
-                  <div style="font-size: 0.9rem; margin-bottom: 1rem;">Post download batch commissions to generate invoices.</div>
->>>>>>> origin/main
-                  <button class="btn btn-primary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="openPaymentModal(event)">+ Receive Premium Payment</button>
-                </td>
-              </tr>
+          invRes.data.forEach(inv => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td style="font-family: monospace; font-weight: 600; color: #38bdf8;">${escapeHtml(inv.invoiceNumber)}</td>
+              <td style="font-family: monospace;">$${escapeHtml(inv.grossPremium.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
+              <td style="font-family: monospace; color: var(--accent-emerald);">$${escapeHtml(inv.agencyCommissionAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
+              <td style="font-family: monospace; color: var(--accent-rose);">$${escapeHtml(inv.netCarrierPayable.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
+              <td><span class="badge badge-fmt-b">${escapeHtml(inv.status)}</span></td>
             `;
-<<<<<<< HEAD
-=======
-          } else {
-            invRes.data.forEach(inv => {
-              const tr = document.createElement('tr');
-              tr.innerHTML = `
-                <td style="font-family: monospace; font-weight: 600; color: #38bdf8;">${escapeHtml(inv.invoiceNumber)}</td>
-                <td style="font-family: monospace;">$${escapeHtml(inv.grossPremium.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
-                <td style="font-family: monospace; color: var(--accent-emerald);">$${escapeHtml(inv.agencyCommissionAmount.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
-                <td style="font-family: monospace; color: var(--accent-rose);">$${escapeHtml(inv.netCarrierPayable.toLocaleString('en-US', { minimumFractionDigits: 2 }))}</td>
-                <td><span class="badge badge-fmt-b">${escapeHtml(inv.status)}</span></td>
-              `;
-              invBody.appendChild(tr);
-            });
->>>>>>> origin/main
-          }
+            invBody.appendChild(tr);
+          });
         }
       } catch (err) {
         console.error('Failed to fetch accounting data:', err);

@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { CertificateService } from '../services/certificate.service.js';
-import { TenantRequest } from '../middleware/tenant.middleware.js';
 
 export class CertificateController {
   private certificateService: CertificateService;
@@ -11,10 +10,9 @@ export class CertificateController {
 
   public getCertificates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
       const { customerId, holderId, status } = req.query;
 
-      const certs = await this.certificateService.getCertificates(tenantId, {
+      const certs = this.certificateService.getCertificates({
         customerId: typeof customerId === 'string' ? customerId : undefined,
         holderId: typeof holderId === 'string' ? holderId : undefined,
         status: typeof status === 'string' ? status : undefined
@@ -32,9 +30,8 @@ export class CertificateController {
 
   public getCertificateById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
       const { id } = req.params;
-      const cert = await this.certificateService.getCertificateById(tenantId, id);
+      const cert = this.certificateService.getCertificateById(id);
       if (!cert) {
         res.status(404).json({
           status: 'error',
@@ -54,9 +51,8 @@ export class CertificateController {
 
   public renderCertificateHtml = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
       const { id } = req.params;
-      const html = await this.certificateService.renderAcord25Html(tenantId, id);
+      const html = this.certificateService.renderAcord25Html(id);
       res.setHeader('Content-Type', 'text/html');
       res.status(200).send(html);
     } catch (err: any) {
@@ -73,7 +69,6 @@ export class CertificateController {
 
   public createCertificate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
       const { customerId, holderId, policyIds, descriptionOfOperations, cancellationNoticeDays } = req.body;
 
       if (!customerId || !holderId) {
@@ -84,7 +79,7 @@ export class CertificateController {
         return;
       }
 
-      const newCert = await this.certificateService.generateCertificate(tenantId, {
+      const newCert = this.certificateService.generateCertificate({
         customerId,
         holderId,
         policyIds: Array.isArray(policyIds) ? policyIds : [],
@@ -107,7 +102,6 @@ export class CertificateController {
 
   public bulkIssueCertificates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
       const { customerId, holderIds, policyIds, descriptionOfOperations, cancellationNoticeDays } = req.body;
 
       if (!customerId || !Array.isArray(holderIds) || holderIds.length === 0) {
@@ -118,7 +112,7 @@ export class CertificateController {
         return;
       }
 
-      const issued = await this.certificateService.bulkIssueCertificates(tenantId, {
+      const issued = this.certificateService.bulkIssueCertificates({
         customerId,
         holderIds,
         policyIds: Array.isArray(policyIds) ? policyIds : [],
@@ -142,9 +136,8 @@ export class CertificateController {
 
   public getCertificateHolders = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
       const { name } = req.query;
-      const holders = await this.certificateService.getCertificateHolders(tenantId, {
+      const holders = this.certificateService.getCertificateHolders({
         name: typeof name === 'string' ? name : undefined
       });
 
@@ -160,7 +153,6 @@ export class CertificateController {
 
   public createCertificateHolder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
       const payload = req.body;
       if (!payload || !payload.name) {
         res.status(400).json({
@@ -170,7 +162,7 @@ export class CertificateController {
         return;
       }
 
-      const newHolder = await this.certificateService.createCertificateHolder(tenantId, payload);
+      const newHolder = this.certificateService.createCertificateHolder(payload);
       res.status(201).json({
         status: 'success',
         message: 'Certificate Holder created successfully.',
@@ -186,9 +178,8 @@ export class CertificateController {
 
   public getCertificateHolderById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
       const { id } = req.params;
-      const holder = await this.certificateService.getCertificateHolderById(tenantId, id);
+      const holder = this.certificateService.getCertificateHolderById(id);
       if (!holder) {
         res.status(404).json({
           status: 'error',
@@ -203,64 +194,6 @@ export class CertificateController {
       });
     } catch (err) {
       next(err);
-    }
-  };
-
-  public updateCertificateHolder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
-      const { id } = req.params;
-      const payload = req.body;
-      const updated = await this.certificateService.updateCertificateHolder(tenantId, id, payload);
-      res.status(200).json({
-        status: 'success',
-        message: 'Certificate Holder updated successfully.',
-        data: updated
-      });
-    } catch (err: any) {
-      if (err.message && err.message.includes('not found')) {
-        res.status(404).json({ status: 'error', message: err.message });
-      } else {
-        res.status(400).json({ status: 'error', message: err.message || 'Failed to update Certificate Holder.' });
-      }
-    }
-  };
-
-  public deactivateCertificateHolder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
-      const { id } = req.params;
-      await this.certificateService.deactivateCertificateHolder(tenantId, id);
-      res.status(200).json({
-        status: 'success',
-        message: 'Certificate Holder deactivated successfully.'
-      });
-    } catch (err: any) {
-      if (err.message && err.message.includes('not found')) {
-        res.status(404).json({ status: 'error', message: err.message });
-      } else {
-        res.status(400).json({ status: 'error', message: err.message || 'Failed to deactivate Certificate Holder.' });
-      }
-    }
-  };
-
-  public revokeCertificate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
-      const { id } = req.params;
-      const { reason } = req.body;
-      const revoked = await this.certificateService.revokeCertificate(tenantId, id, reason);
-      res.status(200).json({
-        status: 'success',
-        message: 'Certificate revoked successfully.',
-        data: revoked
-      });
-    } catch (err: any) {
-      if (err.message && err.message.includes('not found')) {
-        res.status(404).json({ status: 'error', message: err.message });
-      } else {
-        res.status(400).json({ status: 'error', message: err.message || 'Failed to revoke Certificate.' });
-      }
     }
   };
 }

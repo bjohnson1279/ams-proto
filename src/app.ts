@@ -19,21 +19,7 @@ app.use(
     contentSecurityPolicy: false, // Allows embedded UI fonts and styles
   })
 );
-<<<<<<< HEAD
-// 🛡️ Sentinel: Restrict CORS origin to prevent unauthorized cross-origin requests
-const corsOptions = {
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-};
-app.use(cors(corsOptions));
-=======
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-}));
->>>>>>> origin/main
+app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 

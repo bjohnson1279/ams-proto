@@ -18,11 +18,6 @@ certificateRouter.get('/:id/render', controller.renderCertificateHtml);
 holderRouter.get('/', controller.getCertificateHolders);
 holderRouter.post('/', controller.createCertificateHolder);
 holderRouter.get('/:id', controller.getCertificateHolderById);
-holderRouter.put('/:id', controller.updateCertificateHolder);
-holderRouter.delete('/:id', controller.deactivateCertificateHolder);
-
-// CERTIFICATE ACTION ENDPOINTS
-certificateRouter.post('/:id/revoke', controller.revokeCertificate);
 
 export { certificateRouter, holderRouter };
 export default certificateRouter;

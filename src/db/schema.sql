@@ -32,7 +32,6 @@ CREATE TABLE IF NOT EXISTS customers (
     email VARCHAR(255),
     phone VARCHAR(50),
     status VARCHAR(20) DEFAULT 'Active',
-    legacy_crosswalks JSONB DEFAULT '[]',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -63,10 +62,8 @@ CREATE TABLE IF NOT EXISTS policies (
     agency_commission NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
     net_carrier_payable NUMERIC(15, 2) NOT NULL DEFAULT 0.00,
     billing_type VARCHAR(50) DEFAULT 'Agency Bill',
-    billing_status VARCHAR(50) DEFAULT 'Unbilled',
+    billing_status VARCHAR(50) DEFAULT 'Pending Invoice',
     policy_status VARCHAR(50) DEFAULT 'Active',
-    coverages JSONB DEFAULT '[]',
-    schedules JSONB DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -120,7 +117,6 @@ CREATE TABLE IF NOT EXISTS journal_entries (
     description TEXT NOT NULL,
     reference_id VARCHAR(100),
     source VARCHAR(100) NOT NULL,
-    lines JSONB DEFAULT '[]',
     total_debit NUMERIC(15, 2) NOT NULL,
     total_credit NUMERIC(15, 2) NOT NULL,
     CONSTRAINT check_balanced CHECK (total_debit = total_credit)
@@ -136,13 +132,9 @@ CREATE TABLE IF NOT EXISTS certificate_holders (
     city VARCHAR(100) NOT NULL,
     state VARCHAR(50) NOT NULL,
     postal_code VARCHAR(20) NOT NULL,
-    phone VARCHAR(50),
     email VARCHAR(255),
-    default_special_wording TEXT,
     delivery_preference VARCHAR(50) DEFAULT 'PDF Email',
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    deactivated_at TIMESTAMP WITH TIME ZONE
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- 9. CERTIFICATES TABLE (ACORD 25)
@@ -153,15 +145,9 @@ CREATE TABLE IF NOT EXISTS certificates (
     holder_id VARCHAR(64) NOT NULL REFERENCES certificate_holders(holder_id) ON DELETE CASCADE,
     certificate_number VARCHAR(100) NOT NULL,
     issue_date DATE NOT NULL,
-    status VARCHAR(50) DEFAULT 'Issued',
     producer_name VARCHAR(255) NOT NULL,
-    insurers JSONB DEFAULT '[]',
-    coverages_snapshot JSONB DEFAULT '{}',
     special_provisions TEXT,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    revoked_at TIMESTAMP WITH TIME ZONE,
-    revocation_reason TEXT
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- INDEXES FOR MULTI-TENANT QUERY PERFORMANCE
