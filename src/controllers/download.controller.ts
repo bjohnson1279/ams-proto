@@ -6,9 +6,6 @@ const downloadService = CarrierDownloadService.getInstance();
 const al3Parser = Al3ParserService.getInstance();
 
 export class DownloadController {
-  /**
-   * Parse raw AL3 file string / stream
-   */
   public parseAl3(req: Request, res: Response, next: NextFunction): void {
     try {
       const { rawContent } = req.body;
@@ -20,70 +17,53 @@ export class DownloadController {
       const result = al3Parser.parseAl3Content(rawContent);
       res.json(result);
     } catch (err: any) {
-      // 🛡️ Sentinel: Pass error to global handler to avoid info leak
       next(err);
     }
   }
 
-  /**
-   * List download batches
-   */
-  public getBatches(req: Request, res: Response, next: NextFunction): void {
+  public getBatches = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const tenantId = (req as any).tenantId || 'tenant-001';
-      const batches = downloadService.getBatches(tenantId);
+      const batches = await downloadService.getBatches(tenantId);
       res.json(batches);
     } catch (err: any) {
-      // 🛡️ Sentinel: Pass error to global handler to avoid info leak
       next(err);
     }
-  }
+  };
 
-  /**
-   * Get single batch by ID
-   */
-  public getBatchById(req: Request, res: Response, next: NextFunction): void {
+  public getBatchById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const tenantId = (req as any).tenantId || 'tenant-001';
-      const batch = downloadService.getBatchById(req.params.batchId, tenantId);
+      const batch = await downloadService.getBatchById(tenantId, req.params.batchId);
       if (!batch) {
         res.status(404).json({ error: 'Batch not found' });
         return;
       }
       res.json(batch);
     } catch (err: any) {
-      // 🛡️ Sentinel: Pass error to global handler to avoid info leak
       next(err);
     }
-  }
+  };
 
-  /**
-   * Ingest a new download batch or raw AL3 package
-   */
-  public ingestBatch(req: Request, res: Response, next: NextFunction): void {
+  public ingestBatch = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const tenantId = (req as any).tenantId || 'tenant-001';
       const payload = req.body;
-      const batch = downloadService.ingestDownloadBatch(payload, tenantId);
+      const batch = await downloadService.ingestDownloadBatch(tenantId, payload);
       res.status(201).json(batch);
     } catch (err: any) {
-      // 🛡️ Sentinel: Pass error to global handler to avoid info leak
       next(err);
     }
-  }
+  };
 
-  /**
-   * Post direct-bill commissions to General Ledger
-   */
-  public postCommissions(req: Request, res: Response, next: NextFunction): void {
+  public postCommissions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const tenantId = (req as any).tenantId || 'tenant-001';
       const { batchId } = req.params;
-      const batch = downloadService.postBatchCommissions(batchId, tenantId);
+      const batch = await downloadService.postBatchCommissions(tenantId, batchId);
       res.json(batch);
     } catch (err: any) {
-      // 🛡️ Sentinel: Pass error to global handler to avoid info leak
       next(err);
     }
-  }
+  };
 }
