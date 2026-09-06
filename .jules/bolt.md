@@ -62,3 +62,7 @@
 ## 2026-09-08 - Avoid DDL inside Transaction Inserts
 **Learning:** Executing DDL statements (like `ALTER TABLE`) inside a transactional query path (e.g. `INSERT`) acquires aggressive table-level locks, destroying concurrency and severely degrading performance. In `createJournalEntry`, an inline `ALTER TABLE` was evaluated on every insert.
 **Action:** Ensure all schema setup (like adding columns) is restricted to database initialization logic/migrations, not inline within application-level CRUD operations.
+
+## 2026-09-08 - Use Map for O(1) lookups in nested loops
+**Learning:** In `createJournalEntry`, an (N 	imes M)$ array scan was caused by calling `.find()` on `this.accounts` inside a loop iterating over `je.lines`. Replacing this with a pre-fetched `Map` of accounts enables (1)$ lookups, reducing the complexity to (N + M)$ safely and without sacrificing type safety.
+**Action:** For nested data correlation, pre-fetch the required data into a `Map` for (1)$ lookups to eliminate nested array scans.

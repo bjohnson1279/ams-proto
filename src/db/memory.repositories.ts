@@ -178,8 +178,10 @@ export class MemoryAccountingRepository implements IAccountingRepository {
 
     // Update account balances based on debits and credits
     if (je.lines) {
+      // ⚡ Bolt: Use Map for O(1) lookups instead of O(N*M) nested array scans
+      const accountMap = new Map(this.accounts.map(a => [a.accountNumber, a]));
       for (const line of je.lines) {
-        const acct = this.accounts.find(a => a.accountNumber === line.accountNumber);
+        const acct = accountMap.get(line.accountNumber);
         if (acct) {
           const netChange = (line.debit || 0) - (line.credit || 0);
           if (acct.normalBalance === 'Debit') {
