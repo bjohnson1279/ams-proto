@@ -35,3 +35,8 @@
 **Vulnerability:** The application was configured with `app.use(cors())`, which defaults to allowing all origins (`*`), opening the API up to unauthorized cross-origin requests.
 **Learning:** Default configurations of security middleware like `cors` often prioritize ease of use over security, leading to overly permissive access controls.
 **Prevention:** Always explicitly configure `cors` with restricted `origin`, `methods`, and `allowedHeaders` appropriately scoped for the application's needs. Ensure fallback defaults are secure (e.g., `http://localhost:3000`).
+
+## 2026-09-06 - [Fix Git Merge Conflicts with escapeHtml toString]
+**Vulnerability:** When resolving git merge conflicts in `public/index.html` manually, the previous HEAD changes fixed a Type Error vulnerability by removing `.toString()` from inside `escapeHtml()` calls. However, if git merges are auto-resolved incorrectly or an older branch `origin/main` takes precedence, the `.toString()` vulnerability can be reintroduced.
+**Learning:** During large conflict resolutions in HTML views, pay close attention to previously implemented security constraints (such as avoiding `.toString()` inside template literals due to null pointer exceptions) that might be overwritten by the incoming merge branch.
+**Prevention:** Always verify that the final merged code correctly omits `.toString()` inside `escapeHtml` calls by searching the file or using custom parsing scripts when stripping git conflict markers manually.
