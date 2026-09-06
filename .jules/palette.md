@@ -9,3 +9,7 @@
 ## 2024-11-20 - [Sequential Empty States for Multi-Table Fetches]
 **Learning:** When a single function (like `fetchAccountingData`) fetches and populates multiple tables sequentially, returning early after rendering the first empty state prevents subsequent tables from rendering correctly (either with data or their own empty state).
 **Action:** Use an `if/else` block for each dataset within the sequential process instead of early returns to ensure all tables are processed independently and their respective empty states or data populate as intended.
+
+## 2024-11-20 - [Resolving File Conflicts and Table Empty States]
+**Learning:** When datasets are empty for tables like Carrier Download Batches and Crosswalk Matrix, returning an actionable empty state (with an icon and CTA button) significantly improves UX by preventing users from staring at blank, unpopulated tables. Resolving existing file conflicts without disrupting intended UX states (like disabled buttons during loads) ensures overall application stability.
+**Action:** When creating empty states, ensure to include a `return;` early if checking inside a render function to avoid mapping over empty sets and to successfully stop table rendering functions correctly.
