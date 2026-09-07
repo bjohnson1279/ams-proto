@@ -440,6 +440,15 @@
       font-weight: 700;
       text-transform: uppercase;
     }
+
+    /* Accessibility: Focus visible styles */
+    button:focus-visible,
+    input:focus-visible,
+    select:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid var(--accent-cyan);
+      outline-offset: 2px;
+    }
   </style>
 </head>
 <body>
@@ -539,7 +548,7 @@
     <!-- TAB 2: INSURED & POLICY REGISTRY -->
     <div id="tab-customers" class="tab-content" role="tabpanel">
       <div style="display: flex; gap: 1rem; align-items: center;">
-        <input type="text" id="search-input" aria-label="Search customers" placeholder="Search by customer name or policy number..."
+        <input type="text" id="search-input" aria-label="Search customers" placeholder="Search by customer name or policy number... (Press '/')"
           style="background: var(--bg-card); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 1rem; border-radius: 8px; width: 360px;"
           onkeyup="debouncedFilterCustomers()">
       </div>
@@ -1830,6 +1839,20 @@
         }
       }
     }
+
+    // Global keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+      // Ignore if user is already typing in an input, textarea, or select
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+        return;
+      }
+
+      if (e.key === '/') {
+        e.preventDefault(); // Prevent '/' from being typed if focus switches
+        switchTab('tab-customers');
+        document.getElementById('search-input').focus();
+      }
+    });
 
     window.onload = init;
   </script>
