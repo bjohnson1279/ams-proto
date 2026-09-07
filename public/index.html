@@ -980,8 +980,8 @@
               <tr>
                 <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">
                   <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚖️</div>
-                  <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No trial balance entries found</div>
-                  <div style="font-size: 0.9rem; margin-bottom: 1rem;">Process transactions or reconcile accounts to view ledger data.</div>
+                  <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No General Ledger entries found</div>
+                  <div style="font-size: 0.9rem; margin-bottom: 1rem;">The trial balance is currently empty. Execute premium transactions or reconcile accounts to populate the ledger.</div>
                   <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="switchTab('tab-workbench')">⚡ Go to Migration Workbench</button>
                 </td>
               </tr>
@@ -1265,6 +1265,19 @@
       if (res.status === 'success') {
         const tbody = document.getElementById('matrix-table-body');
         tbody.innerHTML = '';
+        if (!res.matrix || res.matrix.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔀</div>
+                <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No crosswalk rules defined</div>
+                <div style="font-size: 0.9rem; margin-bottom: 1rem;">Configure format mapping rules in the Migration Workbench.</div>
+                <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="switchTab('tab-workbench')">⚡ Go to Migration Workbench</button>
+              </td>
+            </tr>
+          `;
+          return;
+        }
         res.matrix.forEach(m => {
           const tr = document.createElement('tr');
           const clsMap = { 'FORMAT_A': 'badge-fmt-a', 'FORMAT_B': 'badge-fmt-b', 'FORMAT_C': 'badge-fmt-c', 'FORMAT_D': 'badge-fmt-d' };
@@ -1618,6 +1631,20 @@
       const tbody = document.getElementById('download-batches-table-body');
       if (!tbody) return;
       tbody.innerHTML = '';
+
+      if (!batches || batches.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+              <div style="font-size: 2rem; margin-bottom: 0.5rem;">📥</div>
+              <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No download batches found</div>
+              <div style="font-size: 0.9rem; margin-bottom: 1rem;">Parse an AL3 message or simulate an incoming carrier batch to view downloads.</div>
+              <button class="btn btn-primary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="document.getElementById('al3-input-editor')?.scrollIntoView({ behavior: 'smooth' }); document.getElementById('al3-input-editor')?.focus();">⚡ Parse AL3 Download</button>
+            </td>
+          </tr>
+        `;
+        return;
+      }
 
       batches.forEach(b => {
         const tr = document.createElement('tr');
