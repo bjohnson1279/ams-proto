@@ -131,4 +131,34 @@ describe('transformFormatCPayload', () => {
     expect(result.exceptions[0].severity).toBe('NON_CRITICAL');
     expect(result.exceptions[0].field).toBe('TaxIdentifier');
   });
+
+  it('should map various LOB descriptions to canonical LOBs', () => {
+    const payload: FormatCClientPayload = {
+      ClientNum: 'C123',
+      FileID: 'F123',
+      IsCommercial: true,
+      TaxIdentifier: '12-3456789',
+      ClientStatus: 'Active',
+      PolicyList: [
+        { PolicyId: 'P1', LOB: 'General Liability' },
+        { PolicyId: 'P2', LOB: 'Liability' },
+        { PolicyId: 'P3', LOB: 'Property' },
+        { PolicyId: 'P4', LOB: 'Workers Comp' },
+        { PolicyId: 'P5', LOB: 'WC' },
+        { PolicyId: 'P6', LOB: 'BOP' },
+        { PolicyId: 'P7', LOB: 'Unknown LOB' },
+      ],
+    };
+
+    const result = transformFormatCPayload(payload, existingCarrierNaicMap);
+
+    expect(result.policies).toHaveLength(7);
+    expect(result.policies[0].lineOfBusiness).toBe('General Liability');
+    expect(result.policies[1].lineOfBusiness).toBe('General Liability');
+    expect(result.policies[2].lineOfBusiness).toBe('Commercial Property');
+    expect(result.policies[3].lineOfBusiness).toBe('Workers Comp');
+    expect(result.policies[4].lineOfBusiness).toBe('Workers Comp');
+    expect(result.policies[5].lineOfBusiness).toBe('BOP');
+    expect(result.policies[6].lineOfBusiness).toBe('General Liability'); // Default
+  });
 });
