@@ -151,6 +151,24 @@ describe('CrosswalkEngine', () => {
     expect(result.exceptions[0].severity).toBe('CRITICAL');
   });
 
+  it('should handle FORMAT_E as unknown and push specific exception details', () => {
+    const payload: IngestionPayload = {
+      systemSource: 'FORMAT_E' as LegacySystemType,
+      exportedAt: new Date().toISOString(),
+      data: [{ some_field: '123' } as any],
+    };
+
+    const result = engine.processIngestion(payload);
+
+    expect(result.customers).toHaveLength(0);
+    expect(result.exceptions).toHaveLength(1);
+    expect(result.exceptions[0].recordIdentifier).toBe('UNKNOWN_RECORD');
+    expect(result.exceptions[0].systemSource).toBe('FORMAT_E');
+    expect(result.exceptions[0].field).toBe('systemSource');
+    expect(result.exceptions[0].reason).toBe("Unsupported or unidentifiable legacy format type: 'FORMAT_E'");
+    expect(result.exceptions[0].severity).toBe('CRITICAL');
+  });
+
   it('should catch unhandled exceptions during transformation and log UNHANDLED_EXCEPTION', () => {
     // Instead of mocking the import (which is read-only in ES modules),
     // we can pass null or undefined as the data array element,
