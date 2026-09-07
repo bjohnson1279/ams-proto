@@ -179,4 +179,17 @@ describe('FormatATransformer', () => {
     expect(carrierException).toBeDefined();
     expect(carrierException?.severity).toBe('NON_CRITICAL');
   });
+
+  it('should handle completely empty payload without throwing and return a CRITICAL exception', () => {
+    const payload = {} as FormatAClientPayload;
+    const result = transformFormatAPayload(payload, existingCarrierNaicMap);
+
+    expect(result.exceptions).toBeDefined();
+    expect(result.exceptions.length).toBeGreaterThan(0);
+
+    const criticalException = result.exceptions.find(e => e.field === 'Client_PK / ClientCode');
+    expect(criticalException).toBeDefined();
+    expect(criticalException?.severity).toBe('CRITICAL');
+    expect(criticalException?.recordIdentifier).toBe('FORMAT-A-CLIENT-UNKNOWN');
+  });
 });
