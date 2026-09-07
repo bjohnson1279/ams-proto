@@ -89,6 +89,31 @@ describe('Accounting & General Ledger Module (/api/v1/accounting)', () => {
     mockPostJournalEntry.mockRestore();
   });
 
+  it('POST /api/v1/accounting/journal-entries should use fallback error message when service throws empty error', async () => {
+    const mockPostJournalEntry = jest.spyOn(AccountingService.prototype, 'postJournalEntry').mockImplementationOnce(() => {
+      throw new Error('');
+    });
+
+    const payload = {
+      reference: 'TEST-002',
+      memo: 'Test Fallback',
+      lines: [
+        { accountNumber: '1000', description: 'Test', debit: 0, credit: 100 },
+        { accountNumber: '1010', description: 'Test', debit: 100, credit: 0 }
+      ]
+    };
+
+    const res = await request(app)
+      .post('/api/v1/accounting/journal-entries')
+      .send(payload);
+
+    expect(res.status).toBe(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.error).toBe('Failed to post Journal Entry');
+
+    mockPostJournalEntry.mockRestore();
+  });
+
   it('GET /api/v1/accounting/invoices should return list of invoices', async () => {
     const res = await request(app).get('/api/v1/accounting/invoices');
     expect(res.status).toBe(200);
