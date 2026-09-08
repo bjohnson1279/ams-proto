@@ -66,3 +66,6 @@
 ## 2026-09-08 - Use Map for O(1) lookups in nested loops
 **Learning:** In `createJournalEntry`, an (N 	imes M)$ array scan was caused by calling `.find()` on `this.accounts` inside a loop iterating over `je.lines`. Replacing this with a pre-fetched `Map` of accounts enables (1)$ lookups, reducing the complexity to (N + M)$ safely and without sacrificing type safety.
 **Action:** For nested data correlation, pre-fetch the required data into a `Map` for (1)$ lookups to eliminate nested array scans.
+## 2024-05-18 - [Combined O(N) Array Scanning in Memory Repository]
+**Learning:** The memory repository's `getFinancialSummary` method performed five sequential `.find()` calls to retrieve specific GL accounts. This resulted in O(5N) operations. While small in a prototype context, combining these into a single O(N) `for...of` loop with an early `break` effectively maintains performance consistency.
+**Action:** Always combine multiple contiguous `.find()` or `.filter()` calls scanning the same array into a single O(N) loop when retrieving distinct elements. Ensure early exit logic (e.g., `break`) is implemented to maximize performance gains.
