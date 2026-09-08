@@ -103,6 +103,41 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
     spy.mockRestore();
   });
 
+  it('POST /api/v1/integration/import should pass errors to next() middleware (importData path via mock)', async () => {
+    // Instead of mocking importLegacyPayload on AmsService, mock the inner crosswalk engine
+    // to simulate an error precisely as the ticket requested.
+    const crosswalkEngine = (AmsService.getInstance() as any).crosswalkEngine;
+    const spy = jest.spyOn(crosswalkEngine, 'processIngestion').mockImplementationOnce(() => {
+      throw new Error('Test crosswalk integration error');
+    });
+
+    const res = await request(app)
+      .post('/api/v1/integration/import')
+      .send(formatAPayload);
+
+    expect(res.status).toBe(500);
+    expect(res.body.status).toBe('error');
+    expect(res.body.message).toBe('Test crosswalk integration error');
+
+    spy.mockRestore();
+  });
+
+  it('POST /api/v1/integration/dry-run should pass errors to next() middleware', async () => {
+    const spy = jest.spyOn(AmsService.prototype, 'dryRunImport').mockImplementationOnce(() => {
+      throw new Error('Test dry-run integration error');
+    });
+
+    const res = await request(app)
+      .post('/api/v1/integration/dry-run')
+      .send(formatDPayload);
+
+    expect(res.status).toBe(500);
+    expect(res.body.status).toBe('error');
+    expect(res.body.message).toBe('Test dry-run integration error');
+
+    spy.mockRestore();
+  });
+
   it('GET /api/v1/carriers should return pre-seeded carrier list', async () => {
     const res = await request(app).get('/api/v1/carriers');
     expect(res.status).toBe(200);
