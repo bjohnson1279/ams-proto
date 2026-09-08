@@ -1,3 +1,4 @@
+import { randomInt } from 'crypto';
 import {
   CertificateHolder,
   CertificateOfInsurance,
@@ -46,7 +47,8 @@ export class CertificateService {
     if (!payload.name) {
       throw new Error('Certificate Holder name is required');
     }
-    const nextId = `HOLDER-${1000 + Math.floor(Math.random()*10000) + 1}`;
+    // 🛡️ Sentinel: Use cryptographically secure random number generation
+    const nextId = `HOLDER-${1000 + randomInt(0, 10000) + 1}`;
     const newHolder: Partial<CertificateHolder> = {
       holderId: nextId,
       name: payload.name,

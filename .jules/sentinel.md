@@ -35,3 +35,7 @@
 **Vulnerability:** The application was configured with `app.use(cors())`, which defaults to allowing all origins (`*`), opening the API up to unauthorized cross-origin requests.
 **Learning:** Default configurations of security middleware like `cors` often prioritize ease of use over security, leading to overly permissive access controls.
 **Prevention:** Always explicitly configure `cors` with restricted `origin`, `methods`, and `allowedHeaders` appropriately scoped for the application's needs. Ensure fallback defaults are secure (e.g., `http://localhost:3000`).
+## 2025-02-27 - [Fix Weak Random Number Generation]
+**Vulnerability:** Weak random number generation using `Math.random()` was used to generate IDs in `src/services/certificate.service.ts`.
+**Learning:** `Math.random()` is not cryptographically secure, and using it for sensitive values like IDs can lead to predictability and potential IDOR vulnerabilities.
+**Prevention:** Always use cryptographically secure random number generators (e.g., `crypto.randomInt`, `crypto.randomUUID`) for generating IDs or tokens in Node.js applications.
