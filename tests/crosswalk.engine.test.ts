@@ -4,6 +4,8 @@ import {
   IngestionPayload,
   FormatAClientPayload,
   FormatBClientPayload,
+  FormatCClientPayload,
+  FormatDClientPayload,
   LegacySystemType
 } from '../src/types/legacy.js';
 import { jest } from '@jest/globals';
@@ -168,5 +170,222 @@ describe('CrosswalkEngine', () => {
     expect(result.exceptions[0].recordIdentifier).toBe('UNHANDLED_EXCEPTION');
     expect(result.exceptions[0].severity).toBe('CRITICAL');
     expect(result.exceptions[0].reason).toContain('Cannot read properties of null');
+  });
+
+  it('should detect FORMAT_C and successfully transform payload', () => {
+    const formatCPayload: FormatCClientPayload = {
+      ClientNum: 'C100',
+      FileID: 'F100',
+      IsCommercial: true,
+      BusinessName: 'Format C Corp',
+      TaxIdentifier: '11-2223333',
+      Location: {
+        Street: '123 Format C St',
+        City: 'Atlantis',
+        State: 'FL',
+        ZipCode: '33333',
+      },
+      Contact: {
+        Email: 'contact@formatc.com',
+        Phone: '555-5555',
+      },
+      ClientStatus: 'Active',
+      PolicyList: [
+        {
+          PolicyId: 'P-C1',
+          PolicyNumber: 'POL-C-123',
+          LOB: 'Commercial Auto',
+          EffectiveDate: '2026-01-01',
+          ExpirationDate: '2027-01-01',
+          TotalPremium: 1500,
+          WritingCarrierNAIC: '12345',
+          PolicyState: 'Active',
+        },
+      ],
+    };
+
+    const payload: IngestionPayload = {
+      systemSource: undefined as unknown as LegacySystemType,
+      exportedAt: new Date().toISOString(),
+      data: formatCPayload,
+    };
+
+    const result = engine.processIngestion(payload);
+
+    expect(result.systemSource).toBe('FORMAT_C');
+    expect(result.customers).toHaveLength(1);
+    expect(result.customers[0].businessName).toBe('Format C Corp');
+    expect(result.policies).toHaveLength(1);
+    expect(result.policies[0].carrierId).toBe('CARRIER-1');
+    expect(result.exceptions).toHaveLength(0);
+  });
+
+  it('should detect FORMAT_D and successfully transform payload', () => {
+    const formatDPayload: FormatDClientPayload = {
+      account_uuid: 'acc-uuid-999',
+      entity_kind: 'ORGANIZATION',
+      display_name: 'Format D LLC',
+      legal_name: 'Format D LLC',
+      tax_id: '44-5556666',
+      primary_address: {
+        line1: '999 Format D Ave',
+        city_name: 'Seattle',
+        state_code: 'WA',
+        postal_code: '98101',
+      },
+      primary_contact: {
+        email_address: 'admin@formatd.com',
+        telephone_number: '555-9999',
+      },
+      account_status: 'ACTIVE',
+      active_policies: [
+        {
+          policy_uuid: 'pol-uuid-888',
+          policy_num: 'POL-D-456',
+          product_line_code: 'COMM_AUTO',
+          start_date: '2026-02-01',
+          end_date: '2027-02-01',
+          annual_premium_cents: 200000,
+          carrier_naic_code: '12345',
+          billing_method: 'DIRECT_BILL',
+        },
+      ],
+    };
+
+    const payload: IngestionPayload = {
+      systemSource: undefined as unknown as LegacySystemType,
+      exportedAt: new Date().toISOString(),
+      data: formatDPayload,
+    };
+
+    const result = engine.processIngestion(payload);
+
+    expect(result.systemSource).toBe('FORMAT_D');
+    expect(result.customers).toHaveLength(1);
+    expect(result.customers[0].businessName).toBe('Format D LLC');
+    expect(result.policies).toHaveLength(1);
+    expect(result.policies[0].carrierId).toBe('CARRIER-1');
+    expect(result.exceptions).toHaveLength(0);
+  });
+
+  it('should update carrier map properly', () => {
+    const newCarriers: Carrier[] = [
+      {
+        carrierId: 'CARRIER-2',
+        naicNumber: '67890',
+        carrierName: 'Another Carrier',
+        writingCompany: 'Another Co',
+        amBestRating: 'A+',
+        contactPhone: '555-1111',
+        claimsPhone: '555-2222',
+        website: 'example2.com',
+      }
+    ];
+
+    engine.updateCarrierMap(newCarriers);
+
+    const formatAPayload: FormatAClientPayload = {
+      Client_PK: 'A-101',
+      ClientCode: 'CODE-101',
+      Insured_Type: 'BUS',
+      Entity_Name: 'New Business Inc',
+      FEIN_SSN: '12-3456789',
+      Address_Line_1: '456 Side St',
+      City: 'Gotham',
+      State: 'NJ',
+      Postal_Code: '07001',
+      Status_Code: 'Active',
+      Policies: [
+        {
+          Policy_ID_FK: 'POL-A-2',
+          Policy_Num: 'POL-124',
+          Line_Of_Business_Code: 'AUTOC',
+          Effective_Dt: '2026-01-01',
+          Expiration_Dt: '2027-01-01',
+          Premium_Amt: 1000,
+          Carrier_NAIC: '67890', // NAIC matching the updated carrier
+          Status: 'Active',
+        },
+      ],
+    };
+
+    const payload: IngestionPayload = {
+      systemSource: 'FORMAT_A',
+      exportedAt: new Date().toISOString(),
+      data: formatAPayload,
+    };
+
+    const result = engine.processIngestion(payload);
+
+    expect(result.policies[0].carrierId).toBe('CARRIER-2');
+  });
+
+  it('should update existing customers for deduplication', () => {
+    const newExistingCustomers: Customer[] = [
+      {
+        customerId: 'CUST-NEW-EXISTING',
+        entityType: 'Commercial',
+        businessName: 'Format C Corp', // Same as formatCPayload to trigger deduplication
+        feinOrSsn: '11-2223333',
+        address: {
+          street1: '123 Format C St',
+          city: 'Atlantis',
+          state: 'FL',
+          postalCode: '33333',
+          country: 'USA',
+        },
+        contactInfo: {
+          email: 'contact@formatc.com',
+          phone: '555-5555',
+        },
+        status: 'Active',
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      }
+    ];
+
+    engine.updateExistingCustomers(newExistingCustomers);
+
+    const formatCPayload: FormatCClientPayload = {
+      ClientNum: 'C100',
+      FileID: 'F100',
+      IsCommercial: true,
+      BusinessName: 'Format C Corp',
+      TaxIdentifier: '11-2223333',
+      Location: {
+        Street: '123 Format C St',
+        City: 'Atlantis',
+        State: 'FL',
+        ZipCode: '33333',
+      },
+      Contact: {
+        Email: 'contact@formatc.com',
+        Phone: '555-5555',
+      },
+      ClientStatus: 'Active',
+      PolicyList: [
+        {
+          PolicyId: 'P-C1',
+          PolicyNumber: 'POL-C-123',
+          LOB: 'Commercial Auto',
+          EffectiveDate: '2026-01-01',
+          ExpirationDate: '2027-01-01',
+          TotalPremium: 1500,
+          WritingCarrierNAIC: '12345',
+          PolicyState: 'Active',
+        },
+      ],
+    };
+
+    const payload: IngestionPayload = {
+      systemSource: 'FORMAT_C',
+      exportedAt: new Date().toISOString(),
+      data: formatCPayload,
+    };
+
+    const result = engine.processIngestion(payload);
+
+    expect(result.deduplicationMatches).toHaveLength(1);
+    expect(result.deduplicationMatches![0].matchedCustomerId).toBe('CUST-NEW-EXISTING');
   });
 });
