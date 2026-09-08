@@ -179,6 +179,83 @@ describe('FormatATransformer', () => {
     expect(carrierException).toBeDefined();
     expect(carrierException?.severity).toBe('NON_CRITICAL');
   });
+  it('should handle Workers Comp and BOP LOB codes, and apply default fallbacks for missing fields', () => {
+    const payload: FormatAClientPayload = {
+      Client_PK: 5005,
+      ClientCode: 'CODE-5005',
+      Insured_Type: 'BUS',
+      Status_Code: 'INA',
+      Policies: [
+        {
+          Policy_ID_FK: 'P-5005-A',
+          Policy_Num: 'POL-WC-5005',
+          Line_Of_Business_Code: 'WORK',
+          Status: 'Inactive'
+        },
+        {
+          Policy_ID_FK: 'P-5005-B',
+          Policy_Num: 'POL-BOP-5005',
+          Line_Of_Business_Code: 'BOP',
+          Effective_Dt: '01/01/2023', // 4 digit year
+          Expiration_Dt: '2024-01-01', // no slashes
+          Status: 'ACT'
+        },
+        {
+          Policy_ID_FK: 'P-5005-C',
+          Policy_Num: 'POL-WC2-5005',
+          Line_Of_Business_Code: 'WC'
+          // Effective_Dt and Expiration_Dt missing
+        },
+        {
+          // Policy_ID_FK and Policy_Num missing to trigger fallbacks
+        }
+      ]
+    };
+
+    const result = transformFormatAPayload(payload, existingCarrierNaicMap);
+
+    const cust = result.customer;
+    expect(cust.businessName).toBe('Unknown Commercial Entity');
+    expect(cust.address.street1).toBe('Address Unspecified');
+    expect(cust.address.city).toBe('Unknown');
+    expect(cust.address.state).toBe('XX');
+    expect(cust.address.postalCode).toBe('00000');
+    expect(cust.contactInfo.email).toBe('unspecified@legacy-import.com');
+    expect(cust.contactInfo.phone).toBe('000-000-0000');
+    expect(cust.status).toBe('Inactive');
+
+    expect(result.policies).toHaveLength(4);
+
+    const wcPol1 = result.policies.find(p => p.policyNumber === 'POL-WC-5005');
+    expect(wcPol1?.lineOfBusiness).toBe('Workers Comp');
+
+    const bopPol = result.policies.find(p => p.policyNumber === 'POL-BOP-5005');
+    expect(bopPol?.lineOfBusiness).toBe('BOP');
+    expect(bopPol?.effectiveDate).toBe('2023-01-01');
+    expect(bopPol?.expirationDate).toBe('2024-01-01');
+
+    const wcPol2 = result.policies.find(p => p.policyNumber === 'POL-WC2-5005');
+    expect(wcPol2?.lineOfBusiness).toBe('Workers Comp');
+    expect(wcPol2?.effectiveDate).toBeDefined(); // defaults to today
+
+    const fallbackPol = result.policies.find(p => p.policyNumber.startsWith('FMT-A-'));
+    expect(fallbackPol).toBeDefined();
+    expect(fallbackPol?.lineOfBusiness).toBe('General Liability'); // Default
+    expect(fallbackPol?.policyId.startsWith('POL-FMT-A-')).toBe(true);
+  });
+
+  it('should apply individual default fallbacks for missing names', () => {
+    const payload: FormatAClientPayload = {
+      Client_PK: 6006,
+      Insured_Type: 'IND'
+    };
+
+    const result = transformFormatAPayload(payload, existingCarrierNaicMap);
+
+    const cust = result.customer;
+    expect(cust.firstName).toBe('Unknown');
+    expect(cust.lastName).toBe('Unknown');
+  });
 
   it('should handle completely empty payload without throwing and return a CRITICAL exception', () => {
     const payload = {} as FormatAClientPayload;
