@@ -242,11 +242,22 @@ export class MemoryAccountingRepository implements IAccountingRepository {
 
     const isBalanced = Math.abs(totalDebits - totalCredits) < 0.01;
 
-    const arAcct = this.accounts.find(a => a.accountNumber === '1200');
-    const apAcct = this.accounts.find(a => a.accountNumber === '2000');
-    const opCashAcct = this.accounts.find(a => a.accountNumber === '1000');
-    const trustCashAcct = this.accounts.find(a => a.accountNumber === '1010');
-    const revAcct = this.accounts.find(a => a.accountNumber === '4000');
+    // ⚡ Bolt: Consolidated multiple .find() array scans into a single O(N) loop with early break
+    let arAcct: GlAccount | undefined;
+    let apAcct: GlAccount | undefined;
+    let opCashAcct: GlAccount | undefined;
+    let trustCashAcct: GlAccount | undefined;
+    let revAcct: GlAccount | undefined;
+
+    let foundCount = 0;
+    for (const a of this.accounts) {
+      if (!arAcct && a.accountNumber === '1200') { arAcct = a; foundCount++; }
+      else if (!apAcct && a.accountNumber === '2000') { apAcct = a; foundCount++; }
+      else if (!opCashAcct && a.accountNumber === '1000') { opCashAcct = a; foundCount++; }
+      else if (!trustCashAcct && a.accountNumber === '1010') { trustCashAcct = a; foundCount++; }
+      else if (!revAcct && a.accountNumber === '4000') { revAcct = a; foundCount++; }
+      if (foundCount === 5) break;
+    }
 
     return Promise.resolve({
       trialBalance,
