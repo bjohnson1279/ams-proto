@@ -15,8 +15,3 @@
 ## 2024-11-20 - Contextual ARIA Labels on Repeated Action Buttons
 **Learning:** Tables displaying dynamic data (like Customers or Carrier Downloads) often have repeated action buttons (e.g., "View Dec-Page", "Post GL Comm"). For screen reader users, hearing these generic labels consecutively without context is confusing. Adding specific context (e.g., `aria-label="View Dec-Page for Customer CUST-1001"`) drastically improves usability. Furthermore, when writing these labels in dynamic template literals, it is crucial to use explicitly available properties on the iterated object (like `c.customerId`) instead of relying on variables constructed elsewhere in the template to ensure correctness and prevent runtime reference errors.
 **Action:** Always add specific, context-aware `aria-label`s to repeated action buttons and textareas. When working within dynamic HTML templates, ensure you reference properties that are guaranteed to exist within that scope.
-
-## 2026-09-08 - Actionable Empty States in Data Tables
-**Learning:** Empty tables can make users feel stuck if there's no clear path forward. Providing a descriptive empty state with an actionable call-to-action button (like "+ Import" or "Execute Reconciliation") improves user onboarding and guides them to the right workflow.
-**Action:** When rendering data tables, always include an empty state branch with an actionable button when datasets are empty.
-

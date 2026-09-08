@@ -9,7 +9,3 @@
 ## 2024-11-20 - [Sequential Empty States for Multi-Table Fetches]
 **Learning:** When a single function (like `fetchAccountingData`) fetches and populates multiple tables sequentially, returning early after rendering the first empty state prevents subsequent tables from rendering correctly (either with data or their own empty state).
 **Action:** Use an `if/else` block for each dataset within the sequential process instead of early returns to ensure all tables are processed independently and their respective empty states or data populate as intended.
-
-## 2024-11-21 - [Dark Mode Focus Visibility and Custom Layouts]
-**Learning:** Default browser focus rings often lack sufficient contrast against dark theme backgrounds (`#0b0f19`), leaving keyboard users disoriented. Custom dark-mode themes require explicit `:focus-visible` overrides using high-contrast design tokens (e.g., `var(--accent-cyan)`).
-**Action:** When working on dark-mode interfaces, always explicitly define `:focus-visible` styles with sufficient outline width and contrast to ensure keyboard navigation is visible and accessible.
