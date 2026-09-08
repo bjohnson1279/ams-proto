@@ -13,9 +13,9 @@ describe('AmsService', () => {
 
   describe('createPolicy', () => {
     it('should create a policy and handle exception if auto-generate invoice fails for Agency Bill', async () => {
-      const generateInvoiceSpy = jest.spyOn(accountingService, 'generateInvoiceForPolicy').mockRejectedValue(
-        new Error('Invoice generation failed')
-      );
+      const generateInvoiceSpy = jest.spyOn(accountingService, 'generateInvoiceForPolicy').mockImplementation(() => {
+        throw new Error('Invoice generation failed');
+      });
       const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
       const payload = {
