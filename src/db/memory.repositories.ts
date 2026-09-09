@@ -89,12 +89,13 @@ export class MemoryCertificateHolderRepository implements ICertificateHolderRepo
   private holders = [...INITIAL_CERTIFICATE_HOLDERS];
 
   async getAll(tenantId: string, filter?: any): Promise<CertificateHolder[]> {
-    let holders = this.holders.filter(h => !h.deactivatedAt);
-    if (filter?.name) {
-      const q = filter.name.toLowerCase();
-      holders = holders.filter(h => h.name.toLowerCase().includes(q));
-    }
-    return Promise.resolve(holders);
+    // ⚡ Bolt: Consolidated sequential .filter() array scans into a single loop to avoid allocating intermediate arrays
+    const q = filter?.name ? filter.name.toLowerCase() : null;
+    return Promise.resolve(this.holders.filter(h => {
+      if (h.deactivatedAt) return false;
+      if (q && !h.name.toLowerCase().includes(q)) return false;
+      return true;
+    }));
   }
 
   async getById(tenantId: string, id: string): Promise<CertificateHolder | null> {
