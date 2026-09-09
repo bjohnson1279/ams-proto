@@ -35,3 +35,7 @@
 **Vulnerability:** The application was configured with `app.use(cors())`, which defaults to allowing all origins (`*`), opening the API up to unauthorized cross-origin requests.
 **Learning:** Default configurations of security middleware like `cors` often prioritize ease of use over security, leading to overly permissive access controls.
 **Prevention:** Always explicitly configure `cors` with restricted `origin`, `methods`, and `allowedHeaders` appropriately scoped for the application's needs. Ensure fallback defaults are secure (e.g., `http://localhost:3000`).
+## 2024-03-24 - [Insecure Random ID Generation]
+**Vulnerability:** Weak random number generation (`Math.random()`) used for creating Certificate Holder IDs (`HOLDER-<id>`).
+**Learning:** `Math.random()` is predictable and not cryptographically secure, leading to potential Insecure Direct Object Reference (IDOR) vulnerabilities if used for token generation or object identifiers.
+**Prevention:** Use Node.js's native `crypto` module (e.g., `randomInt()`) to generate cryptographically secure random values.
