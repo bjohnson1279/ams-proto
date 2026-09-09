@@ -15,6 +15,7 @@ import {
 } from '../types/domain.js';
 import { AmsService } from './ams.service.js';
 import { getRepositories, Repositories } from '../db/repository.factory.js';
+import { randomInt } from 'crypto';
 
 export class CertificateService {
   private static instance: CertificateService;
@@ -46,7 +47,7 @@ export class CertificateService {
     if (!payload.name) {
       throw new Error('Certificate Holder name is required');
     }
-    const nextId = `HOLDER-${1000 + Math.floor(Math.random()*10000) + 1}`;
+    const nextId = `HOLDER-${1000 + randomInt(10000) + 1}`;
     const newHolder: Partial<CertificateHolder> = {
       holderId: nextId,
       name: payload.name,
