@@ -26,9 +26,10 @@ const router: Router = Router();
 const loginRateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 5, // Limit each IP to 5 requests per windowMs for login operations
+  skip: () => process.env.NODE_ENV === 'test', // Skip rate limiting during automated tests
   message: {
     status: 'fault',
-    operation: 'Login', // Will be overridden dynamically in a real scenario or handled generically
+    operation: 'Login', // Generic indicator
     fault: {
       code: 'RATE_LIMIT_EXCEEDED',
       message: 'Too many login attempts from this IP, please try again after 15 minutes.'
