@@ -1,0 +1,3 @@
+# Agent memory markdown union merge driver
+.jules/*.md merge=jules-union
+.Jules/*.md merge=jules-union
