@@ -39,3 +39,8 @@
 **Vulnerability:** Weak random number generation (`Math.random()`) used for creating Certificate Holder IDs (`HOLDER-<id>`).
 **Learning:** `Math.random()` is predictable and not cryptographically secure, leading to potential Insecure Direct Object Reference (IDOR) vulnerabilities if used for token generation or object identifiers.
 **Prevention:** Use Node.js's native `crypto` module (e.g., `randomInt()`) to generate cryptographically secure random values.
+
+## 2024-03-25 - [Missing Strict Rate Limiting on Authentication Endpoints]
+**Vulnerability:** The WSAPI `Login` and `ValidateAgentLogin` endpoints were not explicitly rate-limited, relying only on the generic API rate limiter. This left them vulnerable to brute-force and credential-stuffing attacks.
+**Learning:** Global rate limits are often too permissive for authentication endpoints, which require much stricter limits to effectively deter automated attacks.
+**Prevention:** Implement specific, strict rate limiters (e.g., 5 requests per 15 minutes) for all endpoints that handle authentication or credential validation.
