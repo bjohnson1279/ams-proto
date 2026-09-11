@@ -759,7 +759,7 @@
             <button class="btn btn-secondary" onclick="parseRawAl3Sim(event)">⚡ Parse Raw AL3 Stream</button>
             <button class="btn btn-primary" onclick="ingestAl3Batch(event)">🚀 Ingest IVANS Download Batch</button>
           </div>
-          <div id="al3-output-box" class="output-box" style="max-height: 180px;">
+          <div id="al3-output-box" class="output-box" style="max-height: 180px;" aria-live="polite">
             <div style="color: var(--text-muted); font-style: italic;">Decoded AL3 record groups will appear here...</div>
           </div>
         </div>
@@ -776,7 +776,7 @@
             <div style="margin-top: 0.5rem;"><strong style="color: var(--accent-emerald);">Current Session Setting:</strong> <span id="current-rls-setting" style="color: #fff;">tenant-001</span></div>
           </div>
           <div class="panel-title" style="font-size: 0.95rem; margin-top: 0.5rem;">TimescaleDB Hypertable Ledger Audit Trail</div>
-          <div id="timescale-audit-box" class="output-box" style="height: 150px; overflow-y: auto;">
+          <div id="timescale-audit-box" class="output-box" style="height: 150px; overflow-y: auto;" aria-live="polite">
             <div class="log-line log-INFO">[TIMESCALEDB AUDIT] Partitioned time-chunk: 2026-08-07T00:00:00Z - RLS Context initialized for tenant-001</div>
           </div>
         </div>
@@ -1174,7 +1174,7 @@
           <tr>
             <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">
               <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
-              <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No customers found</div>
+              <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;" aria-live="polite">No customers found</div>
               <div style="font-size: 0.9rem; margin-bottom: 1rem;">Try adjusting your search criteria or clearing the search input.</div>
               <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="document.getElementById('search-input').value = ''; debouncedFilterCustomers(); document.getElementById('search-input').focus();">Clear Search</button>
             </td>
