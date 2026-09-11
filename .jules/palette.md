@@ -36,3 +36,7 @@
 ## 2024-11-20 - [Dynamic Search Results Accessibility]
 **Learning:** Adding `aria-live="polite"` to empty states for dynamic search results ensures that screen readers are notified of updates.
 **Action:** When creating dynamic search results, always add `aria-live="polite"` to the empty state container to improve accessibility.
+
+## 2024-11-22 - [Modal Focus Management]
+**Learning:** When a modal opens, keyboard focus must move into the modal (e.g., to the close button or first input). If focus remains outside the modal, keyboard-only and screen reader users lose context and may interact with elements hidden behind the modal backdrop. Furthermore, when the modal closes, focus must be programmatically returned to the button that originally triggered it to maintain the user's place in the document flow.
+**Action:** Always implement focus management when creating custom modals: store `document.activeElement` before opening, shift focus into the modal once active, and restore focus to the stored element upon closing.

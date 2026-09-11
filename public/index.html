@@ -1215,7 +1215,10 @@
       }
     });
 
+    let modalTriggerElement = null;
+
     async function viewDecPageForCustomer(customerId, btn = null) {
+      modalTriggerElement = document.activeElement;
       if (btn) {
         btn.disabled = true;
         btn.dataset.originalText = btn.innerText;
@@ -1244,6 +1247,8 @@
 
               document.getElementById('dec-financials').innerText = 'Total Policy Premium: ' + dec.financials.totalPremium;
               document.getElementById('dec-modal').classList.add('active');
+              const closeBtn = document.querySelector('#dec-modal button[aria-label="Close modal"]');
+              if (closeBtn) closeBtn.focus();
             }
           } else {
             alert('No policy associated with customer ' + customerId);
@@ -1259,6 +1264,10 @@
 
     function closeModal() {
       document.getElementById('dec-modal').classList.remove('active');
+      if (modalTriggerElement) {
+        modalTriggerElement.focus();
+        modalTriggerElement = null;
+      }
     }
 
     document.addEventListener('keydown', (e) => {
