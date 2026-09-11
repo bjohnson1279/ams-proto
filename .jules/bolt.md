@@ -72,3 +72,7 @@
 ## 2026-09-09 - Consolidate chained array operations to prevent intermediate allocations
 **Learning:** Sequential `.filter()` calls or `.filter().map()` chains on arrays create wasteful intermediate arrays that consume memory and cause redundant O(N) iterations, causing unnecessary overhead for large datasets (e.g., in `src/services/ams.service.ts` and `src/db/memory.repositories.ts`).
 **Action:** Combine chained array operations into a single `for...of` loop or a single `.filter()` pass to calculate the final result in one iteration and prevent wasteful intermediate allocations.
+
+## 2026-09-10 - Eliminate N+1 query loop using pre-fetched Map
+**Learning:** In `postJournalEntry` (src/services/accounting.service.ts), iterating through journal line items and performing an awaitable database lookup (`this.getAccountByNumber`) for each line caused a classic N+1 query performance bottleneck. Since memory repos emulate this, it created wasteful loop nesting (M lines * N accounts).
+**Action:** Always pre-fetch required datasets completely prior to iterating, and construct an `O(1)` access `Map` object to perform lookups within the iteration. This scales database access down from `O(M)` connections to 1, and time complexity of the local check from `O(N*M)` to `O(N+M)`.

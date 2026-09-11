@@ -73,8 +73,12 @@ export class AccountingService {
     let totalDebit = 0;
     let totalCredit = 0;
 
+    // ⚡ Bolt: Fetch accounts once and use Map for O(1) lookups instead of O(N) queries per line
+    const allAccounts = await this.getAccounts(tenantId);
+    const accountMap = new Map(allAccounts.map(a => [a.accountNumber, a]));
+
     for (const line of payload.lines) {
-      const acct = await this.getAccountByNumber(tenantId, line.accountNumber);
+      const acct = accountMap.get(line.accountNumber);
       if (!acct) {
         throw new Error(`Invalid GL Account Number '${line.accountNumber}' in journal entry line.`);
       }
