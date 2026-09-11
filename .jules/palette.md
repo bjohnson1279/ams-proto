@@ -33,3 +33,6 @@
 ## 2024-11-20 - [Sequential Empty States for Multi-Table Fetches]
 **Learning:** When a single function (like `fetchAccountingData`) fetches and populates multiple tables sequentially, returning early after rendering the first empty state prevents subsequent tables from rendering correctly (either with data or their own empty state).
 **Action:** Use an `if/else` block for each dataset within the sequential process instead of early returns to ensure all tables are processed independently and their respective empty states or data populate as intended.
+## 2024-11-20 - [Dynamic Search Results Accessibility]
+**Learning:** Adding `aria-live="polite"` to empty states for dynamic search results ensures that screen readers are notified of updates.
+**Action:** When creating dynamic search results, always add `aria-live="polite"` to the empty state container to improve accessibility.
