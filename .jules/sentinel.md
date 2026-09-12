@@ -44,20 +44,7 @@
 **Vulnerability:** The WSAPI `Login` and `ValidateAgentLogin` endpoints were not explicitly rate-limited, relying only on the generic API rate limiter. This left them vulnerable to brute-force and credential-stuffing attacks.
 **Learning:** Global rate limits are often too permissive for authentication endpoints, which require much stricter limits to effectively deter automated attacks.
 **Prevention:** Implement specific, strict rate limiters (e.g., 5 requests per 15 minutes) for all endpoints that handle authentication or credential validation.
-
-## Prevention Directives for Automated Refactoring
-- **Never Overwrite Complete Files**: Always use range-scoped replacement chunks for edits to `schema.prisma`, `index.ts`, `public/index.php`, `db/schema.rb`, or DDL SQL scripts.
-- **Do Not Remove Core Declarations**: Do not delete existing route registrations or database DDL tables.
-- **Environment Isolation Compatibility**: When replacing fallback secrets, preserve test environment execution via `!getenv('APP_ENV')` or `getenv('APP_ENV') === 'testing'`.
-- **No Scratch Files**: Never stage or commit `test_*.ts`, `test_*.js`, `test.cjs`, `fix_*.php`, or `test.js` files to git.
-- **No Unresolved Conflict Markers**: Never stage or commit files containing Git merge conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`, `|||||||`). Always resolve conflicts cleanly before committing.
-
-## Completeness & Verification Directives
-- **Explicit Parameter & Contract Validation**: When creating or modifying API endpoints (Express, Fastify, Rails, Laravel), always implement explicit parameter and request body validation schemas (e.g. `z.string().uuid()`) to prevent unhandled 404/500 fallthroughs.
-- **Database Indexing for Queries**: When addressing query bottlenecks or adding query lookup filters, always implement native database index migrations rather than loading collections into memory and performing array filtering (`.filter()`, `.select`).
-- **Co-Occurring Dependency Auditing**: When bumping any dependency version, verify that other transitive dependencies do not carry high/critical security advisories (e.g. run `bundler-audit`, `npm audit`). Never introduce a version bump that breaks underlying framework APIs.
-- **Self-Verification Before Commit**: Always run syntax checks (`bash -n` for shell scripts, `tsc --noEmit` for TypeScript, linter checks) and targeted test runners locally before opening or updating a PR.
-
-## Hallucinatory Task & Empty PR Directives
-- **Zero-Diff Task Termination**: If the requested optimization, refactor, or fix is ALREADY natively present in the target branch, DO NOT create an empty pull request or commit an acknowledgment PR. Exit the task cleanly without opening a PR.
-- **Stale Suggestion Guard**: Always verify the current code on `main`/`master` before planning changes. If no actionable diff is required, cancel task execution immediately.
+## 2024-05-24 - [Fix Hardcoded Tenant ID Authorization Bypass]
+**Vulnerability:** In `src/routes/wsapi.routes.ts`, multi-tenant API routes (like `CustomerGet`, `CustomerInsert`, `CustomerUpdate`, `PolicyGet`) used a hardcoded fallback tenant ID (`'tenant-001'`) instead of strictly requiring and extracting the `tenantId` from the authenticated user's session ticket.
+**Learning:** Hardcoding or falling back to a specific tenant ID in a multi-tenant system defeats the purpose of logical data isolation. If session validation logic is flawed or missing, the system defaults to allowing unauthorized access to the fallback tenant's data, causing a severe data leak and manipulation risk.
+**Prevention:** When implementing multi-tenant API routes (e.g., WSAPI endpoints), never use a hardcoded fallback tenant ID if the session's tenant ID is missing. Always fail securely (e.g., return an 'INVALID_TICKET' fault) to prevent cross-tenant authorization bypass.
