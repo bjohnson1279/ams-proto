@@ -70,20 +70,24 @@ router.post('/:operation', wsapiLoginRateLimiter, wsapiAuthMiddleware, async (re
 
       // ── Customer Operations ─────────────────────────────────────────
       case 'CustomerGet':
-        await handleCustomerGet(payload, res);
+        if (!req.wsapiSession?.tenantId) return sendFault(res, operation, 'INVALID_TICKET', 'Missing session tenantId.');
+        await handleCustomerGet(payload, res, req.wsapiSession.tenantId);
         break;
 
       case 'CustomerInsert':
-        await handleCustomerInsert(payload, res);
+        if (!req.wsapiSession?.tenantId) return sendFault(res, operation, 'INVALID_TICKET', 'Missing session tenantId.');
+        await handleCustomerInsert(payload, res, req.wsapiSession.tenantId);
         break;
 
       case 'CustomerUpdate':
-        await handleCustomerUpdate(payload, res);
+        if (!req.wsapiSession?.tenantId) return sendFault(res, operation, 'INVALID_TICKET', 'Missing session tenantId.');
+        await handleCustomerUpdate(payload, res, req.wsapiSession.tenantId);
         break;
 
       // ── Policy Operations ───────────────────────────────────────────
       case 'PolicyGet':
-        await handlePolicyGet(payload, res);
+        if (!req.wsapiSession?.tenantId) return sendFault(res, operation, 'INVALID_TICKET', 'Missing session tenantId.');
+        await handlePolicyGet(payload, res, req.wsapiSession.tenantId);
         break;
 
       // ── Reference Data ──────────────────────────────────────────────
@@ -192,11 +196,11 @@ function handleValidateAgentLogin(payload: LoginRequest, res: Response): void {
   res.status(200).json(response);
 }
 
-async function handleCustomerGet(payload: CustomerGetRequest, res: Response): Promise<void> {
+async function handleCustomerGet(payload: CustomerGetRequest, res: Response, tenantId: string): Promise<void> {
   const amsService = AmsService.getInstance();
 
   if (payload?.customerId) {
-    const customer = await amsService.getCustomerById('tenant-001', payload.customerId);
+    const customer = await amsService.getCustomerById(tenantId, payload.customerId);
     if (!customer) {
       sendFault(res, 'CustomerGet', 'ENTITY_NOT_FOUND',
         `Customer '${payload.customerId}' not found in CoreAMS registry.`);
@@ -207,7 +211,7 @@ async function handleCustomerGet(payload: CustomerGetRequest, res: Response): Pr
     const responseData: Record<string, unknown> = { customer };
 
     if (payload.includePolicies) {
-      responseData.policies = await amsService.getPolicies('tenant-001', { customerId: customer.customerId });
+      responseData.policies = await amsService.getPolicies(tenantId, { customerId: customer.customerId });
     }
 
     sendSuccess(res, 'CustomerGet', responseData);
@@ -215,7 +219,7 @@ async function handleCustomerGet(payload: CustomerGetRequest, res: Response): Pr
   }
 
   // Search by name or FEIN
-  const customers = await amsService.getCustomers('tenant-001', {
+  const customers = await amsService.getCustomers(tenantId, {
     name: payload?.name,
   });
 
@@ -228,7 +232,7 @@ async function handleCustomerGet(payload: CustomerGetRequest, res: Response): Pr
   sendSuccess(res, 'CustomerGet', { customers, count: customers.length });
 }
 
-async function handleCustomerInsert(payload: any, res: Response): Promise<void> {
+async function handleCustomerInsert(payload: any, res: Response, tenantId: string): Promise<void> {
   if (!payload || (!payload.businessName && !payload.lastName)) {
     sendFault(res, 'CustomerInsert', 'VALIDATION_ERROR',
       'CustomerInsert requires at least businessName or lastName.');
@@ -236,12 +240,12 @@ async function handleCustomerInsert(payload: any, res: Response): Promise<void> 
   }
 
   const amsService = AmsService.getInstance();
-  const created = await amsService.createCustomer('tenant-001', payload);
+  const created = await amsService.createCustomer(tenantId, payload);
 
   sendSuccess(res, 'CustomerInsert', { customer: created }, 201);
 }
 
-async function handleCustomerUpdate(payload: any, res: Response): Promise<void> {
+async function handleCustomerUpdate(payload: any, res: Response, tenantId: string): Promise<void> {
   if (!payload?.customerId) {
     sendFault(res, 'CustomerUpdate', 'VALIDATION_ERROR',
       'CustomerUpdate requires a customerId field.');
@@ -249,7 +253,7 @@ async function handleCustomerUpdate(payload: any, res: Response): Promise<void> 
   }
 
   const amsService = AmsService.getInstance();
-  const existing = await amsService.getCustomerById('tenant-001', payload.customerId);
+  const existing = await amsService.getCustomerById(tenantId, payload.customerId);
 
   if (!existing) {
     sendFault(res, 'CustomerUpdate', 'ENTITY_NOT_FOUND',
@@ -269,11 +273,11 @@ async function handleCustomerUpdate(payload: any, res: Response): Promise<void> 
   sendSuccess(res, 'CustomerUpdate', { customer: updated });
 }
 
-async function handlePolicyGet(payload: PolicyGetRequest, res: Response): Promise<void> {
+async function handlePolicyGet(payload: PolicyGetRequest, res: Response, tenantId: string): Promise<void> {
   const amsService = AmsService.getInstance();
 
   if (payload?.policyId || payload?.policyNumber) {
-    const policy = await amsService.getPolicyById('tenant-001', payload.policyId || payload.policyNumber || '');
+    const policy = await amsService.getPolicyById(tenantId, payload.policyId || payload.policyNumber || '');
     if (!policy) {
       sendFault(res, 'PolicyGet', 'ENTITY_NOT_FOUND',
         `Policy '${payload.policyId || payload.policyNumber}' not found.`);
@@ -283,7 +287,7 @@ async function handlePolicyGet(payload: PolicyGetRequest, res: Response): Promis
     return;
   }
 
-  const policies = await amsService.getPolicies('tenant-001', {
+  const policies = await amsService.getPolicies(tenantId, {
     customerId: payload?.customerId,
     carrierId: payload?.carrierId,
     status: payload?.status,
