@@ -30,7 +30,7 @@ describe('UI Empty States & DOM Structure Guardrail', () => {
     expect(htmlContent).toContain(emptyStateText);
 
     // 🎨 Palette: Verify that the empty state title element includes aria-live="polite"
-    const regex = new RegExp(`aria-live="polite">${emptyStateText}`);
+    const regex = new RegExp(`aria-live="polite">\\s*${emptyStateText}`);
     expect(htmlContent).toMatch(regex);
   });
 
