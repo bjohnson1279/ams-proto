@@ -505,7 +505,7 @@
 
       <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.35rem 0.8rem; border-radius: 8px; font-size: 0.85rem;">
         <label for="active-tenant-select" style="color: var(--text-muted); font-weight: 600;">Active Tenant (RLS):</label>
-        <select id="active-tenant-select" onchange="changeActiveTenant(this.value)" style="background: var(--bg-input); color: #fff; border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; border-radius: 6px; font-weight: 600; font-family: var(--font-body);">
+        <select id="active-tenant-select" onchange="changeActiveTenant(this.value)" title="Switch active tenant (simulates Row-Level Security context)" style="background: var(--bg-input); color: #fff; border: 1px solid var(--border-color); padding: 0.25rem 0.5rem; border-radius: 6px; font-weight: 600; font-family: var(--font-body);">
           <option value="tenant-001">Midwest Commercial Risk Agency (tenant-001)</option>
           <option value="tenant-002">Coastal Property Risk Partners (tenant-002)</option>
         </select>
