@@ -519,11 +519,11 @@
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">1. Raw Legacy Export Payload</span>
-            <div class="format-pills">
-              <button class="format-pill active" onclick="loadSample('FORMAT_A')">Format A (SQL)</button>
-              <button class="format-pill" onclick="loadSample('FORMAT_B')">Format B (Flat)</button>
-              <button class="format-pill" onclick="loadSample('FORMAT_C')">Format C (XML)</button>
-              <button class="format-pill" onclick="loadSample('FORMAT_D')">Format D (Cloud)</button>
+            <div class="format-pills" role="tablist" aria-label="Legacy Export Formats">
+              <button class="format-pill active" role="tab" aria-selected="true" aria-controls="payload-editor" onclick="loadSample('FORMAT_A')">Format A (SQL)</button>
+              <button class="format-pill" role="tab" aria-selected="false" aria-controls="payload-editor" onclick="loadSample('FORMAT_B')">Format B (Flat)</button>
+              <button class="format-pill" role="tab" aria-selected="false" aria-controls="payload-editor" onclick="loadSample('FORMAT_C')">Format C (XML)</button>
+              <button class="format-pill" role="tab" aria-selected="false" aria-controls="payload-editor" onclick="loadSample('FORMAT_D')">Format D (Cloud)</button>
             </div>
           </div>
           <textarea id="payload-editor" aria-label="Raw Legacy Export Payload" class="code-editor" spellcheck="false"></textarea>
@@ -908,8 +908,17 @@
 
     function loadSample(formatKey) {
       activeFormat = formatKey;
-      document.querySelectorAll('.format-pill').forEach(btn => btn.classList.remove('active'));
-      event?.target?.classList.add('active');
+      document.querySelectorAll('.format-pill').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+      });
+      if (event?.target) {
+        const btn = event.target.closest('.format-pill');
+        if (btn) {
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+        }
+      }
 
       if (samplePayloads[formatKey]) {
         document.getElementById('payload-editor').value = JSON.stringify(samplePayloads[formatKey], null, 2);
