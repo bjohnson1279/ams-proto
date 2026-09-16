@@ -548,9 +548,12 @@
     <!-- TAB 2: INSURED & POLICY REGISTRY -->
     <div id="tab-customers" class="tab-content" role="tabpanel">
       <div style="display: flex; gap: 1rem; align-items: center;">
-        <input type="text" id="search-input" aria-label="Search customers" placeholder="Search by customer name or policy number... (Press '/')"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 1rem; border-radius: 8px; width: 360px;"
-          onkeyup="debouncedFilterCustomers()">
+        <div style="position: relative; width: 360px;">
+          <input type="text" id="search-input" aria-label="Search customers" placeholder="Search by customer name or policy number..."
+            style="background: var(--bg-card); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 2.5rem 0.75rem 1rem; border-radius: 8px; width: 100%;"
+            onkeyup="debouncedFilterCustomers()">
+          <kbd style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.75rem; color: var(--text-muted); font-family: monospace; pointer-events: none;" aria-hidden="true">/</kbd>
+        </div>
       </div>
       <div class="table-container">
         <table>
