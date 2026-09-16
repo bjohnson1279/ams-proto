@@ -93,3 +93,7 @@
 ## Hallucinatory Task & Empty PR Directives
 - **Zero-Diff Task Termination**: If the requested optimization, refactor, or fix is ALREADY natively present in the target branch, DO NOT create an empty pull request or commit an acknowledgment PR. Exit the task cleanly without opening a PR.
 - **Stale Suggestion Guard**: Always verify the current code on `main`/`master` before planning changes. If no actionable diff is required, cancel task execution immediately.
+
+## 2026-09-12 - Preserving Legacy Match Logic in Array Loops
+**Learning:** When micro-optimizing array operations by replacing higher-order functions (e.g., `.find()`) with native loops (e.g., `for...of`) to prevent inline closure allocations, "fixing" seemingly flawed edge cases (like `searchName.includes("")` evaluating to true when a property is undefined) can inadvertently break existing integration tests that rely on that exact behavior for reconciliation.
+**Action:** Meticulously preserve the exact original boolean logic when doing performance-only refactoring. Do not change business logic or edge case handling unless specifically tasked with fixing a bug.

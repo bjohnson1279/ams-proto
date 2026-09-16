@@ -179,9 +179,17 @@ export class CarrierDownloadService {
         let matchedCust = item.insuredFeinOrSsn ? customerFeinMap.get(item.insuredFeinOrSsn) : undefined;
 
         if (!matchedCust) {
-          matchedCust = customerSearchData.find(c =>
-            c.searchBusName.includes(searchName) || searchName.includes(c.searchBusName) || c.searchIndName.includes(searchName)
-          );
+          // ⚡ Bolt: Replaced .find() with loop to prevent inline closure allocations
+          for (const c of customerSearchData) {
+            if (
+              c.searchBusName.includes(searchName) ||
+              searchName.includes(c.searchBusName) ||
+              c.searchIndName.includes(searchName)
+            ) {
+              matchedCust = c;
+              break;
+            }
+          }
         }
 
         if (matchedCust) {
