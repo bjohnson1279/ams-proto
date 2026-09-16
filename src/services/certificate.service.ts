@@ -143,7 +143,9 @@ export class CertificateService {
 
       selectedPolicies = allCustomerPolicies;
       if (req.policyIds && req.policyIds.length > 0 && !req.policyIds.includes('ALL')) {
-        selectedPolicies = allCustomerPolicies.filter(p => req.policyIds.includes(p.policyId) || req.policyIds.includes(p.policyNumber));
+        // ⚡ Bolt: Convert array to Set for O(1) lookups inside the filter loop to eliminate O(N*M) complexity
+        const policyIdSet = new Set(req.policyIds);
+        selectedPolicies = allCustomerPolicies.filter(p => policyIdSet.has(p.policyId) || policyIdSet.has(p.policyNumber));
       }
 
       if (selectedPolicies.length === 0) {
@@ -395,7 +397,9 @@ export class CertificateService {
 
     let selectedPolicies = allCustomerPolicies;
     if (req.policyIds && req.policyIds.length > 0 && !req.policyIds.includes('ALL')) {
-      selectedPolicies = allCustomerPolicies.filter(p => req.policyIds.includes(p.policyId) || req.policyIds.includes(p.policyNumber));
+      // ⚡ Bolt: Convert array to Set for O(1) lookups inside the filter loop to eliminate O(N*M) complexity
+      const policyIdSet = new Set(req.policyIds);
+      selectedPolicies = allCustomerPolicies.filter(p => policyIdSet.has(p.policyId) || policyIdSet.has(p.policyNumber));
     }
 
     if (selectedPolicies.length === 0) {
