@@ -23,7 +23,7 @@ describe('Multi-Tenant Row-Level Security & Context Tests', () => {
 
   it('should extract x-tenant-id header and attach to request context', async () => {
     const res = await request(app)
-      .get('/api/v1/customers')
+      .get('/api/v1/customers').set('x-tenant-id', 'tenant-001')
       .set('x-tenant-id', 'tenant-002');
 
     expect(res.status).toBe(200);

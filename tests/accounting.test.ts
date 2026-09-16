@@ -11,7 +11,7 @@ describe('Accounting & General Ledger Module (/api/v1/accounting)', () => {
   });
 
   it('GET /api/v1/accounting/accounts should return Chart of Accounts', async () => {
-    const res = await request(app).get('/api/v1/accounting/accounts');
+    const res = await request(app).get('/api/v1/accounting/accounts').set('x-tenant-id', 'tenant-001');
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(Array.isArray(res.body.data)).toBe(true);
@@ -19,7 +19,7 @@ describe('Accounting & General Ledger Module (/api/v1/accounting)', () => {
   });
 
   it('GET /api/v1/accounting/journal-entries should return journal entries list', async () => {
-    const res = await request(app).get('/api/v1/accounting/journal-entries');
+    const res = await request(app).get('/api/v1/accounting/journal-entries').set('x-tenant-id', 'tenant-001');
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(Array.isArray(res.body.data)).toBe(true);
@@ -37,7 +37,7 @@ describe('Accounting & General Ledger Module (/api/v1/accounting)', () => {
     };
 
     const res = await request(app)
-      .post('/api/v1/accounting/journal-entries')
+      .post('/api/v1/accounting/journal-entries').set('x-tenant-id', 'tenant-001')
       .send(payload);
 
     expect(res.status).toBe(201);
@@ -56,7 +56,7 @@ describe('Accounting & General Ledger Module (/api/v1/accounting)', () => {
     };
 
     const res = await request(app)
-      .post('/api/v1/accounting/journal-entries')
+      .post('/api/v1/accounting/journal-entries').set('x-tenant-id', 'tenant-001')
       .send(payload);
 
     expect(res.status).toBe(400);
@@ -79,7 +79,7 @@ describe('Accounting & General Ledger Module (/api/v1/accounting)', () => {
     };
 
     const res = await request(app)
-      .post('/api/v1/accounting/journal-entries')
+      .post('/api/v1/accounting/journal-entries').set('x-tenant-id', 'tenant-001')
       .send(payload);
 
     expect(res.status).toBe(400);
@@ -104,7 +104,7 @@ describe('Accounting & General Ledger Module (/api/v1/accounting)', () => {
     };
 
     const res = await request(app)
-      .post('/api/v1/accounting/journal-entries')
+      .post('/api/v1/accounting/journal-entries').set('x-tenant-id', 'tenant-001')
       .send(payload);
 
     expect(res.status).toBe(400);
@@ -115,7 +115,7 @@ describe('Accounting & General Ledger Module (/api/v1/accounting)', () => {
   });
 
   it('GET /api/v1/accounting/invoices should return list of invoices', async () => {
-    const res = await request(app).get('/api/v1/accounting/invoices');
+    const res = await request(app).get('/api/v1/accounting/invoices').set('x-tenant-id', 'tenant-001');
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(Array.isArray(res.body.data)).toBe(true);
@@ -123,7 +123,7 @@ describe('Accounting & General Ledger Module (/api/v1/accounting)', () => {
 
   it('POST /api/v1/accounting/invoices/generate should create invoice for valid policy', async () => {
     const res = await request(app)
-      .post('/api/v1/accounting/invoices/generate')
+      .post('/api/v1/accounting/invoices/generate').set('x-tenant-id', 'tenant-001')
       .send({ policyId: 'POL-CA-2026-001', commissionRate: 15 });
 
     expect(res.status).toBe(201);
@@ -136,14 +136,14 @@ describe('Accounting & General Ledger Module (/api/v1/accounting)', () => {
   it('POST /api/v1/accounting/payments should process payment receipt to Trust Account', async () => {
     // First generate an invoice
     const invRes = await request(app)
-      .post('/api/v1/accounting/invoices/generate')
+      .post('/api/v1/accounting/invoices/generate').set('x-tenant-id', 'tenant-001')
       .send({ policyId: 'POL-GL-2026-002', commissionRate: 12 });
 
     const invoiceId = invRes.body.data.invoiceId;
 
     // Post payment against invoice
     const payRes = await request(app)
-      .post('/api/v1/accounting/payments')
+      .post('/api/v1/accounting/payments').set('x-tenant-id', 'tenant-001')
       .send({
         invoiceId,
         amount: 5000,
@@ -159,7 +159,7 @@ describe('Accounting & General Ledger Module (/api/v1/accounting)', () => {
   });
 
   it('GET /api/v1/accounting/financial-summary should return balanced trial balance and metrics', async () => {
-    const res = await request(app).get('/api/v1/accounting/financial-summary');
+    const res = await request(app).get('/api/v1/accounting/financial-summary').set('x-tenant-id', 'tenant-001');
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.isBalanced).toBe(true);
