@@ -47,3 +47,7 @@
 ## 2024-11-20 - Format Pill Tab Accessibility
 **Learning:** Elements styled as interactive "pills" that control content (like selecting a payload format to display in an editor) functionally act as tabs. Without explicit ARIA tab roles (`tablist`, `tab`, `tabpanel`) and dynamic `aria-selected` toggling, screen readers treat them as generic buttons without semantic grouping, leading to poor discoverability of their relationship to the controlled content.
 **Action:** Always add standard ARIA tab roles (`role="tablist"`, `role="tab"`) and programmatically manage `aria-selected` and `aria-controls` states when building custom tab-like interactions, regardless of their visual styling (e.g., pills).
+
+## 2025-01-20 - Visual Shortcut Indicators vs Placeholder Text
+**Learning:** Embedding keyboard shortcut hints directly into input placeholder text (e.g., "... (Press '/')") clutters the hint and increases cognitive load, especially when the placeholder text is long or truncated. Using a dedicated visual `<kbd>` element separated from the placeholder text provides a clearer, modern UX pattern for discoverability without sacrificing input space.
+**Action:** Always use dedicated `<kbd>` styled elements for global shortcut hints next to inputs rather than embedding instructions directly in the placeholder string. Add `aria-hidden="true"` to prevent redundant screen reader announcements if the hint is visual only.
