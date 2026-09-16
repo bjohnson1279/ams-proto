@@ -43,3 +43,7 @@
 ## 2024-11-20 - [Dynamic Search Results Accessibility]
 **Learning:** Adding `aria-live="polite"` to empty states for dynamic search results ensures that screen readers are notified of updates.
 **Action:** When creating dynamic search results, always add `aria-live="polite"` to the empty state container to improve accessibility.
+
+## 2024-11-20 - Format Pill Tab Accessibility
+**Learning:** Elements styled as interactive "pills" that control content (like selecting a payload format to display in an editor) functionally act as tabs. Without explicit ARIA tab roles (`tablist`, `tab`, `tabpanel`) and dynamic `aria-selected` toggling, screen readers treat them as generic buttons without semantic grouping, leading to poor discoverability of their relationship to the controlled content.
+**Action:** Always add standard ARIA tab roles (`role="tablist"`, `role="tab"`) and programmatically manage `aria-selected` and `aria-controls` states when building custom tab-like interactions, regardless of their visual styling (e.g., pills).
