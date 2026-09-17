@@ -23,7 +23,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
   describe('Login Operation', () => {
     it('POST /api/v1/wsapi/Login should return a ticket with valid dev credentials', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/Login')
+        .post('/api/v1/wsapi/Login').set('x-tenant-id', 'tenant-001')
         .send({
           operation: 'Login',
           requestPayload: { loginId: 'wsapi-admin', password: 'admin123' },
@@ -41,7 +41,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('POST /api/v1/wsapi/Login should reject invalid credentials with INVALID_CREDENTIALS fault', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/Login')
+        .post('/api/v1/wsapi/Login').set('x-tenant-id', 'tenant-001')
         .send({
           operation: 'Login',
           requestPayload: { loginId: 'bad-user', password: 'wrong' },
@@ -54,7 +54,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('POST /api/v1/wsapi/Login should reject empty payload with VALIDATION_ERROR', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/Login')
+        .post('/api/v1/wsapi/Login').set('x-tenant-id', 'tenant-001')
         .send({ operation: 'Login', requestPayload: {} });
 
       expect(res.status).toBe(400);
@@ -64,7 +64,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('POST /api/v1/wsapi/Login should accept second dev user (wsapi-user-1)', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/Login')
+        .post('/api/v1/wsapi/Login').set('x-tenant-id', 'tenant-001')
         .send({
           operation: 'Login',
           requestPayload: { loginId: 'wsapi-user-1', password: 'user123' },
@@ -81,7 +81,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
   describe('Ticket Validation', () => {
     it('should reject requests without a ticket', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/CustomerGet')
+        .post('/api/v1/wsapi/CustomerGet').set('x-tenant-id', 'tenant-001')
         .send({ operation: 'CustomerGet', requestPayload: {} });
 
       expect(res.status).toBe(401);
@@ -91,7 +91,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should reject requests with an invalid ticket', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/CustomerGet')
+        .post('/api/v1/wsapi/CustomerGet').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', 'TKT-fake-ticket-does-not-exist')
         .send({ operation: 'CustomerGet', requestPayload: {} });
 
@@ -103,7 +103,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should accept requests with a valid ticket in the header', async () => {
       // Login first
       const loginRes = await request(app)
-        .post('/api/v1/wsapi/Login')
+        .post('/api/v1/wsapi/Login').set('x-tenant-id', 'tenant-001')
         .send({
           operation: 'Login',
           requestPayload: { loginId: 'wsapi-admin', password: 'admin123' },
@@ -113,7 +113,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
       // Use ticket for a subsequent operation
       const res = await request(app)
-        .post('/api/v1/wsapi/CustomerGet')
+        .post('/api/v1/wsapi/CustomerGet').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({ operation: 'CustomerGet', requestPayload: {} });
 
@@ -129,7 +129,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should invalidate a session ticket on logout', async () => {
       // Login
       const loginRes = await request(app)
-        .post('/api/v1/wsapi/Login')
+        .post('/api/v1/wsapi/Login').set('x-tenant-id', 'tenant-001')
         .send({
           operation: 'Login',
           requestPayload: { loginId: 'wsapi-admin', password: 'admin123' },
@@ -139,7 +139,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
       // Logout
       const logoutRes = await request(app)
-        .post('/api/v1/wsapi/Logout')
+        .post('/api/v1/wsapi/Logout').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({ operation: 'Logout' });
 
@@ -148,7 +148,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
       // Attempt to use the old ticket — should fail
       const afterRes = await request(app)
-        .post('/api/v1/wsapi/CustomerGet')
+        .post('/api/v1/wsapi/CustomerGet').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({ operation: 'CustomerGet', requestPayload: {} });
 
@@ -162,7 +162,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
   describe('ValidateAgentLogin Operation', () => {
     it('should validate correct credentials without creating a persistent session', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/ValidateAgentLogin')
+        .post('/api/v1/wsapi/ValidateAgentLogin').set('x-tenant-id', 'tenant-001')
         .send({
           operation: 'ValidateAgentLogin',
           requestPayload: { loginId: 'wsapi-admin', password: 'admin123' },
@@ -178,7 +178,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should report invalid for bad credentials', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/ValidateAgentLogin')
+        .post('/api/v1/wsapi/ValidateAgentLogin').set('x-tenant-id', 'tenant-001')
         .send({
           operation: 'ValidateAgentLogin',
           requestPayload: { loginId: 'bad-user', password: 'wrong' },
@@ -196,7 +196,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     beforeEach(async () => {
       const loginRes = await request(app)
-        .post('/api/v1/wsapi/Login')
+        .post('/api/v1/wsapi/Login').set('x-tenant-id', 'tenant-001')
         .send({
           operation: 'Login',
           requestPayload: { loginId: 'wsapi-admin', password: 'admin123' },
@@ -206,7 +206,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should return all customers when no filter specified', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/CustomerGet')
+        .post('/api/v1/wsapi/CustomerGet').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({ operation: 'CustomerGet', requestPayload: {} });
 
@@ -218,7 +218,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should return specific customer by customerId', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/CustomerGet')
+        .post('/api/v1/wsapi/CustomerGet').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({
           operation: 'CustomerGet',
@@ -232,7 +232,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should return 404 fault for non-existent customer', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/CustomerGet')
+        .post('/api/v1/wsapi/CustomerGet').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({
           operation: 'CustomerGet',
@@ -245,7 +245,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should include policies when includePolicies is true', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/CustomerGet')
+        .post('/api/v1/wsapi/CustomerGet').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({
           operation: 'CustomerGet',
@@ -265,7 +265,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     beforeEach(async () => {
       const loginRes = await request(app)
-        .post('/api/v1/wsapi/Login')
+        .post('/api/v1/wsapi/Login').set('x-tenant-id', 'tenant-001')
         .send({
           operation: 'Login',
           requestPayload: { loginId: 'wsapi-admin', password: 'admin123' },
@@ -275,7 +275,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should create a new customer via WSAPI envelope', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/CustomerInsert')
+        .post('/api/v1/wsapi/CustomerInsert').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({
           operation: 'CustomerInsert',
@@ -305,7 +305,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should reject CustomerInsert with missing name fields', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/CustomerInsert')
+        .post('/api/v1/wsapi/CustomerInsert').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({
           operation: 'CustomerInsert',
@@ -324,7 +324,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     beforeEach(async () => {
       const loginRes = await request(app)
-        .post('/api/v1/wsapi/Login')
+        .post('/api/v1/wsapi/Login').set('x-tenant-id', 'tenant-001')
         .send({
           operation: 'Login',
           requestPayload: { loginId: 'wsapi-admin', password: 'admin123' },
@@ -334,7 +334,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should return all policies when no filter specified', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/PolicyGet')
+        .post('/api/v1/wsapi/PolicyGet').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({ operation: 'PolicyGet', requestPayload: {} });
 
@@ -345,7 +345,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should return specific policy by policyId', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/PolicyGet')
+        .post('/api/v1/wsapi/PolicyGet').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({
           operation: 'PolicyGet',
@@ -359,7 +359,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should return 404 fault for non-existent policy', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/PolicyGet')
+        .post('/api/v1/wsapi/PolicyGet').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({
           operation: 'PolicyGet',
@@ -378,7 +378,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     beforeEach(async () => {
       const loginRes = await request(app)
-        .post('/api/v1/wsapi/Login')
+        .post('/api/v1/wsapi/Login').set('x-tenant-id', 'tenant-001')
         .send({
           operation: 'Login',
           requestPayload: { loginId: 'wsapi-admin', password: 'admin123' },
@@ -388,7 +388,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should return PolicyStatus value list', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/ValueListGet')
+        .post('/api/v1/wsapi/ValueListGet').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({
           operation: 'ValueListGet',
@@ -404,7 +404,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should return TypeOfBusiness value list with all LOB codes', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/ValueListGet')
+        .post('/api/v1/wsapi/ValueListGet').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({
           operation: 'ValueListGet',
@@ -417,7 +417,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should return TransactionType value list', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/ValueListGet')
+        .post('/api/v1/wsapi/ValueListGet').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({
           operation: 'ValueListGet',
@@ -432,7 +432,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should return 404 for unknown value list name', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/ValueListGet')
+        .post('/api/v1/wsapi/ValueListGet').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({
           operation: 'ValueListGet',
@@ -445,7 +445,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('GET /api/v1/wsapi/valuelists/:name should also return value list (convenience)', async () => {
       const res = await request(app)
-        .get('/api/v1/wsapi/valuelists/PersonnelRole');
+        .get('/api/v1/wsapi/valuelists/PersonnelRole').set('x-tenant-id', 'tenant-001');
 
       expect(res.status).toBe(200);
       expect(res.body.responsePayload.listName).toBe('PersonnelRole');
@@ -460,7 +460,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     beforeEach(async () => {
       const loginRes = await request(app)
-        .post('/api/v1/wsapi/Login')
+        .post('/api/v1/wsapi/Login').set('x-tenant-id', 'tenant-001')
         .send({
           operation: 'Login',
           requestPayload: { loginId: 'wsapi-admin', password: 'admin123' },
@@ -470,7 +470,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
     it('should return OPERATION_NOT_SUPPORTED for future phase operations', async () => {
       const res = await request(app)
-        .post('/api/v1/wsapi/PolicyEndorse')
+        .post('/api/v1/wsapi/PolicyEndorse').set('x-tenant-id', 'tenant-001')
         .set('X-WSAPI-Ticket', ticket)
         .send({
           operation: 'PolicyEndorse',
