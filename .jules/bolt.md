@@ -25,6 +25,7 @@
 ## 2026-08-22 - [Array Filter Consolidation]
 **Learning:** Sequential `.filter()` calls on in-memory arrays create wasteful intermediate arrays and run O(K*N) iterations.
 **Action:** Always combine sequential `.filter()` operations into a single loop pass to save memory allocations and CPU cycles, especially for large datasets.
+
 ## 2025-02-12 - [Pre-computing and caching string operations in frontend filtering]
 **Learning:** Sequential `.toLowerCase()` conversions and redundant string concatenations within a `.filter()` loop on a large dataset executed repeatedly via keystroke events caused significant CPU/memory overhead. Caching the dataset in memory and pre-computing a single concatenated, lowercased `_searchString` reduced the filtering operation to O(1) property access and eliminated redundant backend GET requests.
 **Action:** When implementing client-side search filtering on static datasets, cache the initial network response, pre-compute normalized search strings during initialization, and filter the cached dataset using those pre-computed values rather than executing transformations inline during the filter loop.
@@ -34,16 +35,13 @@
 **Action:** Always pre-compute a `Map` of lookup data (like carriers by ID) *before* entering a loop, enabling `O(1)` access inside the iteration and reducing the overall time complexity from `O(N*M)` to `O(N+M)`.
 
 ## 2026-08-30 - Optimize Bulk Certificate Issue Context
-**Learning:** In bulk operations calling an inner generator function inside a loop (e.g., `bulkIssueCertificates` calling `generateCertificate`), running O(H * (P + C)) database array scans per loop iteration causes severe CPU overhead.
-**Action:** Pre-fetch necessary resources (customer, policies, carrier maps) outside the bulk loop and pass them as an optional  parameter to the generator function to reduce complexity to O(P + C + H).
-
-## 2026-08-30 - Optimize Bulk Certificate Issue Context
 **Learning:** In bulk operations calling an inner generator function inside a loop (e.g., bulkIssueCertificates calling generateCertificate), running O(H * (P + C)) database array scans per loop iteration causes severe CPU overhead.
 **Action:** Pre-fetch necessary resources (customer, policies, carrier maps) outside the bulk loop and pass them as an optional context parameter to the generator function to reduce complexity to O(P + C + H).
 
 ## 2026-08-31 - Reduce O(N) array scans with single loop
 **Learning:** Found multiple distinct `.find()` operations in `generateCertificate` that iterated over the same `pol.coverages` array to extract different attributes (`eachOcc` and `genAgg`).
 **Action:** When evaluating arrays for multiple attributes, replace multiple distinct `.find()` operations with a single `for...of` loop with early breaks to reduce redundant O(N) array scans and CPU overhead.
+
 ## 2026-08-30 - Replace Multiple find() with Single Loop in Array Scans
 **Learning:** Found multiple `.find()` operations being used sequentially on an array to extract different attributes (like specific coverages within a policy object) inside a loop (`generateCertificate` in `src/services/certificate.service.ts`). Each `.find()` causes a separate O(N) pass over the array and often includes inline string allocations (e.g. `.toLowerCase()`) in the condition, creating significant CPU/memory overhead.
 **Action:** When evaluating an array for multiple attributes, replace multiple distinct `.find()` operations with a single `for...of` loop. Pre-compute inline string allocations (like `.toLowerCase()`) once per element within the loop body to reduce redundant O(N) array scans and garbage collection pressure.
@@ -59,6 +57,7 @@
 ## 2026-09-03 - Consolidate Multiple find() array scans into a single loop
 **Learning:** Found multiple distinct `.find()` lookups operating on the same array to fetch different elements (like fetching 5 separate accounts from `this.accounts` in `getFinancialSummary`). Each `.find()` triggered a separate O(N) array scan, degrading performance to O(5*N).
 **Action:** When evaluating an array to find multiple distinct matching elements, replace multiple `.find()` operations with a single `for...of` loop to locate all target elements in one O(N) pass, maintaining `.find()` early-exit behavior by tracking a found count and breaking.
+
 ## 2026-09-08 - Avoid DDL inside Transaction Inserts
 **Learning:** Executing DDL statements (like `ALTER TABLE`) inside a transactional query path (e.g. `INSERT`) acquires aggressive table-level locks, destroying concurrency and severely degrading performance. In `createJournalEntry`, an inline `ALTER TABLE` was evaluated on every insert.
 **Action:** Ensure all schema setup (like adding columns) is restricted to database initialization logic/migrations, not inline within application-level CRUD operations.
@@ -66,9 +65,11 @@
 ## 2026-09-08 - Use Map for O(1) lookups in nested loops
 **Learning:** In `createJournalEntry`, an (N 	imes M)$ array scan was caused by calling `.find()` on `this.accounts` inside a loop iterating over `je.lines`. Replacing this with a pre-fetched `Map` of accounts enables (1)$ lookups, reducing the complexity to (N + M)$ safely and without sacrificing type safety.
 **Action:** For nested data correlation, pre-fetch the required data into a `Map` for (1)$ lookups to eliminate nested array scans.
+
 ## 2024-05-18 - [Combined O(N) Array Scanning in Memory Repository]
 **Learning:** The memory repository's `getFinancialSummary` method performed five sequential `.find()` calls to retrieve specific GL accounts. This resulted in O(5N) operations. While small in a prototype context, combining these into a single O(N) `for...of` loop with an early `break` effectively maintains performance consistency.
 **Action:** Always combine multiple contiguous `.find()` or `.filter()` calls scanning the same array into a single O(N) loop when retrieving distinct elements. Ensure early exit logic (e.g., `break`) is implemented to maximize performance gains.
+
 ## 2026-09-09 - Consolidate chained array operations to prevent intermediate allocations
 **Learning:** Sequential `.filter()` calls or `.filter().map()` chains on arrays create wasteful intermediate arrays that consume memory and cause redundant O(N) iterations, causing unnecessary overhead for large datasets (e.g., in `src/services/ams.service.ts` and `src/db/memory.repositories.ts`).
 **Action:** Combine chained array operations into a single `for...of` loop or a single `.filter()` pass to calculate the final result in one iteration and prevent wasteful intermediate allocations.
@@ -76,6 +77,14 @@
 ## 2026-09-10 - Eliminate N+1 query loop using pre-fetched Map
 **Learning:** In `postJournalEntry` (src/services/accounting.service.ts), iterating through journal line items and performing an awaitable database lookup (`this.getAccountByNumber`) for each line caused a classic N+1 query performance bottleneck. Since memory repos emulate this, it created wasteful loop nesting (M lines * N accounts).
 **Action:** Always pre-fetch required datasets completely prior to iterating, and construct an `O(1)` access `Map` object to perform lookups within the iteration. This scales database access down from `O(M)` connections to 1, and time complexity of the local check from `O(N*M)` to `O(N+M)`.
+
+## 2026-09-12 - Preserving Legacy Match Logic in Array Loops
+**Learning:** When micro-optimizing array operations by replacing higher-order functions (e.g., `.find()`) with native loops (e.g., `for...of`) to prevent inline closure allocations, "fixing" seemingly flawed edge cases (like `searchName.includes("")` evaluating to true when a property is undefined) can inadvertently break existing integration tests that rely on that exact behavior for reconciliation.
+**Action:** Meticulously preserve the exact original boolean logic when doing performance-only refactoring. Do not change business logic or edge case handling unless specifically tasked with fixing a bug.
+
+## 2024-09-16 - Removed severe database bottleneck by eliminating inline DDL execution
+**Learning:** Executing DDL statements (like `ALTER TABLE`) during transactional `INSERT` queries is a severe database performance anti-pattern that damages concurrency and locks tables excessively. Schema modifications should be handled during database initialization, not inline within transaction paths.
+**Action:** When optimizing database schemas by removing inline `ALTER TABLE` queries that add columns dynamically (e.g., `deactivated_at`, `revoked_at`), always verify that those specific columns are explicitly defined in the initial `CREATE TABLE` definitions within `src/db/schema.sql` to avoid critical schema omissions.
 
 ## Prevention Directives for Automated Refactoring
 - **Never Overwrite Complete Files**: Always use range-scoped replacement chunks for edits to `schema.prisma`, `index.ts`, `public/index.php`, `db/schema.rb`, or DDL SQL scripts.
@@ -93,7 +102,3 @@
 ## Hallucinatory Task & Empty PR Directives
 - **Zero-Diff Task Termination**: If the requested optimization, refactor, or fix is ALREADY natively present in the target branch, DO NOT create an empty pull request or commit an acknowledgment PR. Exit the task cleanly without opening a PR.
 - **Stale Suggestion Guard**: Always verify the current code on `main`/`master` before planning changes. If no actionable diff is required, cancel task execution immediately.
-
-## 2026-09-12 - Preserving Legacy Match Logic in Array Loops
-**Learning:** When micro-optimizing array operations by replacing higher-order functions (e.g., `.find()`) with native loops (e.g., `for...of`) to prevent inline closure allocations, "fixing" seemingly flawed edge cases (like `searchName.includes("")` evaluating to true when a property is undefined) can inadvertently break existing integration tests that rely on that exact behavior for reconciliation.
-**Action:** Meticulously preserve the exact original boolean logic when doing performance-only refactoring. Do not change business logic or edge case handling unless specifically tasked with fixing a bug.

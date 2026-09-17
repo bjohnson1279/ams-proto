@@ -519,14 +519,14 @@
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">1. Raw Legacy Export Payload</span>
-            <div class="format-pills">
-              <button class="format-pill active" onclick="loadSample('FORMAT_A')">Format A (SQL)</button>
-              <button class="format-pill" onclick="loadSample('FORMAT_B')">Format B (Flat)</button>
-              <button class="format-pill" onclick="loadSample('FORMAT_C')">Format C (XML)</button>
-              <button class="format-pill" onclick="loadSample('FORMAT_D')">Format D (Cloud)</button>
+            <div class="format-pills" role="tablist" aria-label="Legacy Export Formats">
+              <button class="format-pill active" role="tab" aria-selected="true" aria-controls="payload-editor" onclick="loadSample('FORMAT_A')">Format A (SQL)</button>
+              <button class="format-pill" role="tab" aria-selected="false" aria-controls="payload-editor" onclick="loadSample('FORMAT_B')">Format B (Flat)</button>
+              <button class="format-pill" role="tab" aria-selected="false" aria-controls="payload-editor" onclick="loadSample('FORMAT_C')">Format C (XML)</button>
+              <button class="format-pill" role="tab" aria-selected="false" aria-controls="payload-editor" onclick="loadSample('FORMAT_D')">Format D (Cloud)</button>
             </div>
           </div>
-          <textarea id="payload-editor" aria-label="Raw Legacy Export Payload" class="code-editor" spellcheck="false"></textarea>
+          <textarea id="payload-editor" aria-label="Raw Legacy Export Payload" class="code-editor" spellcheck="false" placeholder="Select a format above or paste raw legacy JSON payload here..."></textarea>
           <div class="btn-group">
             <button id="btn-dry-run" class="btn btn-secondary" onclick="runDryRun()">🔍 Run Dry-Run Audit</button>
             <button id="btn-import" class="btn btn-primary" onclick="executeImport()">🚀 Execute CoreAMS Import</button>
@@ -548,9 +548,12 @@
     <!-- TAB 2: INSURED & POLICY REGISTRY -->
     <div id="tab-customers" class="tab-content" role="tabpanel">
       <div style="display: flex; gap: 1rem; align-items: center;">
-        <input type="text" id="search-input" aria-label="Search customers" placeholder="Search by customer name or policy number... (Press '/')"
-          style="background: var(--bg-card); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 1rem; border-radius: 8px; width: 360px;"
-          onkeyup="debouncedFilterCustomers()">
+        <div style="position: relative; width: 360px;">
+          <input type="text" id="search-input" aria-label="Search customers" placeholder="Search by customer name or policy number..."
+            style="background: var(--bg-card); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 2.5rem 0.75rem 1rem; border-radius: 8px; width: 100%;"
+            onkeyup="debouncedFilterCustomers()">
+          <kbd style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.75rem; color: var(--text-muted); font-family: monospace; pointer-events: none;" aria-hidden="true">/</kbd>
+        </div>
       </div>
       <div class="table-container">
         <table>
@@ -750,7 +753,7 @@
             <span class="panel-title">1. Raw ACORD AL3 Download Simulator</span>
             <span class="badge badge-fmt-d">IVANS AL3 Protocol</span>
           </div>
-          <textarea id="al3-input-editor" aria-label="Raw ACORD AL3 Download Simulator" class="code-editor" style="height: 180px; font-family: monospace; font-size: 0.8rem;" spellcheck="false">2BOSIVANS-NETCOREAMS-0100010120260801
+          <textarea id="al3-input-editor" aria-label="Raw ACORD AL3 Download Simulator" class="code-editor" style="height: 180px; font-family: monospace; font-size: 0.8rem;" spellcheck="false" placeholder="Paste raw IVANS AL3 string here...">2BOSIVANS-NETCOREAMS-0100010120260801
 2PRTTRV01TRV-2026-9041Acme Logistics LLC   Commercial Auto     2026080112500.00
 3CVICOMPComprehensive & Collision               1500
 3TRGRENE12500.00
@@ -908,8 +911,17 @@
 
     function loadSample(formatKey) {
       activeFormat = formatKey;
-      document.querySelectorAll('.format-pill').forEach(btn => btn.classList.remove('active'));
-      event?.target?.classList.add('active');
+      document.querySelectorAll('.format-pill').forEach(btn => {
+        btn.classList.remove('active');
+        btn.setAttribute('aria-selected', 'false');
+      });
+      if (event?.target) {
+        const btn = event.target.closest('.format-pill');
+        if (btn) {
+          btn.classList.add('active');
+          btn.setAttribute('aria-selected', 'true');
+        }
+      }
 
       if (samplePayloads[formatKey]) {
         document.getElementById('payload-editor').value = JSON.stringify(samplePayloads[formatKey], null, 2);
