@@ -51,3 +51,6 @@
 ## 2025-01-20 - Visual Shortcut Indicators vs Placeholder Text
 **Learning:** Embedding keyboard shortcut hints directly into input placeholder text (e.g., "... (Press '/')") clutters the hint and increases cognitive load, especially when the placeholder text is long or truncated. Using a dedicated visual `<kbd>` element separated from the placeholder text provides a clearer, modern UX pattern for discoverability without sacrificing input space.
 **Action:** Always use dedicated `<kbd>` styled elements for global shortcut hints next to inputs rather than embedding instructions directly in the placeholder string. Add `aria-hidden="true"` to prevent redundant screen reader announcements if the hint is visual only.
+## 2025-02-27 - Textarea Placeholders as Empty States
+**Learning:** When textareas are used as raw input editors and the user clears the default content, the lack of placeholder text creates a stark, confusing empty state without guidance on what format is expected.
+**Action:** Always provide descriptive `placeholder` text on input textareas to guide users when the field is empty, serving as an inline empty state.
