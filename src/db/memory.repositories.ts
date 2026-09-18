@@ -171,6 +171,12 @@ export class MemoryAccountingRepository implements IAccountingRepository {
   private payments: Payment[] = [];
 
   async getAccounts(tenantId: string): Promise<GlAccount[]> { return Promise.resolve(this.accounts); }
+
+  async getAccountByNumber(tenantId: string, accountNumber: string): Promise<GlAccount | null> {
+    const acct = this.accounts.find(a => a.accountNumber === accountNumber);
+    return Promise.resolve(acct || null);
+  }
+
   async getJournalEntries(tenantId: string): Promise<JournalEntry[]> { return Promise.resolve(this.journalEntries); }
 
   async createJournalEntry(tenantId: string, entry: Partial<JournalEntry>): Promise<JournalEntry> {

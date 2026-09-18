@@ -40,8 +40,8 @@ export class AccountingService {
   }
 
   public async getAccountByNumber(tenantId: string, accountNumber: string): Promise<GlAccount | undefined> {
-    const accounts = await this.getAccounts(tenantId);
-    return accounts.find(a => a.accountNumber === accountNumber);
+    const acct = await this.repos.accounting.getAccountByNumber(tenantId, accountNumber);
+    return acct || undefined;
   }
 
   public async getJournalEntries(tenantId: string): Promise<JournalEntry[]> {
@@ -73,9 +73,18 @@ export class AccountingService {
     let totalDebit = 0;
     let totalCredit = 0;
 
-    // ⚡ Bolt: Fetch accounts once and use Map for O(1) lookups instead of O(N) queries per line
-    const allAccounts = await this.getAccounts(tenantId);
-    const accountMap = new Map(allAccounts.map(a => [a.accountNumber, a]));
+    // ⚡ Bolt: Use a Set to extract unique account numbers, then fetch only the required accounts concurrently to resolve the full-table fetch memory payload bottleneck
+    const uniqueAccountNumbers = new Set(payload.lines.map(l => l.accountNumber));
+    const fetchedAccounts = await Promise.all(
+      Array.from(uniqueAccountNumbers).map(num => this.getAccountByNumber(tenantId, num))
+    );
+
+    const accountMap = new Map();
+    for (const acct of fetchedAccounts) {
+      if (acct) {
+        accountMap.set(acct.accountNumber, acct);
+      }
+    }
 
     for (const line of payload.lines) {
       const acct = accountMap.get(line.accountNumber);

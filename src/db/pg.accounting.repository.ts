@@ -9,6 +9,10 @@ export class PgAccountingRepository implements IAccountingRepository {
     return Promise.resolve([]);
   }
 
+  async getAccountByNumber(tenantId: string, accountNumber: string): Promise<GlAccount | null> {
+    return Promise.resolve(null);
+  }
+
   async getJournalEntries(tenantId: string): Promise<JournalEntry[]> {
     return withTenantTransaction(tenantId, async (client) => {
       const res = await client.query('SELECT * FROM journal_entries WHERE tenant_id = $1', [tenantId]);
