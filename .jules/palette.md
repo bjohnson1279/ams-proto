@@ -54,3 +54,7 @@
 ## 2025-02-27 - Textarea Placeholders as Empty States
 **Learning:** When textareas are used as raw input editors and the user clears the default content, the lack of placeholder text creates a stark, confusing empty state without guidance on what format is expected.
 **Action:** Always provide descriptive `placeholder` text on input textareas to guide users when the field is empty, serving as an inline empty state.
+
+## 2024-06-30 - Dynamic empty states need aria-live
+**Learning:** When creating or updating dynamic UI elements like search result tables, list views, or status containers that toggle empty states via JavaScript, screen readers won't announce when content appears or disappears unless wrapped in an element with `aria-live="polite"` and `role="status"`.
+**Action:** Ensure empty state container elements or dynamic results wrappers include `aria-live="polite"` and `role="status"` so assistive tech announces dynamic DOM changes.
