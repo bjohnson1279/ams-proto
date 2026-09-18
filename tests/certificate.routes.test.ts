@@ -3,7 +3,7 @@ import app from '../src/app.js';
 
 describe('Certificate & Holder Routes (/api/v1/certificates & /api/v1/holders)', () => {
   it('GET /api/v1/certificates should list initial certificates', async () => {
-    const res = await request(app).get('/api/v1/certificates');
+    const res = await request(app).get('/api/v1/certificates').set('x-tenant-id', 'tenant-001');
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(Array.isArray(res.body.data)).toBe(true);
@@ -11,21 +11,21 @@ describe('Certificate & Holder Routes (/api/v1/certificates & /api/v1/holders)',
   });
 
   it('GET /api/v1/certificates/:id should return single certificate', async () => {
-    const res = await request(app).get('/api/v1/certificates/CERT-2026-001');
+    const res = await request(app).get('/api/v1/certificates/CERT-2026-001').set('x-tenant-id', 'tenant-001');
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(res.body.data.certificateId).toBe('CERT-2026-001');
   });
 
   it('GET /api/v1/certificates/:id/render should return 200 HTML content', async () => {
-    const res = await request(app).get('/api/v1/certificates/CERT-2026-001/render');
+    const res = await request(app).get('/api/v1/certificates/CERT-2026-001/render').set('x-tenant-id', 'tenant-001');
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toContain('text/html');
     expect(res.text).toContain('ACORD 25');
   });
 
   it('GET /api/v1/holders should return list of certificate holders', async () => {
-    const res = await request(app).get('/api/v1/holders');
+    const res = await request(app).get('/api/v1/holders').set('x-tenant-id', 'tenant-001');
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(Array.isArray(res.body.data)).toBe(true);
@@ -47,7 +47,7 @@ describe('Certificate & Holder Routes (/api/v1/certificates & /api/v1/holders)',
     };
 
     const res = await request(app)
-      .post('/api/v1/holders')
+      .post('/api/v1/holders').set('x-tenant-id', 'tenant-001')
       .send(payload);
 
     expect(res.status).toBe(201);
@@ -65,7 +65,7 @@ describe('Certificate & Holder Routes (/api/v1/certificates & /api/v1/holders)',
     };
 
     const res = await request(app)
-      .post('/api/v1/certificates')
+      .post('/api/v1/certificates').set('x-tenant-id', 'tenant-001')
       .send(payload);
 
     expect(res.status).toBe(201);
@@ -83,7 +83,7 @@ describe('Certificate & Holder Routes (/api/v1/certificates & /api/v1/holders)',
     };
 
     const res = await request(app)
-      .post('/api/v1/certificates/bulk-issue')
+      .post('/api/v1/certificates/bulk-issue').set('x-tenant-id', 'tenant-001')
       .send(payload);
 
     expect(res.status).toBe(201);

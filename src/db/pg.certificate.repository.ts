@@ -48,10 +48,8 @@ export class PgCertificateHolderRepository implements ICertificateHolderReposito
   }
 
   async deactivate(tenantId: string, id: string): Promise<void> {
-    // Note: Schema might not have deactivated_at yet, assuming we add it or just log.
-    // The prompt says CertificateHolder has deactivatedAt (NEW FIELD).
     return withTenantTransaction(tenantId, async (client) => {
-      await client.query(`ALTER TABLE certificate_holders ADD COLUMN IF NOT EXISTS deactivated_at TIMESTAMP WITH TIME ZONE`);
+      // ⚡ Bolt: Removed ALTER TABLE DDL execution on every transaction to eliminate severe database bottleneck
       await client.query(`UPDATE certificate_holders SET deactivated_at = CURRENT_TIMESTAMP WHERE tenant_id = $1 AND holder_id = $2`, [tenantId, id]);
     });
   }
@@ -99,9 +97,7 @@ export class PgCertificateRepository implements ICertificateRepository {
       const insurersJson = JSON.stringify(cert.insurers || []);
       const coveragesJson = JSON.stringify(cert.coverages || {});
       
-      // Ensure JSONB columns exist if not already in schema
-      await client.query(`ALTER TABLE certificates ADD COLUMN IF NOT EXISTS insurers JSONB, ADD COLUMN IF NOT EXISTS coverages JSONB, ADD COLUMN IF NOT EXISTS status VARCHAR(50)`);
-
+      // ⚡ Bolt: Removed ALTER TABLE DDL execution on every transaction insert to eliminate severe database bottleneck
       const res = await client.query(
         `INSERT INTO certificates (
           certificate_id, tenant_id, customer_id, holder_id, certificate_number, issue_date, producer_name, special_provisions, insurers, coverages, status
@@ -114,7 +110,7 @@ export class PgCertificateRepository implements ICertificateRepository {
 
   async revoke(tenantId: string, id: string, reason?: string): Promise<void> {
     return withTenantTransaction(tenantId, async (client) => {
-      await client.query(`ALTER TABLE certificates ADD COLUMN IF NOT EXISTS revoked_at TIMESTAMP WITH TIME ZONE, ADD COLUMN IF NOT EXISTS revocation_reason TEXT`);
+      // ⚡ Bolt: Removed ALTER TABLE DDL execution on every transaction to eliminate severe database bottleneck
       await client.query(`UPDATE certificates SET status = 'Revoked', revoked_at = CURRENT_TIMESTAMP, revocation_reason = $1 WHERE tenant_id = $2 AND certificate_id = $3`, [reason || null, tenantId, id]);
     });
   }
