@@ -40,3 +40,20 @@
 ## 2024-11-22 - [Modal Focus Management]
 **Learning:** When a modal opens, keyboard focus must move into the modal (e.g., to the close button or first input). If focus remains outside the modal, keyboard-only and screen reader users lose context and may interact with elements hidden behind the modal backdrop. Furthermore, when the modal closes, focus must be programmatically returned to the button that originally triggered it to maintain the user's place in the document flow.
 **Action:** Always implement focus management when creating custom modals: store `document.activeElement` before opening, shift focus into the modal once active, and restore focus to the stored element upon closing.
+## 2024-11-20 - [Dynamic Search Results Accessibility]
+**Learning:** Adding `aria-live="polite"` to empty states for dynamic search results ensures that screen readers are notified of updates.
+**Action:** When creating dynamic search results, always add `aria-live="polite"` to the empty state container to improve accessibility.
+
+## 2024-11-20 - Format Pill Tab Accessibility
+**Learning:** Elements styled as interactive "pills" that control content (like selecting a payload format to display in an editor) functionally act as tabs. Without explicit ARIA tab roles (`tablist`, `tab`, `tabpanel`) and dynamic `aria-selected` toggling, screen readers treat them as generic buttons without semantic grouping, leading to poor discoverability of their relationship to the controlled content.
+**Action:** Always add standard ARIA tab roles (`role="tablist"`, `role="tab"`) and programmatically manage `aria-selected` and `aria-controls` states when building custom tab-like interactions, regardless of their visual styling (e.g., pills).
+
+## 2025-01-20 - Visual Shortcut Indicators vs Placeholder Text
+**Learning:** Embedding keyboard shortcut hints directly into input placeholder text (e.g., "... (Press '/')") clutters the hint and increases cognitive load, especially when the placeholder text is long or truncated. Using a dedicated visual `<kbd>` element separated from the placeholder text provides a clearer, modern UX pattern for discoverability without sacrificing input space.
+**Action:** Always use dedicated `<kbd>` styled elements for global shortcut hints next to inputs rather than embedding instructions directly in the placeholder string. Add `aria-hidden="true"` to prevent redundant screen reader announcements if the hint is visual only.
+## 2025-02-27 - Textarea Placeholders as Empty States
+**Learning:** When textareas are used as raw input editors and the user clears the default content, the lack of placeholder text creates a stark, confusing empty state without guidance on what format is expected.
+**Action:** Always provide descriptive `placeholder` text on input textareas to guide users when the field is empty, serving as an inline empty state.
+## 2024-09-16 - Add aria-live to empty states
+**Learning:** Found a codebase-specific pattern where dynamic search/filter empty states were already correctly using `aria-live="polite"` (e.g. the customer search), but empty states representing initial or unpopulated dataset loads (e.g. Trial Balance, Crosswalk matrix) lacked the attribute. This discrepancy in empty state rendering means screen reader users would miss the crucial context that a table is completely empty upon tab load, leading them to believe the data is still loading or broken.
+**Action:** When auditing vanilla JS frontends for accessibility, do not just check search/filter results for `aria-live`. Always evaluate the *initial* empty states of components populated via async fetches, ensuring those static empty messages are also announced when the parent tab or view becomes active.
