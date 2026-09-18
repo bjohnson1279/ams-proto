@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS certificates (
     status VARCHAR(50) DEFAULT 'Issued',
     producer_name VARCHAR(255) NOT NULL,
     insurers JSONB DEFAULT '[]',
-    coverages JSONB DEFAULT '{}',
+    coverages_snapshot JSONB DEFAULT '{}',
     special_provisions TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,

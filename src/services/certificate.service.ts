@@ -143,9 +143,7 @@ export class CertificateService {
 
       selectedPolicies = allCustomerPolicies;
       if (req.policyIds && req.policyIds.length > 0 && !req.policyIds.includes('ALL')) {
-        // ⚡ Bolt: Convert policyIds array to Set to reduce O(N*M) array filtering to O(N)
-        const requestedPolicyIds = new Set(req.policyIds);
-        selectedPolicies = allCustomerPolicies.filter(p => requestedPolicyIds.has(p.policyId) || requestedPolicyIds.has(p.policyNumber));
+        selectedPolicies = allCustomerPolicies.filter(p => req.policyIds.includes(p.policyId) || req.policyIds.includes(p.policyNumber));
       }
 
       if (selectedPolicies.length === 0) {
@@ -397,9 +395,7 @@ export class CertificateService {
 
     let selectedPolicies = allCustomerPolicies;
     if (req.policyIds && req.policyIds.length > 0 && !req.policyIds.includes('ALL')) {
-      // ⚡ Bolt: Convert policyIds array to Set to reduce O(N*M) array filtering to O(N)
-      const requestedPolicyIds = new Set(req.policyIds);
-      selectedPolicies = allCustomerPolicies.filter(p => requestedPolicyIds.has(p.policyId) || requestedPolicyIds.has(p.policyNumber));
+      selectedPolicies = allCustomerPolicies.filter(p => req.policyIds.includes(p.policyId) || req.policyIds.includes(p.policyNumber));
     }
 
     if (selectedPolicies.length === 0) {

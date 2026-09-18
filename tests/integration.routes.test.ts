@@ -10,7 +10,7 @@ import formatDPayload from '../sample_payloads/format_d_payload.json';
 describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
   it('POST /api/v1/integration/import should process Format A payload', async () => {
     const res = await request(app)
-      .post('/api/v1/integration/import').set('x-tenant-id', 'tenant-001')
+      .post('/api/v1/integration/import')
       .send(formatAPayload);
 
     expect(res.status).toBe(200);
@@ -23,7 +23,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
 
   it('POST /api/v1/integration/import should process Format B payload', async () => {
     const res = await request(app)
-      .post('/api/v1/integration/import').set('x-tenant-id', 'tenant-001')
+      .post('/api/v1/integration/import')
       .send(formatBPayload);
 
     expect(res.status).toBe(200);
@@ -35,7 +35,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
 
   it('POST /api/v1/integration/import should process Format C payload', async () => {
     const res = await request(app)
-      .post('/api/v1/integration/import').set('x-tenant-id', 'tenant-001')
+      .post('/api/v1/integration/import')
       .send(formatCPayload);
 
     expect(res.status).toBe(200);
@@ -47,7 +47,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
 
   it('POST /api/v1/integration/import should process Format D payload', async () => {
     const res = await request(app)
-      .post('/api/v1/integration/import').set('x-tenant-id', 'tenant-001')
+      .post('/api/v1/integration/import')
       .send(formatDPayload);
 
     expect(res.status).toBe(200);
@@ -59,7 +59,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
 
   it('POST /api/v1/integration/dry-run should perform dry-run analysis without storing records', async () => {
     const res = await request(app)
-      .post('/api/v1/integration/dry-run').set('x-tenant-id', 'tenant-001')
+      .post('/api/v1/integration/dry-run')
       .send(formatDPayload);
 
     expect(res.status).toBe(200);
@@ -69,7 +69,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
   });
 
   it('GET /api/v1/integration/crosswalk-matrix should return field transformation rules', async () => {
-    const res = await request(app).get('/api/v1/integration/crosswalk-matrix').set('x-tenant-id', 'tenant-001');
+    const res = await request(app).get('/api/v1/integration/crosswalk-matrix');
 
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
@@ -79,7 +79,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
 
   it('POST /api/v1/integration/import should return 400 when payload is missing data', async () => {
     const res = await request(app)
-      .post('/api/v1/integration/import').set('x-tenant-id', 'tenant-001')
+      .post('/api/v1/integration/import')
       .send({ systemSource: 'FORMAT_A' });
 
     expect(res.status).toBe(400);
@@ -93,7 +93,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
     });
 
     const res = await request(app)
-      .post('/api/v1/integration/import').set('x-tenant-id', 'tenant-001')
+      .post('/api/v1/integration/import')
       .send(formatAPayload);
 
     expect(res.status).toBe(500);
@@ -112,7 +112,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
     });
 
     const res = await request(app)
-      .post('/api/v1/integration/import').set('x-tenant-id', 'tenant-001')
+      .post('/api/v1/integration/import')
       .send(formatAPayload);
 
     expect(res.status).toBe(500);
@@ -128,7 +128,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
     });
 
     const res = await request(app)
-      .post('/api/v1/integration/dry-run').set('x-tenant-id', 'tenant-001')
+      .post('/api/v1/integration/dry-run')
       .send(formatDPayload);
 
     expect(res.status).toBe(500);
@@ -139,7 +139,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
   });
 
   it('GET /api/v1/carriers should return pre-seeded carrier list', async () => {
-    const res = await request(app).get('/api/v1/carriers').set('x-tenant-id', 'tenant-001');
+    const res = await request(app).get('/api/v1/carriers');
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(Array.isArray(res.body.data)).toBe(true);

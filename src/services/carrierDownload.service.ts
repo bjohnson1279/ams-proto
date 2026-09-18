@@ -48,17 +48,12 @@ export class CarrierDownloadService {
     let carrierCode = payload.carrierCode || 'TRV01';
     let carrierName = payload.carrierName || 'Travelers Insurance';
 
-    // ⚡ Bolt: Calculate totals during item creation to eliminate redundant O(N) array iteration
-    let totalPremium = 0;
-    let totalCommission = 0;
-
     if (payload.rawAl3Content) {
       const parsedPackage = this.al3Parser.parseAl3Content(payload.rawAl3Content);
       carrierCode = parsedPackage.policies[0]?.policy.carrierCode || carrierCode;
       carrierName = parsedPackage.policies[0]?.policy.carrierName || carrierName;
 
-      for (let idx = 0; idx < parsedPackage.policies.length; idx++) {
-        const pkgItem = parsedPackage.policies[idx];
+      parsedPackage.policies.forEach((pkgItem, idx) => {
         const item: DownloadTransactionItem = {
           itemId: `DL-ITEM-${batchId}-${idx + 1}`,
           batchId,
@@ -77,14 +72,10 @@ export class CarrierDownloadService {
           reconciliationStatus: 'Matched',
           createdAt: new Date().toISOString()
         };
-
-        totalPremium += item.grossPremium;
-        totalCommission += item.commissionAmount;
         items.push(item);
-      }
+      });
     } else if (payload.items && payload.items.length > 0) {
-      for (let idx = 0; idx < payload.items.length; idx++) {
-        const pItem = payload.items[idx];
+      payload.items.forEach((pItem, idx) => {
         const gross = pItem.grossPremium;
         const rate = pItem.commissionRate || 0.15;
         const commAmt = Math.round(gross * rate * 100) / 100;
@@ -107,14 +98,18 @@ export class CarrierDownloadService {
           reconciliationStatus: 'Matched',
           createdAt: new Date().toISOString()
         };
-
-        totalPremium += item.grossPremium;
-        totalCommission += item.commissionAmount;
         items.push(item);
-      }
+      });
     }
 
     await this.reconcileItems(tenantId, items);
+
+    let totalPremium = 0;
+    let totalCommission = 0;
+    for (const item of items) {
+      totalPremium += item.grossPremium;
+      totalCommission += item.commissionAmount;
+    }
 
     const batch: DownloadBatch = {
       batchId,

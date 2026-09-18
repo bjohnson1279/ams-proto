@@ -12,7 +12,7 @@ describe('Carrier Download Routes Integration Tests', () => {
     `.trim();
 
     const res = await request(app)
-      .post('/api/v1/downloads/parse-al3').set('x-tenant-id', 'tenant-001')
+      .post('/api/v1/downloads/parse-al3')
       .set('x-tenant-id', 'tenant-001')
       .send({ rawContent: rawAl3 });
 
@@ -23,7 +23,7 @@ describe('Carrier Download Routes Integration Tests', () => {
 
   it('GET /api/v1/downloads/batches should return download batches for tenant', async () => {
     const res = await request(app)
-      .get('/api/v1/downloads/batches').set('x-tenant-id', 'tenant-001')
+      .get('/api/v1/downloads/batches')
       .set('x-tenant-id', 'tenant-001');
 
     expect(res.status).toBe(200);
@@ -33,7 +33,7 @@ describe('Carrier Download Routes Integration Tests', () => {
 
   it('POST /api/v1/downloads/ingest should create and reconcile a batch', async () => {
     const res = await request(app)
-      .post('/api/v1/downloads/ingest').set('x-tenant-id', 'tenant-001')
+      .post('/api/v1/downloads/ingest')
       .set('x-tenant-id', 'tenant-001')
       .send({
         carrierCode: 'CHUBB',
@@ -59,7 +59,7 @@ describe('Carrier Download Routes Integration Tests', () => {
 
   it('POST /api/v1/downloads/batches/:batchId/post-commissions should post commissions', async () => {
     const ingestRes = await request(app)
-      .post('/api/v1/downloads/ingest').set('x-tenant-id', 'tenant-001')
+      .post('/api/v1/downloads/ingest')
       .set('x-tenant-id', 'tenant-001')
       .send({
         carrierCode: 'TRV01',

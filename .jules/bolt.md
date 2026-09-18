@@ -93,7 +93,3 @@
 ## Hallucinatory Task & Empty PR Directives
 - **Zero-Diff Task Termination**: If the requested optimization, refactor, or fix is ALREADY natively present in the target branch, DO NOT create an empty pull request or commit an acknowledgment PR. Exit the task cleanly without opening a PR.
 - **Stale Suggestion Guard**: Always verify the current code on `main`/`master` before planning changes. If no actionable diff is required, cancel task execution immediately.
-
-## 2024-09-16 - Removed severe database bottleneck by eliminating inline DDL execution
-**Learning:** Executing DDL statements (like `ALTER TABLE`) during transactional `INSERT` queries is a severe database performance anti-pattern that damages concurrency and locks tables excessively. Schema modifications should be handled during database initialization, not inline within transaction paths.
-**Action:** When optimizing database schemas by removing inline `ALTER TABLE` queries that add columns dynamically (e.g., `deactivated_at`, `revoked_at`), always verify that those specific columns are explicitly defined in the initial `CREATE TABLE` definitions within `src/db/schema.sql` to avoid critical schema omissions.
