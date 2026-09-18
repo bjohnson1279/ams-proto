@@ -49,9 +49,11 @@ export class DatabaseService {
     return REGISTERED_TENANTS[this.activeTenantId] || REGISTERED_TENANTS['tenant-001'];
   }
 
-  public generateRlsSessionQuery(tenantId: string): string {
-    const safeTenantId = tenantId.replace(/'/g, "''");
-    return `SELECT set_config('app.current_tenant_id', '${safeTenantId}', false);`;
+  public generateRlsSessionQuery(tenantId: string): { text: string; values: string[] } {
+    return {
+      text: `SELECT set_config('app.current_tenant_id', $1, false);`,
+      values: [tenantId]
+    };
   }
 
   public applyRlsFilter<T extends { tenantId?: string }>(items: T[], activeTenantId: string): T[] {
