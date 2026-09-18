@@ -10,15 +10,21 @@ describe('Multi-Tenant Row-Level Security & Context Tests', () => {
     expect(REGISTERED_TENANTS['tenant-002'].agencyName).toBe('Coastal Property Risk Partners');
   });
 
-  it('should generate valid PostgreSQL set_config RLS session query', () => {
+  it('should generate valid PostgreSQL set_config RLS session parameterized query', () => {
     const query = dbService.generateRlsSessionQuery('tenant-002');
-    expect(query).toBe("SELECT set_config('app.current_tenant_id', 'tenant-002', false);");
+    expect(query).toEqual({
+      text: "SELECT set_config('app.current_tenant_id', $1, false);",
+      values: ['tenant-002']
+    });
   });
 
-  it('should escape single quotes to prevent SQL injection in RLS session query', () => {
+  it('should safely parameterize input to prevent SQL injection in RLS session query', () => {
     const maliciousTenantId = "tenant-002'; DROP TABLE users; --";
     const query = dbService.generateRlsSessionQuery(maliciousTenantId);
-    expect(query).toBe("SELECT set_config('app.current_tenant_id', 'tenant-002''; DROP TABLE users; --', false);");
+    expect(query).toEqual({
+      text: "SELECT set_config('app.current_tenant_id', $1, false);",
+      values: [maliciousTenantId]
+    });
   });
 
   it('should extract x-tenant-id header and attach to request context', async () => {
