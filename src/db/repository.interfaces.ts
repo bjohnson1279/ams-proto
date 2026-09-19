@@ -46,6 +46,7 @@ export interface ICertificateRepository {
 export interface IAccountingRepository {
   getAccounts(tenantId: string): Promise<GlAccount[]>;
   getAccountByNumber(tenantId: string, accountNumber: string): Promise<GlAccount | null>;
+  getAccountsByNumbers(tenantId: string, accountNumbers: string[]): Promise<GlAccount[]>;
   getJournalEntries(tenantId: string): Promise<JournalEntry[]>;
   createJournalEntry(tenantId: string, entry: Partial<JournalEntry>): Promise<JournalEntry>;
   getInvoices(tenantId: string): Promise<Invoice[]>;

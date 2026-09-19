@@ -109,3 +109,6 @@
 ## Hallucinatory Task & Empty PR Directives
 - **Zero-Diff Task Termination**: If the requested optimization, refactor, or fix is ALREADY natively present in the target branch, DO NOT create an empty pull request or commit an acknowledgment PR. Exit the task cleanly without opening a PR.
 - **Stale Suggestion Guard**: Always verify the current code on `main`/`master` before planning changes. If no actionable diff is required, cancel task execution immediately.
+## 2025-02-20 - Replace Promise.all with batched query to resolve memory payload bottleneck
+**Learning:** Using `Promise.all` with individual DB queries for each item in a payload can lead to connection exhaustion and N+1 query problems. Replacing `Promise.all` over `getAccountByNumber` with a single batched `getAccountsByNumbers` lookup improves performance, avoids limits, and properly resolves the problem without fetching the entire table as an anti-pattern.
+**Action:** When correlating multiple nested items or validating lists against a database, use batched lookups (`WHERE id IN (...)` style queries) combined with returning a `Map` or using a single query rather than iterating and firing individual queries concurrently.
