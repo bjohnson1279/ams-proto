@@ -11,7 +11,7 @@ export class CustomerController {
 
   public getCustomers = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { name, policyNumber } = req.query;
       const customers = await this.amsService.getCustomers(tenantId, {
         name: typeof name === 'string' ? name : undefined,
@@ -30,7 +30,7 @@ export class CustomerController {
 
   public getCustomerById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { id } = req.params;
       const customer = await this.amsService.getCustomerById(tenantId, id);
       if (!customer) {
@@ -52,7 +52,7 @@ export class CustomerController {
 
   public createCustomer = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const payload = req.body;
       if (!payload || (!payload.businessName && !payload.lastName)) {
         res.status(400).json({

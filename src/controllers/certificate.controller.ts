@@ -11,7 +11,7 @@ export class CertificateController {
 
   public getCertificates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { customerId, holderId, status } = req.query;
 
       const certs = await this.certificateService.getCertificates(tenantId, {
@@ -32,7 +32,7 @@ export class CertificateController {
 
   public getCertificateById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { id } = req.params;
       const cert = await this.certificateService.getCertificateById(tenantId, id);
       if (!cert) {
@@ -54,7 +54,7 @@ export class CertificateController {
 
   public renderCertificateHtml = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { id } = req.params;
       const html = await this.certificateService.renderAcord25Html(tenantId, id);
       res.setHeader('Content-Type', 'text/html');
@@ -73,7 +73,7 @@ export class CertificateController {
 
   public createCertificate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { customerId, holderId, policyIds, descriptionOfOperations, cancellationNoticeDays } = req.body;
 
       if (!customerId || !holderId) {
@@ -107,7 +107,7 @@ export class CertificateController {
 
   public bulkIssueCertificates = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { customerId, holderIds, policyIds, descriptionOfOperations, cancellationNoticeDays } = req.body;
 
       if (!customerId || !Array.isArray(holderIds) || holderIds.length === 0) {
@@ -142,7 +142,7 @@ export class CertificateController {
 
   public getCertificateHolders = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { name } = req.query;
       const holders = await this.certificateService.getCertificateHolders(tenantId, {
         name: typeof name === 'string' ? name : undefined
@@ -160,7 +160,7 @@ export class CertificateController {
 
   public createCertificateHolder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const payload = req.body;
       if (!payload || !payload.name) {
         res.status(400).json({
@@ -186,7 +186,7 @@ export class CertificateController {
 
   public getCertificateHolderById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { id } = req.params;
       const holder = await this.certificateService.getCertificateHolderById(tenantId, id);
       if (!holder) {
@@ -208,7 +208,7 @@ export class CertificateController {
 
   public updateCertificateHolder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { id } = req.params;
       const payload = req.body;
       const updated = await this.certificateService.updateCertificateHolder(tenantId, id, payload);
@@ -228,7 +228,7 @@ export class CertificateController {
 
   public deactivateCertificateHolder = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { id } = req.params;
       await this.certificateService.deactivateCertificateHolder(tenantId, id);
       res.status(200).json({
@@ -246,7 +246,7 @@ export class CertificateController {
 
   public revokeCertificate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { id } = req.params;
       const { reason } = req.body;
       const revoked = await this.certificateService.revokeCertificate(tenantId, id, reason);
