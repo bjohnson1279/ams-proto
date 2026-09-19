@@ -55,3 +55,41 @@
 ## 2026-09-08 - Consolidate Multiple Array Reduces
 **Learning:** Found multiple `.reduce()` operations being used sequentially on the same array to calculate distinct aggregates (like `totalPremium` and `totalCommission` in `src/services/carrierDownload.service.ts`). Each `.reduce()` causes a separate O(N) pass over the array, creating unnecessary iteration overhead for large datasets.
 **Action:** When calculating multiple aggregates over the same array, combine them into a single `for...of` loop to calculate all metrics in one O(N) pass and prevent redundant array iterations.
+
+## 2026-09-03 - Consolidate Multiple find() array scans into a single loop
+**Learning:** Found multiple distinct `.find()` lookups operating on the same array to fetch different elements (like fetching 5 separate accounts from `this.accounts` in `getFinancialSummary`). Each `.find()` triggered a separate O(N) array scan, degrading performance to O(5*N).
+**Action:** When evaluating an array to find multiple distinct matching elements, replace multiple `.find()` operations with a single `for...of` loop to locate all target elements in one O(N) pass, maintaining `.find()` early-exit behavior by tracking a found count and breaking.
+## 2026-09-08 - Avoid DDL inside Transaction Inserts
+**Learning:** Executing DDL statements (like `ALTER TABLE`) inside a transactional query path (e.g. `INSERT`) acquires aggressive table-level locks, destroying concurrency and severely degrading performance. In `createJournalEntry`, an inline `ALTER TABLE` was evaluated on every insert.
+**Action:** Ensure all schema setup (like adding columns) is restricted to database initialization logic/migrations, not inline within application-level CRUD operations.
+
+## 2026-09-08 - Use Map for O(1) lookups in nested loops
+**Learning:** In `createJournalEntry`, an (N 	imes M)$ array scan was caused by calling `.find()` on `this.accounts` inside a loop iterating over `je.lines`. Replacing this with a pre-fetched `Map` of accounts enables (1)$ lookups, reducing the complexity to (N + M)$ safely and without sacrificing type safety.
+**Action:** For nested data correlation, pre-fetch the required data into a `Map` for (1)$ lookups to eliminate nested array scans.
+## 2024-05-18 - [Combined O(N) Array Scanning in Memory Repository]
+**Learning:** The memory repository's `getFinancialSummary` method performed five sequential `.find()` calls to retrieve specific GL accounts. This resulted in O(5N) operations. While small in a prototype context, combining these into a single O(N) `for...of` loop with an early `break` effectively maintains performance consistency.
+**Action:** Always combine multiple contiguous `.find()` or `.filter()` calls scanning the same array into a single O(N) loop when retrieving distinct elements. Ensure early exit logic (e.g., `break`) is implemented to maximize performance gains.
+## 2026-09-09 - Consolidate chained array operations to prevent intermediate allocations
+**Learning:** Sequential `.filter()` calls or `.filter().map()` chains on arrays create wasteful intermediate arrays that consume memory and cause redundant O(N) iterations, causing unnecessary overhead for large datasets (e.g., in `src/services/ams.service.ts` and `src/db/memory.repositories.ts`).
+**Action:** Combine chained array operations into a single `for...of` loop or a single `.filter()` pass to calculate the final result in one iteration and prevent wasteful intermediate allocations.
+
+## 2026-09-10 - Eliminate N+1 query loop using pre-fetched Map
+**Learning:** In `postJournalEntry` (src/services/accounting.service.ts), iterating through journal line items and performing an awaitable database lookup (`this.getAccountByNumber`) for each line caused a classic N+1 query performance bottleneck. Since memory repos emulate this, it created wasteful loop nesting (M lines * N accounts).
+**Action:** Always pre-fetch required datasets completely prior to iterating, and construct an `O(1)` access `Map` object to perform lookups within the iteration. This scales database access down from `O(M)` connections to 1, and time complexity of the local check from `O(N*M)` to `O(N+M)`.
+
+## Prevention Directives for Automated Refactoring
+- **Never Overwrite Complete Files**: Always use range-scoped replacement chunks for edits to `schema.prisma`, `index.ts`, `public/index.php`, `db/schema.rb`, or DDL SQL scripts.
+- **Do Not Remove Core Declarations**: Do not delete existing route registrations or database DDL tables.
+- **Environment Isolation Compatibility**: When replacing fallback secrets, preserve test environment execution via `!getenv('APP_ENV')` or `getenv('APP_ENV') === 'testing'`.
+- **No Scratch Files**: Never stage or commit `test_*.ts`, `test_*.js`, `test.cjs`, `fix_*.php`, or `test.js` files to git.
+- **No Unresolved Conflict Markers**: Never stage or commit files containing Git merge conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`, `|||||||`). Always resolve conflicts cleanly before committing.
+
+## Completeness & Verification Directives
+- **Explicit Parameter & Contract Validation**: When creating or modifying API endpoints (Express, Fastify, Rails, Laravel), always implement explicit parameter and request body validation schemas (e.g. `z.string().uuid()`) to prevent unhandled 404/500 fallthroughs.
+- **Database Indexing for Queries**: When addressing query bottlenecks or adding query lookup filters, always implement native database index migrations rather than loading collections into memory and performing array filtering (`.filter()`, `.select`).
+- **Co-Occurring Dependency Auditing**: When bumping any dependency version, verify that other transitive dependencies do not carry high/critical security advisories (e.g. run `bundler-audit`, `npm audit`). Never introduce a version bump that breaks underlying framework APIs.
+- **Self-Verification Before Commit**: Always run syntax checks (`bash -n` for shell scripts, `tsc --noEmit` for TypeScript, linter checks) and targeted test runners locally before opening or updating a PR.
+
+## Hallucinatory Task & Empty PR Directives
+- **Zero-Diff Task Termination**: If the requested optimization, refactor, or fix is ALREADY natively present in the target branch, DO NOT create an empty pull request or commit an acknowledgment PR. Exit the task cleanly without opening a PR.
+- **Stale Suggestion Guard**: Always verify the current code on `main`/`master` before planning changes. If no actionable diff is required, cancel task execution immediately.

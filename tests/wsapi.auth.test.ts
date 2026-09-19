@@ -114,7 +114,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
       // Use ticket for a subsequent operation
       const res = await request(app)
         .post('/api/v1/wsapi/CustomerGet')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({ operation: 'CustomerGet', requestPayload: {} });
 
       expect(res.status).toBe(200);
@@ -140,7 +140,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
       // Logout
       const logoutRes = await request(app)
         .post('/api/v1/wsapi/Logout')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({ operation: 'Logout' });
 
       expect(logoutRes.status).toBe(200);
@@ -149,7 +149,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
       // Attempt to use the old ticket — should fail
       const afterRes = await request(app)
         .post('/api/v1/wsapi/CustomerGet')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({ operation: 'CustomerGet', requestPayload: {} });
 
       expect(afterRes.status).toBe(401);
@@ -207,7 +207,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should return all customers when no filter specified', async () => {
       const res = await request(app)
         .post('/api/v1/wsapi/CustomerGet')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({ operation: 'CustomerGet', requestPayload: {} });
 
       expect(res.status).toBe(200);
@@ -219,7 +219,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should return specific customer by customerId', async () => {
       const res = await request(app)
         .post('/api/v1/wsapi/CustomerGet')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({
           operation: 'CustomerGet',
           requestPayload: { customerId: 'CUST-1001' },
@@ -233,7 +233,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should return 404 fault for non-existent customer', async () => {
       const res = await request(app)
         .post('/api/v1/wsapi/CustomerGet')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({
           operation: 'CustomerGet',
           requestPayload: { customerId: 'CUST-NONEXIST' },
@@ -246,7 +246,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should include policies when includePolicies is true', async () => {
       const res = await request(app)
         .post('/api/v1/wsapi/CustomerGet')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({
           operation: 'CustomerGet',
           requestPayload: { customerId: 'CUST-1001', includePolicies: true },
@@ -276,7 +276,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should create a new customer via WSAPI envelope', async () => {
       const res = await request(app)
         .post('/api/v1/wsapi/CustomerInsert')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({
           operation: 'CustomerInsert',
           requestPayload: {
@@ -306,7 +306,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should reject CustomerInsert with missing name fields', async () => {
       const res = await request(app)
         .post('/api/v1/wsapi/CustomerInsert')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({
           operation: 'CustomerInsert',
           requestPayload: { feinOrSsn: '00-0000000' },
@@ -335,7 +335,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should return all policies when no filter specified', async () => {
       const res = await request(app)
         .post('/api/v1/wsapi/PolicyGet')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({ operation: 'PolicyGet', requestPayload: {} });
 
       expect(res.status).toBe(200);
@@ -346,7 +346,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should return specific policy by policyId', async () => {
       const res = await request(app)
         .post('/api/v1/wsapi/PolicyGet')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({
           operation: 'PolicyGet',
           requestPayload: { policyId: 'POL-CA-2026-001' },
@@ -360,7 +360,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should return 404 fault for non-existent policy', async () => {
       const res = await request(app)
         .post('/api/v1/wsapi/PolicyGet')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({
           operation: 'PolicyGet',
           requestPayload: { policyId: 'POL-NONEXIST' },
@@ -389,7 +389,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should return PolicyStatus value list', async () => {
       const res = await request(app)
         .post('/api/v1/wsapi/ValueListGet')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({
           operation: 'ValueListGet',
           requestPayload: { listName: 'PolicyStatus' },
@@ -405,7 +405,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should return TypeOfBusiness value list with all LOB codes', async () => {
       const res = await request(app)
         .post('/api/v1/wsapi/ValueListGet')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({
           operation: 'ValueListGet',
           requestPayload: { listName: 'TypeOfBusiness' },
@@ -418,7 +418,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should return TransactionType value list', async () => {
       const res = await request(app)
         .post('/api/v1/wsapi/ValueListGet')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({
           operation: 'ValueListGet',
           requestPayload: { listName: 'TransactionType' },
@@ -433,7 +433,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should return 404 for unknown value list name', async () => {
       const res = await request(app)
         .post('/api/v1/wsapi/ValueListGet')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({
           operation: 'ValueListGet',
           requestPayload: { listName: 'NonExistentList' },
@@ -471,7 +471,7 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
     it('should return OPERATION_NOT_SUPPORTED for future phase operations', async () => {
       const res = await request(app)
         .post('/api/v1/wsapi/PolicyEndorse')
-        .set('X-WSAPI-Ticket', ticket)
+        .set('X-WSAPI-Ticket', ticket || '')
         .send({
           operation: 'PolicyEndorse',
           requestPayload: {},

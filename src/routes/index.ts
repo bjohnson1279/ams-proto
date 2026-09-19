@@ -5,6 +5,7 @@ import integrationRoutes from './integration.routes.js';
 import accountingRoutes from './accounting.routes.js';
 import { certificateRouter, holderRouter } from './certificate.routes.js';
 import downloadRoutes from './download.routes.js';
+import wsapiRoutes from './wsapi.routes.js';
 import { AmsService } from '../services/ams.service.js';
 
 const router: Router = Router();
@@ -16,6 +17,7 @@ router.use('/accounting', accountingRoutes);
 router.use('/certificates', certificateRouter);
 router.use('/holders', holderRouter);
 router.use('/downloads', downloadRoutes);
+router.use('/wsapi', wsapiRoutes);
 
 
 // Additional helper endpoints for carrier and claim inspection

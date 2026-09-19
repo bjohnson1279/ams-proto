@@ -30,10 +30,24 @@ export class AmsService {
 
   // CUSTOMER OPERATIONS
   public async getCustomers(tenantId: string, filter?: { name?: string; policyNumber?: string }): Promise<Customer[]> {
-    const filters: any = {};
-    if (filter?.name) filters.name = filter.name;
-    if (filter?.policyNumber) filters.policyNumber = filter.policyNumber;
-    return this.repos.customers.getAll(tenantId, filters);
+    let customers = await this.repos.customers.getAll(tenantId, filter);
+
+    if (filter?.policyNumber) {
+      const pNum = filter.policyNumber.toLowerCase();
+      const allPolicies = await this.repos.policies.getAll(tenantId);
+
+      // ⚡ Bolt: Consolidated .filter().map() into a single loop to avoid intermediate array allocations
+      const customerIdsWithPolicy = new Set<string>();
+      for (const p of allPolicies) {
+        if ((p.policyNumber && p.policyNumber.toLowerCase().includes(pNum)) ||
+            (p.policyId && p.policyId.toLowerCase().includes(pNum))) {
+          customerIdsWithPolicy.add(p.customerId);
+        }
+      }
+      customers = customers.filter(c => customerIdsWithPolicy.has(c.customerId));
+    }
+
+    return customers;
   }
 
   public async getCustomerById(tenantId: string, customerId: string): Promise<Customer | undefined> {

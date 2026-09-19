@@ -4,7 +4,8 @@
 // layer methods, mirroring the AMS360 SOAP operation dispatch pattern.
 // ============================================================================
 
-import { Router, Response, NextFunction } from 'express';
+import { Router, Response, NextFunction, Request } from 'express';
+import { rateLimit } from 'express-rate-limit';
 import { wsapiAuthMiddleware, WsapiAuthenticatedRequest } from '../middleware/wsapi.auth.js';
 import { AuthService } from '../services/auth.service.js';
 import { AmsService } from '../services/ams.service.js';
@@ -21,8 +22,34 @@ import {
 
 const router: Router = Router();
 
+// Strict rate limiter for authentication endpoints
+const loginRateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // Limit each IP to 5 requests per windowMs for login operations
+  skip: () => process.env.NODE_ENV === 'test', // Skip rate limiting during automated tests
+  message: {
+    status: 'fault',
+    operation: 'Login', // Generic indicator
+    fault: {
+      code: 'RATE_LIMIT_EXCEEDED',
+      message: 'Too many login attempts from this IP, please try again after 15 minutes.'
+    }
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+// Middleware to conditionally apply the login rate limiter
+const wsapiLoginRateLimiter = (req: Request, res: Response, next: NextFunction) => {
+  const operation = req.params.operation;
+  if (operation === 'Login' || operation === 'ValidateAgentLogin') {
+    return loginRateLimiter(req, res, next);
+  }
+  next();
+};
+
 // Apply WSAPI auth middleware to all operation routes
-router.post('/:operation', wsapiAuthMiddleware, async (req: WsapiAuthenticatedRequest, res: Response, next: NextFunction) => {
+router.post('/:operation', wsapiLoginRateLimiter, wsapiAuthMiddleware, async (req: WsapiAuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const operation = req.params.operation as WsapiOperationName;
     const payload = req.body?.requestPayload ?? req.body;

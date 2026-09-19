@@ -23,7 +23,15 @@ export class Al3ParserService {
    * 2EOS (End of Stream / Trailer)
    */
   public parseAl3Content(rawContent: string): Al3ParsedPackage {
-    const lines = rawContent.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+    // ⚡ Bolt: Consolidated .map().filter() into a single loop to avoid multiple intermediate array allocations
+    const rawLines = rawContent.split(/\r?\n/);
+    const lines: string[] = [];
+    for (const rawLine of rawLines) {
+      const trimmed = rawLine.trim();
+      if (trimmed) {
+        lines.push(trimmed);
+      }
+    }
 
     let header: Al3GroupHeader = {
       groupType: '2BOS',

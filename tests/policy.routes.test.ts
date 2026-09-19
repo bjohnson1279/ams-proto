@@ -1,4 +1,5 @@
 import request from 'supertest';
+import { jest } from '@jest/globals';
 import app from '../src/app.js';
 
 describe('Policy Routes (/api/v1/policies)', () => {
@@ -79,6 +80,28 @@ describe('Policy Routes (/api/v1/policies)', () => {
 
     expect(res.status).toBe(400);
     expect(res.body.status).toBe('error');
+  });
+
+  it('POST /api/v1/policies should call next(err) if amsService.createPolicy throws', async () => {
+    const AmsService = (await import('../src/services/ams.service.js')).AmsService;
+    const mockCreatePolicy = jest.spyOn(AmsService.prototype, 'createPolicy').mockImplementation(() => {
+      throw new Error('Simulated creation failure');
+    });
+
+    const payload = {
+      customerId: 'CUST-1001',
+      lineOfBusiness: 'Commercial Property'
+    };
+
+    const res = await request(app)
+      .post('/api/v1/policies')
+      .send(payload);
+
+    expect(res.status).toBe(500);
+    expect(res.body.status).toBe('error');
+    expect(res.body.message).toBe('Simulated creation failure');
+
+    mockCreatePolicy.mockRestore();
   });
 
   it('GET /api/v1/policies/:id/dec-page should return formatted ACORD Dec-Page payload', async () => {
