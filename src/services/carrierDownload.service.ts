@@ -146,16 +146,18 @@ export class CarrierDownloadService {
       policyMap.set(p.policyNumber.toLowerCase(), p);
     }
 
-    const customerSearchData = existingCustomers.map(c => ({
-      customer: c,
-      searchBusName: (c.businessName || '').toLowerCase(),
-      searchIndName: `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase()
-    }));
-
+    // ⚡ Bolt: Consolidated .map() and subsequent loop into a single pass to eliminate intermediate array allocations
+    const customerSearchData: any[] = [];
     const customerFeinMap = new Map<string, any>();
-    for (const sd of customerSearchData) {
-      if (sd.customer.feinOrSsn) {
-        customerFeinMap.set(sd.customer.feinOrSsn, sd);
+    for (const c of existingCustomers) {
+      const sd = {
+        customer: c,
+        searchBusName: (c.businessName || '').toLowerCase(),
+        searchIndName: `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase()
+      };
+      customerSearchData.push(sd);
+      if (c.feinOrSsn) {
+        customerFeinMap.set(c.feinOrSsn, sd);
       }
     }
 

@@ -89,6 +89,9 @@
 ## 2026-09-11 - Resolving Full-Table Fetch N+1 Bottleneck
 **Learning:** Fetching an entire database table (e.g., all GL accounts) to memory just to validate a subset of records in a transaction is a severe performance anti-pattern. While it avoids an N+1 query loop, it creates a massive memory payload bottleneck, trading a database connection issue for memory exhaustion.
 **Action:** To properly resolve N+1 query loops without incurring full-table fetch memory bottlenecks, use a `Set` to extract the unique identifiers needed from the payload subset, and execute a targeted concurrent fetch using `Promise.all()` or a batched `WHERE IN` query for only those required records, mapping the result for O(1) lookups.
+## 2024-05-18 - Consolidate chained array mapping and iteration into single loop
+**Learning:** Sequential `.map()` calls followed by `for` loops on arrays create wasteful intermediate arrays that consume memory and cause redundant O(N) iterations. For example, `customerSearchData` in `carrierDownload.service.ts` was being mapped and then immediately iterated over.
+**Action:** Combine chained array operations into a single `for...of` loop or a single `.filter()` pass to calculate the final result in one iteration and prevent wasteful intermediate allocations.
 
 ## Prevention Directives for Automated Refactoring
 - **Never Overwrite Complete Files**: Always use range-scoped replacement chunks for edits to `schema.prisma`, `index.ts`, `public/index.php`, `db/schema.rb`, or DDL SQL scripts.
