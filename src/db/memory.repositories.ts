@@ -177,6 +177,11 @@ export class MemoryAccountingRepository implements IAccountingRepository {
     return Promise.resolve(acct || null);
   }
 
+  async getAccountsByNumbers(tenantId: string, accountNumbers: string[]): Promise<GlAccount[]> {
+    const numbersSet = new Set(accountNumbers);
+    return Promise.resolve(this.accounts.filter(a => numbersSet.has(a.accountNumber)));
+  }
+
   async getJournalEntries(tenantId: string): Promise<JournalEntry[]> { return Promise.resolve(this.journalEntries); }
 
   async createJournalEntry(tenantId: string, entry: Partial<JournalEntry>): Promise<JournalEntry> {
