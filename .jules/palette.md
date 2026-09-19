@@ -33,6 +33,7 @@
 ## 2024-11-20 - [Sequential Empty States for Multi-Table Fetches]
 **Learning:** When a single function (like `fetchAccountingData`) fetches and populates multiple tables sequentially, returning early after rendering the first empty state prevents subsequent tables from rendering correctly (either with data or their own empty state).
 **Action:** Use an `if/else` block for each dataset within the sequential process instead of early returns to ensure all tables are processed independently and their respective empty states or data populate as intended.
+
 ## 2024-11-20 - [Dynamic Search Results Accessibility]
 **Learning:** Adding `aria-live="polite"` to empty states for dynamic search results ensures that screen readers are notified of updates.
 **Action:** When creating dynamic search results, always add `aria-live="polite"` to the empty state container to improve accessibility.
@@ -40,9 +41,6 @@
 ## 2024-11-22 - [Modal Focus Management]
 **Learning:** When a modal opens, keyboard focus must move into the modal (e.g., to the close button or first input). If focus remains outside the modal, keyboard-only and screen reader users lose context and may interact with elements hidden behind the modal backdrop. Furthermore, when the modal closes, focus must be programmatically returned to the button that originally triggered it to maintain the user's place in the document flow.
 **Action:** Always implement focus management when creating custom modals: store `document.activeElement` before opening, shift focus into the modal once active, and restore focus to the stored element upon closing.
-## 2024-11-20 - [Dynamic Search Results Accessibility]
-**Learning:** Adding `aria-live="polite"` to empty states for dynamic search results ensures that screen readers are notified of updates.
-**Action:** When creating dynamic search results, always add `aria-live="polite"` to the empty state container to improve accessibility.
 
 ## 2024-11-20 - Format Pill Tab Accessibility
 **Learning:** Elements styled as interactive "pills" that control content (like selecting a payload format to display in an editor) functionally act as tabs. Without explicit ARIA tab roles (`tablist`, `tab`, `tabpanel`) and dynamic `aria-selected` toggling, screen readers treat them as generic buttons without semantic grouping, leading to poor discoverability of their relationship to the controlled content.
@@ -51,6 +49,7 @@
 ## 2025-01-20 - Visual Shortcut Indicators vs Placeholder Text
 **Learning:** Embedding keyboard shortcut hints directly into input placeholder text (e.g., "... (Press '/')") clutters the hint and increases cognitive load, especially when the placeholder text is long or truncated. Using a dedicated visual `<kbd>` element separated from the placeholder text provides a clearer, modern UX pattern for discoverability without sacrificing input space.
 **Action:** Always use dedicated `<kbd>` styled elements for global shortcut hints next to inputs rather than embedding instructions directly in the placeholder string. Add `aria-hidden="true"` to prevent redundant screen reader announcements if the hint is visual only.
+
 ## 2025-02-27 - Textarea Placeholders as Empty States
 **Learning:** When textareas are used as raw input editors and the user clears the default content, the lack of placeholder text creates a stark, confusing empty state without guidance on what format is expected.
 **Action:** Always provide descriptive `placeholder` text on input textareas to guide users when the field is empty, serving as an inline empty state.
@@ -58,3 +57,7 @@
 ## 2024-06-30 - Dynamic empty states need aria-live
 **Learning:** When creating or updating dynamic UI elements like search result tables, list views, or status containers that toggle empty states via JavaScript, screen readers won't announce when content appears or disappears unless wrapped in an element with `aria-live="polite"` and `role="status"`.
 **Action:** Ensure empty state container elements or dynamic results wrappers include `aria-live="polite"` and `role="status"` so assistive tech announces dynamic DOM changes.
+
+## 2026-09-18 - Tabpanel on Native Inputs
+**Learning:** According to W3C ARIA specifications, assigning a structural widget role like `role="tabpanel"` directly to an interactive input element (like a `<textarea>` or `<input>`) overrides its native implicit role (e.g., `textbox`). Screen readers will no longer announce it as an input field, creating a severe accessibility trap where users don't know they can type into it.
+**Action:** Never apply `role="tabpanel"` directly to interactive inputs. Instead, wrap the input in a generic structural element (like a `<div>`) and apply the `tabpanel` role to that wrapper container.
