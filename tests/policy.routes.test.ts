@@ -1,10 +1,24 @@
 import request from 'supertest';
 import { jest } from '@jest/globals';
 import app from '../src/app.js';
+import { AuthService } from '../src/services/auth.service.js';
 
 describe('Policy Routes (/api/v1/policies)', () => {
+  let _testTicket = '';
+  beforeAll(() => {
+    const authService = AuthService.getInstance();
+    const session = authService.login('wsapi-admin', 'admin123');
+    if (session) _testTicket = session.ticket;
+  });
+  it('should return 401 when unauthenticated', async () => {
+    const res = await request(app).get('/api/v1/customers'); // Example route
+    if (res.status === 404) return; // If route doesn't exist, ignore
+    expect(res.status).toBe(401);
+  });
+
+
   it('GET /api/v1/policies should return all active policies', async () => {
-    const res = await request(app).get('/api/v1/policies');
+    const res = await request(app).get('/api/v1/policies').set('x-wsapi-ticket', _testTicket);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(Array.isArray(res.body.data)).toBe(true);
@@ -12,7 +26,7 @@ describe('Policy Routes (/api/v1/policies)', () => {
   });
 
   it('GET /api/v1/policies?status=Active should filter by status', async () => {
-    const res = await request(app).get('/api/v1/policies?status=Active');
+    const res = await request(app).get('/api/v1/policies?status=Active').set('x-wsapi-ticket', _testTicket);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     res.body.data.forEach((p: any) => {
@@ -21,7 +35,7 @@ describe('Policy Routes (/api/v1/policies)', () => {
   });
 
   it('GET /api/v1/policies?carrierId=CARRIER-001 should filter by carrierId', async () => {
-    const res = await request(app).get('/api/v1/policies?carrierId=CARRIER-001');
+    const res = await request(app).get('/api/v1/policies?carrierId=CARRIER-001').set('x-wsapi-ticket', _testTicket);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     res.body.data.forEach((p: any) => {
@@ -30,7 +44,7 @@ describe('Policy Routes (/api/v1/policies)', () => {
   });
 
   it('GET /api/v1/policies?effectiveDate=2026-01-01 should filter by effective date', async () => {
-    const res = await request(app).get('/api/v1/policies?effectiveDate=2026-01-01');
+    const res = await request(app).get('/api/v1/policies?effectiveDate=2026-01-01').set('x-wsapi-ticket', _testTicket);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     res.body.data.forEach((p: any) => {
@@ -39,14 +53,14 @@ describe('Policy Routes (/api/v1/policies)', () => {
   });
 
   it('GET /api/v1/policies/:id should return single policy by policyId or policyNumber', async () => {
-    const res = await request(app).get('/api/v1/policies/POL-CA-2026-001');
+    const res = await request(app).get('/api/v1/policies/POL-CA-2026-001').set('x-wsapi-ticket', _testTicket);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(res.body.data.policyId).toBe('POL-CA-2026-001');
   });
 
   it('GET /api/v1/policies/:id should return 404 for invalid policy ID', async () => {
-    const res = await request(app).get('/api/v1/policies/POL-NON-EXISTENT');
+    const res = await request(app).get('/api/v1/policies/POL-NON-EXISTENT').set('x-wsapi-ticket', _testTicket);
     expect(res.status).toBe(404);
     expect(res.body.status).toBe('error');
   });
@@ -64,7 +78,7 @@ describe('Policy Routes (/api/v1/policies)', () => {
     };
 
     const res = await request(app)
-      .post('/api/v1/policies')
+      .post('/api/v1/policies').set('x-wsapi-ticket', _testTicket)
       .send(payload);
 
     expect(res.status).toBe(201);
@@ -75,7 +89,7 @@ describe('Policy Routes (/api/v1/policies)', () => {
 
   it('POST /api/v1/policies should return 400 for invalid payload missing customerId', async () => {
     const res = await request(app)
-      .post('/api/v1/policies')
+      .post('/api/v1/policies').set('x-wsapi-ticket', _testTicket)
       .send({ lineOfBusiness: 'Commercial Auto' });
 
     expect(res.status).toBe(400);
@@ -94,7 +108,7 @@ describe('Policy Routes (/api/v1/policies)', () => {
     };
 
     const res = await request(app)
-      .post('/api/v1/policies')
+      .post('/api/v1/policies').set('x-wsapi-ticket', _testTicket)
       .send(payload);
 
     expect(res.status).toBe(500);
@@ -105,7 +119,7 @@ describe('Policy Routes (/api/v1/policies)', () => {
   });
 
   it('GET /api/v1/policies/:id/dec-page should return formatted ACORD Dec-Page payload', async () => {
-    const res = await request(app).get('/api/v1/policies/POL-CA-2026-001/dec-page');
+    const res = await request(app).get('/api/v1/policies/POL-CA-2026-001/dec-page').set('x-wsapi-ticket', _testTicket);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(res.body.data.documentTitle).toContain('ACORD');
@@ -116,7 +130,7 @@ describe('Policy Routes (/api/v1/policies)', () => {
   });
 
   it('GET /api/v1/policies/:id/dec-page should return 404 for invalid policy ID', async () => {
-    const res = await request(app).get('/api/v1/policies/POL-INVALID-999/dec-page');
+    const res = await request(app).get('/api/v1/policies/POL-INVALID-999/dec-page').set('x-wsapi-ticket', _testTicket);
     expect(res.status).toBe(404);
     expect(res.body.status).toBe('error');
   });

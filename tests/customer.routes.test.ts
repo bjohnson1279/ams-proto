@@ -1,9 +1,23 @@
 import request from 'supertest';
 import app from '../src/app.js';
+import { AuthService } from '../src/services/auth.service.js';
 
 describe('Customer Routes (/api/v1/customers)', () => {
+  let _testTicket = '';
+  beforeAll(() => {
+    const authService = AuthService.getInstance();
+    const session = authService.login('wsapi-admin', 'admin123');
+    if (session) _testTicket = session.ticket;
+  });
+  it('should return 401 when unauthenticated', async () => {
+    const res = await request(app).get('/api/v1/customers'); // Example route
+    if (res.status === 404) return; // If route doesn't exist, ignore
+    expect(res.status).toBe(401);
+  });
+
+
   it('GET /api/v1/customers should return all seed customers', async () => {
-    const res = await request(app).get('/api/v1/customers');
+    const res = await request(app).get('/api/v1/customers').set('x-wsapi-ticket', _testTicket);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(Array.isArray(res.body.data)).toBe(true);
@@ -11,7 +25,7 @@ describe('Customer Routes (/api/v1/customers)', () => {
   });
 
   it('GET /api/v1/customers?name=Apex should filter customers by name', async () => {
-    const res = await request(app).get('/api/v1/customers?name=Apex');
+    const res = await request(app).get('/api/v1/customers?name=Apex').set('x-wsapi-ticket', _testTicket);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(res.body.data.length).toBeGreaterThan(0);
@@ -19,7 +33,7 @@ describe('Customer Routes (/api/v1/customers)', () => {
   });
 
   it('GET /api/v1/customers?policyNumber=POL-CA-2026-001 should filter by policy number', async () => {
-    const res = await request(app).get('/api/v1/customers?policyNumber=POL-CA-2026-001');
+    const res = await request(app).get('/api/v1/customers?policyNumber=POL-CA-2026-001').set('x-wsapi-ticket', _testTicket);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(res.body.data.length).toBe(1);
@@ -27,14 +41,14 @@ describe('Customer Routes (/api/v1/customers)', () => {
   });
 
   it('GET /api/v1/customers/:id should return single customer when ID exists', async () => {
-    const res = await request(app).get('/api/v1/customers/CUST-1001');
+    const res = await request(app).get('/api/v1/customers/CUST-1001').set('x-wsapi-ticket', _testTicket);
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(res.body.data.customerId).toBe('CUST-1001');
   });
 
   it('GET /api/v1/customers/:id should return 404 for non-existent customer', async () => {
-    const res = await request(app).get('/api/v1/customers/CUST-INVALID-999');
+    const res = await request(app).get('/api/v1/customers/CUST-INVALID-999').set('x-wsapi-ticket', _testTicket);
     expect(res.status).toBe(404);
     expect(res.body.status).toBe('error');
     expect(res.body.message).toContain('not found');
@@ -60,7 +74,7 @@ describe('Customer Routes (/api/v1/customers)', () => {
     };
 
     const res = await request(app)
-      .post('/api/v1/customers')
+      .post('/api/v1/customers').set('x-wsapi-ticket', _testTicket)
       .send(newCustomerPayload);
 
     expect(res.status).toBe(201);
@@ -71,7 +85,7 @@ describe('Customer Routes (/api/v1/customers)', () => {
 
   it('POST /api/v1/customers should return 400 for invalid payload missing name', async () => {
     const res = await request(app)
-      .post('/api/v1/customers')
+      .post('/api/v1/customers').set('x-wsapi-ticket', _testTicket)
       .send({ feinOrSsn: '00-0000000' });
 
     expect(res.status).toBe(400);
