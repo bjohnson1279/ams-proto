@@ -11,7 +11,7 @@ export class PolicyController {
 
   public getPolicies = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { carrierId, status, effectiveDate } = req.query;
 
       const policies = await this.amsService.getPolicies(tenantId, {
@@ -32,7 +32,7 @@ export class PolicyController {
 
   public getPolicyById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { id } = req.params;
       const policy = await this.amsService.getPolicyById(tenantId, id);
       if (!policy) {
@@ -54,7 +54,7 @@ export class PolicyController {
 
   public createPolicy = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const payload = req.body;
       if (!payload || !payload.customerId || !payload.lineOfBusiness) {
         res.status(400).json({
@@ -77,7 +77,7 @@ export class PolicyController {
 
   public getDecPage = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { id } = req.params;
       const decPagePayload = await this.amsService.generateDecPage(tenantId, id);
 

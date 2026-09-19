@@ -25,7 +25,7 @@ router.get('/carriers', async (req, res) => {
   const amsService = AmsService.getInstance();
   res.json({
     status: 'success',
-    data: await amsService.getCarriers((req as any).tenantId || 'tenant-001')
+    data: await amsService.getCarriers((req as any).tenantId as string)
   });
 });
 

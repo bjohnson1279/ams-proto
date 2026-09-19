@@ -9,7 +9,7 @@ export class AccountingController {
 
   public getAccounts = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const accounts = await this.accountingService.getAccounts(tenantId);
       res.status(200).json({
         success: true,
@@ -23,7 +23,7 @@ export class AccountingController {
 
   public getJournalEntries = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const entries = await this.accountingService.getJournalEntries(tenantId);
       res.status(200).json({
         success: true,
@@ -37,7 +37,7 @@ export class AccountingController {
 
   public postJournalEntry = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { reference, memo, lines, entryDate } = req.body;
       if (!reference || !lines || !Array.isArray(lines) || lines.length === 0) {
         res.status(400).json({
@@ -69,7 +69,7 @@ export class AccountingController {
 
   public getInvoices = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const invoices = await this.accountingService.getInvoices(tenantId);
       res.status(200).json({
         success: true,
@@ -83,7 +83,7 @@ export class AccountingController {
 
   public getInvoiceById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { id } = req.params;
       const invoice = await this.accountingService.getInvoiceById(tenantId, id);
       if (!invoice) {
@@ -104,7 +104,7 @@ export class AccountingController {
 
   public generateInvoice = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { policyId, commissionRate } = req.body;
       if (!policyId) {
         res.status(400).json({
@@ -143,7 +143,7 @@ export class AccountingController {
 
   public getPayments = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const payments = await this.accountingService.getPayments(tenantId);
       res.status(200).json({
         success: true,
@@ -157,7 +157,7 @@ export class AccountingController {
 
   public receivePayment = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const { invoiceId, amount, paymentMethod, referenceNumber, depositAccount } = req.body;
       if (!invoiceId || !amount || !paymentMethod || !referenceNumber) {
         res.status(400).json({
@@ -190,7 +190,7 @@ export class AccountingController {
 
   public getFinancialSummary = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as TenantRequest).tenantId || 'tenant-001';
+      const tenantId = (req as TenantRequest).tenantId as string;
       const summary = await this.accountingService.getFinancialSummary(tenantId);
       res.status(200).json({
         success: true,

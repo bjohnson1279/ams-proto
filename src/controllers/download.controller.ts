@@ -23,7 +23,7 @@ export class DownloadController {
 
   public getBatches = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as any).tenantId || 'tenant-001';
+      const tenantId = (req as any).tenantId as string;
       const batches = await downloadService.getBatches(tenantId);
       res.json(batches);
     } catch (err: any) {
@@ -33,7 +33,7 @@ export class DownloadController {
 
   public getBatchById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as any).tenantId || 'tenant-001';
+      const tenantId = (req as any).tenantId as string;
       const batch = await downloadService.getBatchById(tenantId, req.params.batchId);
       if (!batch) {
         res.status(404).json({ error: 'Batch not found' });
@@ -47,7 +47,7 @@ export class DownloadController {
 
   public ingestBatch = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as any).tenantId || 'tenant-001';
+      const tenantId = (req as any).tenantId as string;
       const payload = req.body;
       const batch = await downloadService.ingestDownloadBatch(tenantId, payload);
       res.status(201).json(batch);
@@ -58,7 +58,7 @@ export class DownloadController {
 
   public postCommissions = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
-      const tenantId = (req as any).tenantId || 'tenant-001';
+      const tenantId = (req as any).tenantId as string;
       const { batchId } = req.params;
       const batch = await downloadService.postBatchCommissions(tenantId, batchId);
       res.json(batch);
