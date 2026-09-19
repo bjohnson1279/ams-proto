@@ -29,9 +29,9 @@ describe('UI Empty States & DOM Structure Guardrail', () => {
   test.each(requiredEmptyStates)('should contain empty state: %s', (emptyStateText) => {
     expect(htmlContent).toContain(emptyStateText);
 
-    // 🎨 Palette: Verify that the empty state title element includes aria-live="polite"
+    // 🎨 Palette: Verify that the empty state title element NO LONGER includes aria-live="polite" (migrated to global announcer)
     const regex = new RegExp(`aria-live="polite">\\s*${emptyStateText}`);
-    expect(htmlContent).toMatch(regex);
+    expect(htmlContent).not.toMatch(regex);
   });
 
   it('should contain actionable Call-To-Action buttons in empty states', () => {

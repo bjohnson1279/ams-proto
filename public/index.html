@@ -449,9 +449,22 @@
       outline: 2px solid var(--accent-cyan);
       outline-offset: 2px;
     }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border-width: 0;
+    }
   </style>
 </head>
 <body>
+  <div id="sr-announcer" class="sr-only" aria-live="polite"></div>
 
   <header>
     <div class="brand">
@@ -875,6 +888,13 @@
   </div>
 
   <script>
+    function announceToScreenReader(message) {
+      const announcer = document.getElementById('sr-announcer');
+      if (announcer) {
+        announcer.textContent = message;
+      }
+    }
+
     function escapeHtml(unsafe) {
       if (unsafe == null) return '';
       const str = typeof unsafe !== 'string' ? String(unsafe) : unsafe;
@@ -1003,11 +1023,12 @@
               tbBody.appendChild(tr);
             });
           } else {
+            announceToScreenReader('No General Ledger entries found');
             tbBody.innerHTML = `
               <tr>
                 <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">
                   <div style="font-size: 2rem; margin-bottom: 0.5rem;">⚖️</div>
-                  <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;" aria-live="polite">No General Ledger entries found</div>
+                  <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No General Ledger entries found</div>
                   <div style="font-size: 0.9rem; margin-bottom: 1rem;">The trial balance is currently empty. Execute premium transactions or reconcile accounts to populate the ledger.</div>
                   <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="switchTab('tab-workbench')">⚡ Go to Migration Workbench</button>
                 </td>
@@ -1033,11 +1054,12 @@
               invBody.appendChild(tr);
             });
           } else {
+            announceToScreenReader('No agency bill invoices found');
             invBody.innerHTML = `
               <tr>
                 <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">
                   <div style="font-size: 2rem; margin-bottom: 0.5rem;">🧾</div>
-                  <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;" aria-live="polite">No agency bill invoices found</div>
+                  <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No agency bill invoices found</div>
                   <div style="font-size: 0.9rem; margin-bottom: 1rem;">Generate an invoice to start tracking premiums and commissions.</div>
                   <button class="btn btn-primary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="openPaymentModal(event)">+ Receive Premium Payment</button>
                 </td>
@@ -1188,11 +1210,12 @@
       tbody.innerHTML = '';
 
       if (customers.length === 0) {
+        announceToScreenReader('No customers found');
         tbody.innerHTML = `
           <tr>
             <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">
               <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
-              <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;" aria-live="polite">No customers found</div>
+              <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No customers found</div>
               <div style="font-size: 0.9rem; margin-bottom: 1rem;">Try adjusting your search criteria or clearing the search input.</div>
               <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="document.getElementById('search-input').value = ''; debouncedFilterCustomers(); document.getElementById('search-input').focus();">Clear Search</button>
             </td>
@@ -1303,11 +1326,12 @@
         const tbody = document.getElementById('matrix-table-body');
         tbody.innerHTML = '';
         if (!res.matrix || res.matrix.length === 0) {
+          announceToScreenReader('No crosswalk rules defined');
           tbody.innerHTML = `
             <tr>
               <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">
                 <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔀</div>
-                <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;" aria-live="polite">No crosswalk rules defined</div>
+                <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No crosswalk rules defined</div>
                 <div style="font-size: 0.9rem; margin-bottom: 1rem;">Configure format mapping rules in the Migration Workbench.</div>
                 <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="switchTab('tab-workbench')">⚡ Go to Migration Workbench</button>
               </td>
@@ -1399,11 +1423,12 @@
       tbody.innerHTML = '';
 
       if (certs.length === 0) {
+        announceToScreenReader('No certificates found');
         tbody.innerHTML = `
           <tr>
             <td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">
               <div style="font-size: 2rem; margin-bottom: 0.5rem;">📜</div>
-              <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;" aria-live="polite">No certificates found</div>
+              <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No certificates found</div>
               <div style="font-size: 0.9rem; margin-bottom: 1rem;">Generate a new ACORD 25 certificate to get started.</div>
               <button class="btn btn-primary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="openCreateCertModal(event)">+ Generate Certificate</button>
             </td>
@@ -1437,11 +1462,12 @@
       tbody.innerHTML = '';
 
       if (holders.length === 0) {
+        announceToScreenReader('No certificate holders found');
         tbody.innerHTML = `
           <tr>
             <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">
               <div style="font-size: 2rem; margin-bottom: 0.5rem;">🏢</div>
-              <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;" aria-live="polite">No certificate holders found</div>
+              <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No certificate holders found</div>
               <div style="font-size: 0.9rem; margin-bottom: 1rem;">Add a new certificate holder to the directory.</div>
               <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="openNewHolderModal(event)">+ Add Certificate Holder</button>
             </td>
@@ -1670,11 +1696,12 @@
       tbody.innerHTML = '';
 
       if (!batches || batches.length === 0) {
+        announceToScreenReader('No download batches found');
         tbody.innerHTML = `
           <tr>
             <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">
               <div style="font-size: 2rem; margin-bottom: 0.5rem;">📥</div>
-              <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;" aria-live="polite">No download batches found</div>
+              <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No download batches found</div>
               <div style="font-size: 0.9rem; margin-bottom: 1rem;">Parse an AL3 message or simulate an incoming carrier batch to view downloads.</div>
               <button class="btn btn-primary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="document.getElementById('al3-input-editor')?.scrollIntoView({ behavior: 'smooth' }); document.getElementById('al3-input-editor')?.focus();">⚡ Parse AL3 Download</button>
             </td>
