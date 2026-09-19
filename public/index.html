@@ -495,12 +495,12 @@
     <!-- Tabs Navigation & Multi-Tenant Switcher -->
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
       <div class="tabs-nav" style="border-bottom: none; padding-bottom: 0;" role="tablist" aria-label="Main Navigation">
-        <button class="tab-btn active" onclick="switchTab('tab-workbench')" role="tab" aria-selected="true" aria-controls="tab-workbench">⚡ Migration Workbench</button>
-        <button class="tab-btn" onclick="switchTab('tab-customers')" role="tab" aria-selected="false" aria-controls="tab-customers">👥 Insured & Policy Registry</button>
-        <button class="tab-btn" onclick="switchTab('tab-certificates'); fetchCertificatesData();" role="tab" aria-selected="false" aria-controls="tab-certificates">📜 Certificates (ACORD 25)</button>
-        <button class="tab-btn" onclick="switchTab('tab-accounting')" role="tab" aria-selected="false" aria-controls="tab-accounting">💰 General Ledger</button>
-        <button class="tab-btn" onclick="switchTab('tab-download'); fetchDownloadData();" role="tab" aria-selected="false" aria-controls="tab-download">📥 Carrier Download (AL3 / RLS)</button>
-        <button class="tab-btn" onclick="switchTab('tab-matrix')" role="tab" aria-selected="false" aria-controls="tab-matrix">📊 Crosswalk Matrix</button>
+        <button id="nav-tab-workbench" class="tab-btn active" onclick="switchTab('tab-workbench')" role="tab" aria-selected="true" aria-controls="tab-workbench">⚡ Migration Workbench</button>
+        <button id="nav-tab-customers" class="tab-btn" onclick="switchTab('tab-customers')" role="tab" aria-selected="false" aria-controls="tab-customers">👥 Insured & Policy Registry</button>
+        <button id="nav-tab-certificates" class="tab-btn" onclick="switchTab('tab-certificates'); fetchCertificatesData();" role="tab" aria-selected="false" aria-controls="tab-certificates">📜 Certificates (ACORD 25)</button>
+        <button id="nav-tab-accounting" class="tab-btn" onclick="switchTab('tab-accounting')" role="tab" aria-selected="false" aria-controls="tab-accounting">💰 General Ledger</button>
+        <button id="nav-tab-download" class="tab-btn" onclick="switchTab('tab-download'); fetchDownloadData();" role="tab" aria-selected="false" aria-controls="tab-download">📥 Carrier Download (AL3 / RLS)</button>
+        <button id="nav-tab-matrix" class="tab-btn" onclick="switchTab('tab-matrix')" role="tab" aria-selected="false" aria-controls="tab-matrix">📊 Crosswalk Matrix</button>
       </div>
 
       <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.35rem 0.8rem; border-radius: 8px; font-size: 0.85rem;">
@@ -514,19 +514,21 @@
 
 
     <!-- TAB 1: MIGRATION WORKBENCH -->
-    <div id="tab-workbench" class="tab-content active" role="tabpanel">
+    <div id="tab-workbench" class="tab-content active" role="tabpanel" aria-labelledby="nav-tab-workbench">
       <div class="workbench-layout">
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">1. Raw Legacy Export Payload</span>
             <div class="format-pills" role="tablist" aria-label="Legacy Export Formats">
-              <button class="format-pill active" role="tab" aria-selected="true" aria-controls="payload-editor" onclick="loadSample('FORMAT_A')">Format A (SQL)</button>
-              <button class="format-pill" role="tab" aria-selected="false" aria-controls="payload-editor" onclick="loadSample('FORMAT_B')">Format B (Flat)</button>
-              <button class="format-pill" role="tab" aria-selected="false" aria-controls="payload-editor" onclick="loadSample('FORMAT_C')">Format C (XML)</button>
-              <button class="format-pill" role="tab" aria-selected="false" aria-controls="payload-editor" onclick="loadSample('FORMAT_D')">Format D (Cloud)</button>
+              <button id="fmt-pill-a" class="format-pill active" role="tab" aria-selected="true" aria-controls="payload-editor-container" onclick="loadSample('FORMAT_A')">Format A (SQL)</button>
+              <button id="fmt-pill-b" class="format-pill" role="tab" aria-selected="false" aria-controls="payload-editor-container" onclick="loadSample('FORMAT_B')">Format B (Flat)</button>
+              <button id="fmt-pill-c" class="format-pill" role="tab" aria-selected="false" aria-controls="payload-editor-container" onclick="loadSample('FORMAT_C')">Format C (XML)</button>
+              <button id="fmt-pill-d" class="format-pill" role="tab" aria-selected="false" aria-controls="payload-editor-container" onclick="loadSample('FORMAT_D')">Format D (Cloud)</button>
             </div>
           </div>
-          <textarea id="payload-editor" aria-label="Raw Legacy Export Payload" class="code-editor" spellcheck="false" placeholder="Select a format above or paste raw legacy JSON payload here..."></textarea>
+          <div id="payload-editor-container" role="tabpanel" aria-labelledby="fmt-pill-a">
+            <textarea id="payload-editor" aria-label="Raw Legacy Export Payload" class="code-editor" spellcheck="false" placeholder="Select a format above or paste raw legacy JSON payload here..."></textarea>
+          </div>
           <div class="btn-group">
             <button id="btn-dry-run" class="btn btn-secondary" onclick="runDryRun()">🔍 Run Dry-Run Audit</button>
             <button id="btn-import" class="btn btn-primary" onclick="executeImport()">🚀 Execute CoreAMS Import</button>
@@ -546,7 +548,7 @@
     </div>
 
     <!-- TAB 2: INSURED & POLICY REGISTRY -->
-    <div id="tab-customers" class="tab-content" role="tabpanel">
+    <div id="tab-customers" class="tab-content" role="tabpanel" aria-labelledby="nav-tab-customers">
       <div style="display: flex; gap: 1rem; align-items: center;">
         <div style="position: relative; width: 360px;">
           <input type="text" id="search-input" aria-label="Search customers" placeholder="Search by customer name or policy number..."
@@ -576,7 +578,7 @@
     </div>
 
     <!-- TAB: CERTIFICATE MANAGEMENT (ACORD 25) -->
-    <div id="tab-certificates" class="tab-content" role="tabpanel">
+    <div id="tab-certificates" class="tab-content" role="tabpanel" aria-labelledby="nav-tab-certificates">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div class="metric-card" style="padding: 1rem;">
           <span class="metric-label">Total COIs Issued</span>
@@ -650,7 +652,7 @@
     </div>
 
     <!-- TAB 3: GENERAL LEDGER & ACCOUNTING WORKBENCH -->
-    <div id="tab-accounting" class="tab-content" role="tabpanel">
+    <div id="tab-accounting" class="tab-content" role="tabpanel" aria-labelledby="nav-tab-accounting">
       <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <div class="metric-card" style="padding: 1rem;">
           <span class="metric-label">Operating Cash (1000)</span>
@@ -726,7 +728,7 @@
     </div>
 
     <!-- TAB 5: CARRIER DOWNLOAD & MULTI-TENANCY -->
-    <div id="tab-download" class="tab-content" role="tabpanel">
+    <div id="tab-download" class="tab-content" role="tabpanel" aria-labelledby="nav-tab-download">
       <div class="metrics-grid" style="grid-template-columns: repeat(4, 1fr);">
         <div class="metric-card" style="padding: 1rem;">
           <span class="metric-label">Download Batches</span>
@@ -814,7 +816,7 @@
     </div>
 
     <!-- TAB 6: CROSSWALK MATRIX -->
-    <div id="tab-matrix" class="tab-content" role="tabpanel">
+    <div id="tab-matrix" class="tab-content" role="tabpanel" aria-labelledby="nav-tab-matrix">
       <div class="table-container">
         <table>
           <thead>
@@ -920,6 +922,10 @@
         if (btn) {
           btn.classList.add('active');
           btn.setAttribute('aria-selected', 'true');
+          const editorContainer = document.getElementById('payload-editor-container');
+          if (editorContainer) {
+            editorContainer.setAttribute('aria-labelledby', btn.id);
+          }
         }
       }
 
