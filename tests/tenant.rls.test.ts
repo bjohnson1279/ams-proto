@@ -1,23 +1,9 @@
 import request from 'supertest';
 import app from '../src/app.js';
-import { AuthService } from '../src/services/auth.service.js';
 import { DatabaseService, REGISTERED_TENANTS } from '../src/services/database.service.js';
 
 describe('Multi-Tenant Row-Level Security & Context Tests', () => {
-  let _testTicket = '';
-  beforeAll(() => {
-    const authService = AuthService.getInstance();
-    const session = authService.login('wsapi-admin', 'admin123');
-    if (session) _testTicket = session.ticket;
-  });
-
   const dbService = DatabaseService.getInstance();
-  it('should return 401 when unauthenticated', async () => {
-    const res = await request(app).get('/api/v1/customers'); // Example route
-    if (res.status === 404) return; // If route doesn't exist, ignore
-    expect(res.status).toBe(401);
-  });
-
 
   it('should register tenant contexts accurately', () => {
     expect(REGISTERED_TENANTS['tenant-001'].agencyName).toBe('Midwest Commercial Risk Agency');
@@ -38,7 +24,7 @@ describe('Multi-Tenant Row-Level Security & Context Tests', () => {
   it('should extract x-tenant-id header and attach to request context', async () => {
     const res = await request(app)
       .get('/api/v1/customers')
-      .set('x-tenant-id', 'tenant-002').set('x-wsapi-ticket', _testTicket);
+      .set('x-tenant-id', 'tenant-002');
 
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');

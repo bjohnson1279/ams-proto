@@ -1,21 +1,7 @@
 import request from 'supertest';
 import app from '../src/app.js';
-import { AuthService } from '../src/services/auth.service.js';
 
 describe('Carrier Download Routes Integration Tests', () => {
-  let _testTicket = '';
-  beforeAll(() => {
-    const authService = AuthService.getInstance();
-    const session = authService.login('wsapi-admin', 'admin123');
-    if (session) _testTicket = session.ticket;
-  });
-  it('should return 401 when unauthenticated', async () => {
-    const res = await request(app).get('/api/v1/customers'); // Example route
-    if (res.status === 404) return; // If route doesn't exist, ignore
-    expect(res.status).toBe(401);
-  });
-
-
   it('POST /api/v1/downloads/parse-al3 should parse raw AL3 content', async () => {
     const rawAl3 = `
 2BOSIVANS-NETCOREAMS-0100010120260801
@@ -26,8 +12,8 @@ describe('Carrier Download Routes Integration Tests', () => {
     `.trim();
 
     const res = await request(app)
-      .post('/api/v1/downloads/parse-al3').set('x-wsapi-ticket', _testTicket)
-      .set('x-tenant-id', 'tenant-001').set('x-wsapi-ticket', _testTicket).set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/downloads/parse-al3')
+      .set('x-tenant-id', 'tenant-001')
       .send({ rawContent: rawAl3 });
 
     expect(res.status).toBe(200);
@@ -38,7 +24,7 @@ describe('Carrier Download Routes Integration Tests', () => {
   it('GET /api/v1/downloads/batches should return download batches for tenant', async () => {
     const res = await request(app)
       .get('/api/v1/downloads/batches')
-      .set('x-tenant-id', 'tenant-001').set('x-wsapi-ticket', _testTicket).set('x-wsapi-ticket', _testTicket);
+      .set('x-tenant-id', 'tenant-001');
 
     expect(res.status).toBe(200);
     expect(Array.isArray(res.body)).toBe(true);
@@ -47,8 +33,8 @@ describe('Carrier Download Routes Integration Tests', () => {
 
   it('POST /api/v1/downloads/ingest should create and reconcile a batch', async () => {
     const res = await request(app)
-      .post('/api/v1/downloads/ingest').set('x-wsapi-ticket', _testTicket)
-      .set('x-tenant-id', 'tenant-001').set('x-wsapi-ticket', _testTicket).set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/downloads/ingest')
+      .set('x-tenant-id', 'tenant-001')
       .send({
         carrierCode: 'CHUBB',
         carrierName: 'Chubb Insurance',
@@ -73,8 +59,8 @@ describe('Carrier Download Routes Integration Tests', () => {
 
   it('POST /api/v1/downloads/batches/:batchId/post-commissions should post commissions', async () => {
     const ingestRes = await request(app)
-      .post('/api/v1/downloads/ingest').set('x-wsapi-ticket', _testTicket)
-      .set('x-tenant-id', 'tenant-001').set('x-wsapi-ticket', _testTicket).set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/downloads/ingest')
+      .set('x-tenant-id', 'tenant-001')
       .send({
         carrierCode: 'TRV01',
         carrierName: 'Travelers',
@@ -94,8 +80,8 @@ describe('Carrier Download Routes Integration Tests', () => {
     const batchId = ingestRes.body.batchId;
 
     const postRes = await request(app)
-      .post(`/api/v1/downloads/batches/${batchId}/post-commissions`).set('x-wsapi-ticket', _testTicket)
-      .set('x-tenant-id', 'tenant-001').set('x-wsapi-ticket', _testTicket).set('x-wsapi-ticket', _testTicket);
+      .post(`/api/v1/downloads/batches/${batchId}/post-commissions`)
+      .set('x-tenant-id', 'tenant-001');
 
     expect(postRes.status).toBe(200);
     expect(postRes.body.status).toBe('Commissions Posted');

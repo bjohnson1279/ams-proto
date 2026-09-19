@@ -193,10 +193,6 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
   describe('CustomerGet Operation', () => {
     let ticket: string;
-  beforeAll(() => {
-    const session = AuthService.getInstance().login('wsapi-admin', 'admin123');
-    if (session) ticket = session.ticket;
-  });
 
     beforeEach(async () => {
       const loginRes = await request(app)
@@ -266,10 +262,6 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
   describe('CustomerInsert Operation', () => {
     let ticket: string;
-  beforeAll(() => {
-    const session = AuthService.getInstance().login('wsapi-admin', 'admin123');
-    if (session) ticket = session.ticket;
-  });
 
     beforeEach(async () => {
       const loginRes = await request(app)
@@ -329,10 +321,6 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
   describe('PolicyGet Operation', () => {
     let ticket: string;
-  beforeAll(() => {
-    const session = AuthService.getInstance().login('wsapi-admin', 'admin123');
-    if (session) ticket = session.ticket;
-  });
 
     beforeEach(async () => {
       const loginRes = await request(app)
@@ -387,10 +375,6 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
   describe('ValueListGet Operation', () => {
     let ticket: string;
-  beforeAll(() => {
-    const session = AuthService.getInstance().login('wsapi-admin', 'admin123');
-    if (session) ticket = session.ticket;
-  });
 
     beforeEach(async () => {
       const loginRes = await request(app)
@@ -473,10 +457,6 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
   describe('Unsupported Operations', () => {
     let ticket: string;
-  beforeAll(() => {
-    const session = AuthService.getInstance().login('wsapi-admin', 'admin123');
-    if (session) ticket = session.ticket;
-  });
 
     beforeEach(async () => {
       const loginRes = await request(app)

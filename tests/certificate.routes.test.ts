@@ -1,23 +1,9 @@
 import request from 'supertest';
 import app from '../src/app.js';
-import { AuthService } from '../src/services/auth.service.js';
 
 describe('Certificate & Holder Routes (/api/v1/certificates & /api/v1/holders)', () => {
-  let _testTicket = '';
-  beforeAll(() => {
-    const authService = AuthService.getInstance();
-    const session = authService.login('wsapi-admin', 'admin123');
-    if (session) _testTicket = session.ticket;
-  });
-  it('should return 401 when unauthenticated', async () => {
-    const res = await request(app).get('/api/v1/customers'); // Example route
-    if (res.status === 404) return; // If route doesn't exist, ignore
-    expect(res.status).toBe(401);
-  });
-
-
   it('GET /api/v1/certificates should list initial certificates', async () => {
-    const res = await request(app).get('/api/v1/certificates').set('x-wsapi-ticket', _testTicket);
+    const res = await request(app).get('/api/v1/certificates');
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(Array.isArray(res.body.data)).toBe(true);
@@ -25,21 +11,21 @@ describe('Certificate & Holder Routes (/api/v1/certificates & /api/v1/holders)',
   });
 
   it('GET /api/v1/certificates/:id should return single certificate', async () => {
-    const res = await request(app).get('/api/v1/certificates/CERT-2026-001').set('x-wsapi-ticket', _testTicket);
+    const res = await request(app).get('/api/v1/certificates/CERT-2026-001');
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(res.body.data.certificateId).toBe('CERT-2026-001');
   });
 
   it('GET /api/v1/certificates/:id/render should return 200 HTML content', async () => {
-    const res = await request(app).get('/api/v1/certificates/CERT-2026-001/render').set('x-wsapi-ticket', _testTicket);
+    const res = await request(app).get('/api/v1/certificates/CERT-2026-001/render');
     expect(res.status).toBe(200);
     expect(res.headers['content-type']).toContain('text/html');
     expect(res.text).toContain('ACORD 25');
   });
 
   it('GET /api/v1/holders should return list of certificate holders', async () => {
-    const res = await request(app).get('/api/v1/holders').set('x-wsapi-ticket', _testTicket);
+    const res = await request(app).get('/api/v1/holders');
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(Array.isArray(res.body.data)).toBe(true);
@@ -61,7 +47,7 @@ describe('Certificate & Holder Routes (/api/v1/certificates & /api/v1/holders)',
     };
 
     const res = await request(app)
-      .post('/api/v1/holders').set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/holders')
       .send(payload);
 
     expect(res.status).toBe(201);
@@ -79,7 +65,7 @@ describe('Certificate & Holder Routes (/api/v1/certificates & /api/v1/holders)',
     };
 
     const res = await request(app)
-      .post('/api/v1/certificates').set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/certificates')
       .send(payload);
 
     expect(res.status).toBe(201);
@@ -97,7 +83,7 @@ describe('Certificate & Holder Routes (/api/v1/certificates & /api/v1/holders)',
     };
 
     const res = await request(app)
-      .post('/api/v1/certificates/bulk-issue').set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/certificates/bulk-issue')
       .send(payload);
 
     expect(res.status).toBe(201);

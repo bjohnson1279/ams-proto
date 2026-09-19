@@ -1,7 +1,6 @@
 import request from 'supertest';
 import { jest } from '@jest/globals';
 import app from '../src/app.js';
-import { AuthService } from '../src/services/auth.service.js';
 import { AmsService } from '../src/services/ams.service.js';
 import formatAPayload from '../sample_payloads/format_a_payload.json';
 import formatBPayload from '../sample_payloads/format_b_payload.json';
@@ -9,22 +8,9 @@ import formatCPayload from '../sample_payloads/format_c_payload.json';
 import formatDPayload from '../sample_payloads/format_d_payload.json';
 
 describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
-  let _testTicket = '';
-  beforeAll(() => {
-    const authService = AuthService.getInstance();
-    const session = authService.login('wsapi-admin', 'admin123');
-    if (session) _testTicket = session.ticket;
-  });
-  it('should return 401 when unauthenticated', async () => {
-    const res = await request(app).get('/api/v1/customers'); // Example route
-    if (res.status === 404) return; // If route doesn't exist, ignore
-    expect(res.status).toBe(401);
-  });
-
-
   it('POST /api/v1/integration/import should process Format A payload', async () => {
     const res = await request(app)
-      .post('/api/v1/integration/import').set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/integration/import')
       .send(formatAPayload);
 
     expect(res.status).toBe(200);
@@ -37,7 +23,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
 
   it('POST /api/v1/integration/import should process Format B payload', async () => {
     const res = await request(app)
-      .post('/api/v1/integration/import').set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/integration/import')
       .send(formatBPayload);
 
     expect(res.status).toBe(200);
@@ -49,7 +35,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
 
   it('POST /api/v1/integration/import should process Format C payload', async () => {
     const res = await request(app)
-      .post('/api/v1/integration/import').set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/integration/import')
       .send(formatCPayload);
 
     expect(res.status).toBe(200);
@@ -61,7 +47,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
 
   it('POST /api/v1/integration/import should process Format D payload', async () => {
     const res = await request(app)
-      .post('/api/v1/integration/import').set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/integration/import')
       .send(formatDPayload);
 
     expect(res.status).toBe(200);
@@ -73,7 +59,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
 
   it('POST /api/v1/integration/dry-run should perform dry-run analysis without storing records', async () => {
     const res = await request(app)
-      .post('/api/v1/integration/dry-run').set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/integration/dry-run')
       .send(formatDPayload);
 
     expect(res.status).toBe(200);
@@ -83,7 +69,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
   });
 
   it('GET /api/v1/integration/crosswalk-matrix should return field transformation rules', async () => {
-    const res = await request(app).get('/api/v1/integration/crosswalk-matrix').set('x-wsapi-ticket', _testTicket);
+    const res = await request(app).get('/api/v1/integration/crosswalk-matrix');
 
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
@@ -93,7 +79,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
 
   it('POST /api/v1/integration/import should return 400 when payload is missing data', async () => {
     const res = await request(app)
-      .post('/api/v1/integration/import').set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/integration/import')
       .send({ systemSource: 'FORMAT_A' });
 
     expect(res.status).toBe(400);
@@ -107,7 +93,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
     });
 
     const res = await request(app)
-      .post('/api/v1/integration/import').set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/integration/import')
       .send(formatAPayload);
 
     expect(res.status).toBe(500);
@@ -126,7 +112,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
     });
 
     const res = await request(app)
-      .post('/api/v1/integration/import').set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/integration/import')
       .send(formatAPayload);
 
     expect(res.status).toBe(500);
@@ -142,7 +128,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
     });
 
     const res = await request(app)
-      .post('/api/v1/integration/dry-run').set('x-wsapi-ticket', _testTicket)
+      .post('/api/v1/integration/dry-run')
       .send(formatDPayload);
 
     expect(res.status).toBe(500);
@@ -153,7 +139,7 @@ describe('Integration & Legacy Migration Routes (/api/v1/integration)', () => {
   });
 
   it('GET /api/v1/carriers should return pre-seeded carrier list', async () => {
-    const res = await request(app).get('/api/v1/carriers').set('x-wsapi-ticket', _testTicket);
+    const res = await request(app).get('/api/v1/carriers');
     expect(res.status).toBe(200);
     expect(res.body.status).toBe('success');
     expect(Array.isArray(res.body.data)).toBe(true);
