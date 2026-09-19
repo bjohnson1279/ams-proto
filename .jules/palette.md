@@ -61,3 +61,7 @@
 ## 2026-09-18 - Tabpanel on Native Inputs
 **Learning:** According to W3C ARIA specifications, assigning a structural widget role like `role="tabpanel"` directly to an interactive input element (like a `<textarea>` or `<input>`) overrides its native implicit role (e.g., `textbox`). Screen readers will no longer announce it as an input field, creating a severe accessibility trap where users don't know they can type into it.
 **Action:** Never apply `role="tabpanel"` directly to interactive inputs. Instead, wrap the input in a generic structural element (like a `<div>`) and apply the `tabpanel` role to that wrapper container.
+
+## 2024-11-23 - Persistent Screen Reader Announcers vs InnerHTML
+**Learning:** Injecting elements with `aria-live` (like `aria-live="polite"`) into the DOM via `innerHTML` is an accessibility anti-pattern. Screen readers often miss these dynamic insertions because the element did not exist when the DOM was parsed, or because the insertion event fires inconsistently across different browsers and assistive technologies.
+**Action:** Never inject `aria-live` elements dynamically via `innerHTML`. Always use a persistent, visually hidden (`.sr-only`) DOM element with `aria-live` attached in the static HTML, and update its text content dynamically via JavaScript when announcements are needed.
