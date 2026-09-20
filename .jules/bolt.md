@@ -112,3 +112,7 @@
 ## 2025-02-20 - Replace Promise.all with batched query to resolve memory payload bottleneck
 **Learning:** Using `Promise.all` with individual DB queries for each item in a payload can lead to connection exhaustion and N+1 query problems. Replacing `Promise.all` over `getAccountByNumber` with a single batched `getAccountsByNumbers` lookup improves performance, avoids limits, and properly resolves the problem without fetching the entire table as an anti-pattern.
 **Action:** When correlating multiple nested items or validating lists against a database, use batched lookups (`WHERE id IN (...)` style queries) combined with returning a `Map` or using a single query rather than iterating and firing individual queries concurrently.
+
+## 2026-09-20 - Extract static objects from API route handlers to avoid reallocation overhead
+**Learning:** In `src/routes/wsapi.routes.ts`, the `handleValueListGet` endpoint reconstructed a large dictionary (`lists`) containing all supported value list configurations on every single API call. This caused unnecessary memory allocation and garbage collection overhead, particularly under load.
+**Action:** To optimize performance and reduce garbage collection overhead in frequently executed functions (like API route handlers), extract static object dictionaries or arrays outside the function scope into module-level constants to prevent them from being reallocated on every request.
