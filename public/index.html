@@ -1636,6 +1636,8 @@
       document.getElementById('current-rls-setting').innerText = tenantId;
       const tName = tenantId === 'tenant-001' ? 'Midwest Commercial Risk Agency' : 'Coastal Property Risk Partners';
       
+      announceToScreenReader('Tenant context switched to ' + tName);
+
       const auditBox = document.getElementById('timescale-audit-box');
       if (auditBox) {
         const div = document.createElement('div');

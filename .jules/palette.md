@@ -65,3 +65,7 @@
 ## 2024-11-23 - Persistent Screen Reader Announcers vs InnerHTML
 **Learning:** Injecting elements with `aria-live` (like `aria-live="polite"`) into the DOM via `innerHTML` is an accessibility anti-pattern. Screen readers often miss these dynamic insertions because the element did not exist when the DOM was parsed, or because the insertion event fires inconsistently across different browsers and assistive technologies.
 **Action:** Never inject `aria-live` elements dynamically via `innerHTML`. Always use a persistent, visually hidden (`.sr-only`) DOM element with `aria-live` attached in the static HTML, and update its text content dynamically via JavaScript when announcements are needed.
+
+## 2024-11-20 - [Redundant aria-labels on labeled inputs]
+**Learning:** When an interactive element (like a `<select>` or `<input>`) already has a correctly linked visible `<label>` (using the `for` attribute), adding an `aria-label` attribute is an accessibility anti-pattern because the `aria-label` will completely override the visible label for screen readers.
+**Action:** Do not add redundant `aria-label` attributes to form controls that already have valid, programmatically associated visible labels.
