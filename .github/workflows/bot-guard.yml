@@ -54,7 +54,17 @@ jobs:
             fi
           done
 
+          # 5. Reject Learning Note Truncation / Historical Deletions in .jules/
+          JULES_DELETIONS=$(git diff --numstat origin/${{ github.base_ref }}...HEAD | grep -E '^\.?[jJ]ules/.*\.md' | awk '{print $2}' || true)
+          for del in $JULES_DELETIONS; do
+            if [ -n "$del" ] && [ "$del" -gt 5 ]; then
+              echo "❌ ERROR: PR deletes $del lines from .jules/*.md directive files. Historical learnings must be preserved additively."
+              exit 1
+            fi
+          done
+
           echo "✅ Basic Bot Diff Guardrail Passed."
+
 
       - name: Syntax & Script Verification Gate
         run: |
