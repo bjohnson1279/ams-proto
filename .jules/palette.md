@@ -1,3 +1,75 @@
+## 2024-05-18 - Modal Dialog Accessibility and Usability
+**Learning:** Adding `role="dialog"`, `aria-modal="true"`, and `aria-labelledby` ensures screen readers understand standard UI elements correctly. Closing a modal with the Escape key is a baseline usability pattern that users expect, especially keyboard-only users navigating the interface.
+**Action:** Always add keyboard handlers (like Escape to close) and explicit ARIA roles/labels when creating or modifying custom modals to prevent them from becoming accessibility traps.
+
+## 2024-08-18 - Aria-Live for Asynchronous Status Updates
+**Learning:** Dynamically updating text on the screen (like a status badge or completion message after a dry-run audit) is completely invisible to screen readers unless the container has an `aria-live` attribute.
+**Action:** Always add `aria-live="polite"` (or "assertive" if critical) to status elements that are updated asynchronously via JavaScript to ensure parity between visual and auditory experiences.
+
+## 2024-10-24 - Empty States for Dynamic Search Results
+**Learning:** When tables are dynamically filtered (like via a search input), users need immediate, clear visual feedback if their search yields zero results. An empty table body can appear broken or lead the user to believe the data is still loading.
+**Action:** Always provide an explicit "empty state" row spanning all table columns with a helpful message and guidance (e.g., "Try adjusting your search criteria") when data arrays are empty.
+
+## 2026-08-21 - Tab Navigation Accessibility
+**Learning:** Custom tabbed interfaces require explicit ARIA roles (`tablist`, `tab`, `tabpanel`) and dynamic `aria-selected` attributes for screen readers to understand the structure and active state.
+**Action:** Always add standard ARIA tab roles and manage state programmatically when building custom tab components.
+
+## 2024-11-20 - Contextual ARIA Labels on Repeated Action Buttons
+**Learning:** Tables displaying dynamic data (like Customers or Carrier Downloads) often have repeated action buttons (e.g., "View Dec-Page", "Post GL Comm"). For screen reader users, hearing these generic labels consecutively without context is confusing. Adding specific context (e.g., `aria-label="View Dec-Page for Customer CUST-1001"`) drastically improves usability. Furthermore, when writing these labels in dynamic template literals, it is crucial to use explicitly available properties on the iterated object (like `c.customerId`) instead of relying on variables constructed elsewhere in the template to ensure correctness and prevent runtime reference errors.
+**Action:** Always add specific, context-aware `aria-label`s to repeated action buttons and textareas. When working within dynamic HTML templates, ensure you reference properties that are guaranteed to exist within that scope.
+
+## 2026-09-08 - Actionable Empty States in Data Tables
+**Learning:** Empty tables can make users feel stuck if there's no clear path forward. Providing a descriptive empty state with an actionable call-to-action button (like "+ Import" or "Execute Reconciliation") improves user onboarding and guides them to the right workflow.
+**Action:** When rendering data tables, always include an empty state branch with an actionable button when datasets are empty.
+
+## 2024-08-30 - [Consistent Async Button Loading States]
+**Learning:** Vanilla JS implementation of disabled states and loading text replacement is effective but verbose, requiring robust `try/finally` blocks and event targeting to prevent permanently disabled buttons on fetch failures.
+**Action:** When adding async button loading states, ensure that prompt/dialog interruptions cancel out *before* the UI state changes, and always use `finally` to restore the button reference securely.
+
+## 2024-10-25 - [Actionable Empty States in Vanilla JS Data Tables]
+**Learning:** When datasets are empty, leaving the table blank causes user confusion. Injecting an actionable empty state (with a clear message and a primary call-to-action button mapped to the creation modal) directly into the rendering container's `innerHTML` by returning early prevents rendering errors and significantly improves discoverability.
+**Action:** Always implement empty states with an actionable CTA button for data tables that can be empty, utilizing existing design system classes (e.g., `btn`, `btn-primary`) rather than introducing inline styles to adhere to strict framework boundaries.
+
+## 2024-11-20 - [Sequential Empty States for Multi-Table Fetches]
+**Learning:** When a single function (like `fetchAccountingData`) fetches and populates multiple tables sequentially, returning early after rendering the first empty state prevents subsequent tables from rendering correctly (either with data or their own empty state).
+**Action:** Use an `if/else` block for each dataset within the sequential process instead of early returns to ensure all tables are processed independently and their respective empty states or data populate as intended.
+
+## 2024-11-20 - [Dynamic Search Results Accessibility]
+**Learning:** Adding `aria-live="polite"` to empty states for dynamic search results ensures that screen readers are notified of updates.
+**Action:** When creating dynamic search results, always add `aria-live="polite"` to the empty state container to improve accessibility.
+
+## 2024-11-22 - [Modal Focus Management]
+**Learning:** When a modal opens, keyboard focus must move into the modal (e.g., to the close button or first input). If focus remains outside the modal, keyboard-only and screen reader users lose context and may interact with elements hidden behind the modal backdrop. Furthermore, when the modal closes, focus must be programmatically returned to the button that originally triggered it to maintain the user's place in the document flow.
+**Action:** Always implement focus management when creating custom modals: store `document.activeElement` before opening, shift focus into the modal once active, and restore focus to the stored element upon closing.
+
+## 2024-11-20 - Format Pill Tab Accessibility
+**Learning:** Elements styled as interactive "pills" that control content (like selecting a payload format to display in an editor) functionally act as tabs. Without explicit ARIA tab roles (`tablist`, `tab`, `tabpanel`) and dynamic `aria-selected` toggling, screen readers treat them as generic buttons without semantic grouping, leading to poor discoverability of their relationship to the controlled content.
+**Action:** Always add standard ARIA tab roles (`role="tablist"`, `role="tab"`) and programmatically manage `aria-selected` and `aria-controls` states when building custom tab-like interactions, regardless of their visual styling (e.g., pills).
+
+## 2025-01-20 - Visual Shortcut Indicators vs Placeholder Text
+**Learning:** Embedding keyboard shortcut hints directly into input placeholder text (e.g., "... (Press '/')") clutters the hint and increases cognitive load, especially when the placeholder text is long or truncated. Using a dedicated visual `<kbd>` element separated from the placeholder text provides a clearer, modern UX pattern for discoverability without sacrificing input space.
+**Action:** Always use dedicated `<kbd>` styled elements for global shortcut hints next to inputs rather than embedding instructions directly in the placeholder string. Add `aria-hidden="true"` to prevent redundant screen reader announcements if the hint is visual only.
+
+## 2025-02-27 - Textarea Placeholders as Empty States
+**Learning:** When textareas are used as raw input editors and the user clears the default content, the lack of placeholder text creates a stark, confusing empty state without guidance on what format is expected.
+**Action:** Always provide descriptive `placeholder` text on input textareas to guide users when the field is empty, serving as an inline empty state.
+
+## 2024-06-30 - Dynamic empty states need aria-live
+**Learning:** When creating or updating dynamic UI elements like search result tables, list views, or status containers that toggle empty states via JavaScript, screen readers won't announce when content appears or disappears unless wrapped in an element with `aria-live="polite"` and `role="status"`.
+**Action:** Ensure empty state container elements or dynamic results wrappers include `aria-live="polite"` and `role="status"` so assistive tech announces dynamic DOM changes.
+
+## 2026-09-18 - Tabpanel on Native Inputs
+**Learning:** According to W3C ARIA specifications, assigning a structural widget role like `role="tabpanel"` directly to an interactive input element (like a `<textarea>` or `<input>`) overrides its native implicit role (e.g., `textbox`). Screen readers will no longer announce it as an input field, creating a severe accessibility trap where users don't know they can type into it.
+**Action:** Never apply `role="tabpanel"` directly to interactive inputs. Instead, wrap the input in a generic structural element (like a `<div>`) and apply the `tabpanel` role to that wrapper container.
+
+## 2024-11-23 - Persistent Screen Reader Announcers vs InnerHTML
+**Learning:** Injecting elements with `aria-live` (like `aria-live="polite"`) into the DOM via `innerHTML` is an accessibility anti-pattern. Screen readers often miss these dynamic insertions because the element did not exist when the DOM was parsed, or because the insertion event fires inconsistently across different browsers and assistive technologies.
+**Action:** Never inject `aria-live` elements dynamically via `innerHTML`. Always use a persistent, visually hidden (`.sr-only`) DOM element with `aria-live` attached in the static HTML, and update its text content dynamically via JavaScript when announcements are needed.
+
+## 2024-11-20 - [Redundant aria-labels on labeled inputs]
+**Learning:** When an interactive element (like a `<select>` or `<input>`) already has a correctly linked visible `<label>` (using the `for` attribute), adding an `aria-label` attribute is an accessibility anti-pattern because the `aria-label` will completely override the visible label for screen readers.
+**Action:** Do not add redundant `aria-label` attributes to form controls that already have valid, programmatically associated visible labels.
+
 ## 2024-10-24 - Implementing Skip Links Safely
 **Learning:** Adding a "skip to main content" link requires setting `tabindex="-1"` on the target container (e.g., `<main>`) to ensure it can receive programmatic focus when the link is clicked. Without it, the browser scrolls but doesn't move focus, meaning the next Tab press will start from the top again.
 **Action:** Always ensure target elements for skip links have `tabindex="-1"`. Also, when using tools like `pnpm add` to install temporary testing dependencies (like Playwright), be incredibly careful to revert any unintended changes to lockfiles (`pnpm-lock.yaml`) to prevent accidental major version bumps of backend dependencies (like Express v5).

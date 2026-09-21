@@ -37,4 +37,11 @@ describe('UI Empty States & DOM Structure Guardrail', () => {
   it('should contain actionable Call-To-Action buttons in empty states', () => {
     expect(htmlContent).toMatch(/<button[^>]*class=["']btn/);
   });
+
+  it('should contain a functional skip-to-content link for keyboard accessibility', () => {
+    // 🎨 Palette: Verify skip link exists and targets main content with tabindex="-1"
+    expect(htmlContent).toMatch(/<a[^>]*href="#main-content"[^>]*class=["'][^"']*skip-link[^"']*["'][^>]*>Skip to main content<\/a>/);
+    expect(htmlContent).toMatch(/<main[^>]*id="main-content"[^>]*tabindex="-1"/);
+  });
 });
+
