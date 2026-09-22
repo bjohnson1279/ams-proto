@@ -1,0 +1,34 @@
+name: Bot PR Supersession Pruner
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  prune-superseded:
+    runs-on: ubuntu-latest
+    if: contains(github.actor, 'jules') || contains(github.actor, 'sentinel') || contains(github.head_ref, 'sentinel') || contains(github.head_ref, 'jules')
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for Supersession
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "=== Checking if PR is superseded by main ==="
+          
+          # Check if the substantive diff is empty against main
+          # We ignore .jules/ logs and lockfiles when determining if logic was merged
+          SUBSTANTIVE_DIFF=$(git diff origin/${{ github.base_ref }}...HEAD -- ':!.jules/' ':!package-lock.json' ':!pnpm-lock.yaml' ':!composer.lock' || true)
+          
+          if [ -z "$SUBSTANTIVE_DIFF" ]; then
+            echo "🚨 Substantive changes are already present on origin/${{ github.base_ref }}."
+            echo "This PR is a duplicate or has been superseded. Closing automatically..."
+            gh pr close ${{ github.event.pull_request.number }} --comment "Closing as superseded: The substantive code changes in this PR have already been merged into the default branch via another PR or commit."
+          else
+            echo "✅ PR contains unique substantive changes."
+          fi

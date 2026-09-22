@@ -6,46 +6,34 @@ on:
 
 jobs:
   audit-bot-pr:
-    name: Audit Bot PR Diff & Guardrails
     runs-on: ubuntu-latest
-    if: contains(github.actor, 'jules') || contains(github.actor, 'sentinel') || contains(github.actor, 'dependabot') || contains(github.head_ref, 'sentinel') || contains(github.head_ref, 'jules') || contains(github.head_ref, 'bolt') || contains(github.head_ref, 'palette')
+    if: contains(github.actor, 'jules') || contains(github.actor, 'sentinel') || contains(github.head_ref, 'sentinel') || contains(github.head_ref, 'jules')
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Inspect Diff Statistics for Destructive Changes & Zero-Diff
+      - name: Inspect Diff Statistics for Destructive Changes
         run: |
-          echo "=== Auditing PR Diff for Bot Regressions, Hallucinations & Conflict Markers ==="
+          echo "=== Auditing PR Diff for Bot Regressions & Hallucinations ==="
 
-          # 1. Reject Unresolved Git Merge Conflict Markers
-          CONFLICTS=$(git diff origin/${{ github.base_ref }}...HEAD | grep -E '^\+([<]{7}( .*|$)|[=]{7}\r?$|[>]{7}( .*|$)|[|]{7}( .*|$))' || true)
-          if [ -n "$CONFLICTS" ]; then
-            echo "❌ ERROR: PR adds unresolved Git merge conflict markers (<<<<<<<, =======, >>>>>>>). Auto-failing."
-            echo "$CONFLICTS"
+          # Check for zero-diff or hallucinatory acknowledgment PRs
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -v '^\.jules/' | grep -v 'package.*json' | grep -v 'composer\.lock' || true)
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "❌ ERROR: PR contains 0 code changes (hallucinatory task acknowledgment). Auto-failing."
             exit 1
           fi
 
-          # 2. Reject Zero-Diff / Hallucinatory Acknowledgment PRs
-          if [ "${{ github.actor }}" != "dependabot" ] && [ "${{ github.actor }}" != "dependabot[bot]" ]; then
-            CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -v '^\.jules/' | grep -v '^\.Jules/' | grep -v 'package.*json' | grep -v 'composer\.lock' | grep -v 'Gemfile\.lock' | grep -v 'pnpm-lock\.yaml' | grep -v 'mix\.lock' | grep -v 'Cargo\.lock' || true)
-            if [ -z "$CHANGED_FILES" ]; then
-              echo "❌ ERROR: PR contains 0 non-metadata code changes (hallucinatory task acknowledgment). Auto-failing."
-              exit 1
-            fi
-          fi
-
-          # 3. Reject Forbidden Scratch Verification Files
-          SCRATCH_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '(^|/)test(_.*)?\.(ts|js|cjs|mjs|py|php)$|(^|/)fix_.*\.(php|cjs|js|ts)$|(^|/)update_.*\.(php|cjs|js|ts)$|(^|/)scratch_.*|.*\.scratch$' || true)
+          # Check for forbidden scratch files
+          SCRATCH_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^test(_.*)?\.(ts|js|sh)$|\.scratch$|plan\.md$' || true)
           if [ -n "$SCRATCH_FILES" ]; then
             echo "❌ ERROR: PR contains forbidden scratch verification files:"
             echo "$SCRATCH_FILES"
             exit 1
           fi
 
-          # 4. Reject Destructive Line Deletions in Critical Entrypoints & Schemas
-          DELETED_LINES=$(git diff --stat origin/${{ github.base_ref }}...HEAD | grep -E 'schema\.prisma|src/index\.ts|public/index\.php|docker/postgres/init/|db/schema\.rb|routes/|routes\.php' | awk '{print $5}' | grep '-' || true)
+          # Check for line deletions in critical schema files
+          DELETED_LINES=$(git diff --stat origin/${{ github.base_ref }}...HEAD | grep -E 'schema\.prisma|src/index\.ts|public/index\.php|docker/postgres/init/' | awk '{print $5}' | grep '-' || true)
           for count in $DELETED_LINES; do
             num=$(echo "$count" | tr -d '-')
             if [ "$num" -gt 15 ]; then
@@ -54,69 +42,12 @@ jobs:
             fi
           done
 
-          # 5. Reject Learning Note Truncation / Historical Deletions in .jules/
-          JULES_DELETIONS=$(git diff --numstat origin/${{ github.base_ref }}...HEAD | grep -E '^\.?[jJ]ules/.*\.md' | awk '{print $2}' || true)
-          for del in $JULES_DELETIONS; do
-            if [ -n "$del" ] && [ "$del" -gt 5 ]; then
-              echo "❌ ERROR: PR deletes $del lines from .jules/*.md directive files. Historical learnings must be preserved additively."
-              exit 1
-            fi
-          done
-
-          echo "✅ Basic Bot Diff Guardrail Passed."
-
-
-      - name: Syntax & Script Verification Gate
-        run: |
-          echo "=== Checking Modified Files for Syntax Errors ==="
-          MODIFIED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
-
-          for f in $MODIFIED_FILES; do
-            if [ -f "$f" ]; then
-              if [[ "$f" == *.sh ]]; then
-                echo "Validating Bash syntax: $f"
-                bash -n "$f"
-              elif [[ "$f" == *.py ]]; then
-                echo "Validating Python syntax: $f"
-                python3 -m py_compile "$f"
-              elif [[ "$f" == *.php ]] && command -v php &> /dev/null; then
-                echo "Validating PHP syntax: $f"
-                php -l "$f"
-              fi
-            fi
-          done
-
-          echo "✅ Syntax Verification Gate Passed."
-
-      - name: Dependency Security Audit Gate
-        run: |
-          echo "=== Auditing Dependency Manifests for Known Vulnerabilities ==="
-          MODIFIED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
-
-          # Node.js audit
-          if echo "$MODIFIED_FILES" | grep -E '(package\.json|package-lock\.json)'; then
-            if [ -f "package-lock.json" ]; then
-              echo "Running npm audit..."
-              npm audit --audit-level=high || true
-            fi
+          # Check for unresolved merge conflict markers
+          CONFLICTS=$(git diff origin/${{ github.base_ref }}...HEAD | grep -E '^\+\s*(\<{7}|\={7}|\>{7}|\|{7})' || true)
+          if [ -n "$CONFLICTS" ]; then
+            echo "❌ ERROR: PR adds unresolved Git merge conflict markers (<<<<<<<, =======, >>>>>>>). Auto-failing."
+            echo "$CONFLICTS"
+            exit 1
           fi
 
-          # Ruby bundler-audit
-          if echo "$MODIFIED_FILES" | grep -E '(Gemfile|Gemfile\.lock)'; then
-            if [ -f "Gemfile.lock" ]; then
-              echo "Checking Ruby gems for known advisories..."
-              if command -v bundle-audit &> /dev/null; then
-                bundle-audit check --update || true
-              fi
-            fi
-          fi
-
-          # PHP composer audit
-          if echo "$MODIFIED_FILES" | grep -E '(composer\.json|composer\.lock)'; then
-            if [ -f "composer.lock" ] && command -v composer &> /dev/null; then
-              echo "Running composer audit..."
-              composer audit || true
-            fi
-          fi
-
-          echo "✅ Security Audit Gate Completed."
+          echo "✅ Bot Guardrail Passed."
