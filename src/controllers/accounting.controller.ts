@@ -62,7 +62,7 @@ export class AccountingController {
     } catch (err: any) {
       res.status(400).json({
         success: false,
-        error: err.message || 'Failed to post Journal Entry'
+        error: process.env.NODE_ENV === 'production' ? 'Failed to post Journal Entry' : err.message || 'Failed to post Journal Entry'
       });
     }
   };
@@ -136,7 +136,7 @@ export class AccountingController {
     } catch (err: any) {
       res.status(400).json({
         success: false,
-        error: err.message || 'Failed to generate invoice'
+        error: process.env.NODE_ENV === 'production' ? 'Failed to generate invoice' : err.message || 'Failed to generate invoice'
       });
     }
   };
@@ -183,7 +183,7 @@ export class AccountingController {
     } catch (err: any) {
       res.status(400).json({
         success: false,
-        error: err.message || 'Failed to process payment'
+        error: process.env.NODE_ENV === 'production' ? 'Failed to process payment' : err.message || 'Failed to process payment'
       });
     }
   };

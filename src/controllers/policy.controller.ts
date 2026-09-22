@@ -89,7 +89,7 @@ export class PolicyController {
       if (err?.message && err.message.includes('not found')) {
         res.status(404).json({
           status: 'error',
-          message: err.message
+          message: process.env.NODE_ENV === 'production' ? 'Policy not found.' : err.message
         });
         return;
       }
