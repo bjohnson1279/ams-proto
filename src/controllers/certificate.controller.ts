@@ -63,7 +63,7 @@ export class CertificateController {
       if (err.message && err.message.includes('not found')) {
         res.status(404).json({
           status: 'error',
-          message: err.message
+          message: process.env.NODE_ENV === 'production' ? 'Certificate not found.' : err.message
         });
         return;
       }
@@ -100,7 +100,7 @@ export class CertificateController {
     } catch (err: any) {
       res.status(400).json({
         status: 'error',
-        message: err.message || 'Failed to generate certificate.'
+        message: process.env.NODE_ENV === 'production' ? 'Failed to generate certificate.' : err.message || 'Failed to generate certificate.'
       });
     }
   };
@@ -135,7 +135,7 @@ export class CertificateController {
     } catch (err: any) {
       res.status(400).json({
         status: 'error',
-        message: err.message || 'Failed bulk certificate issuance.'
+        message: process.env.NODE_ENV === 'production' ? 'Failed bulk certificate issuance.' : err.message || 'Failed bulk certificate issuance.'
       });
     }
   };
@@ -179,7 +179,7 @@ export class CertificateController {
     } catch (err: any) {
       res.status(400).json({
         status: 'error',
-        message: err.message || 'Failed to create Certificate Holder.'
+        message: process.env.NODE_ENV === 'production' ? 'Failed to create Certificate Holder.' : err.message || 'Failed to create Certificate Holder.'
       });
     }
   };
@@ -219,9 +219,9 @@ export class CertificateController {
       });
     } catch (err: any) {
       if (err.message && err.message.includes('not found')) {
-        res.status(404).json({ status: 'error', message: err.message });
+        res.status(404).json({ status: 'error', message: process.env.NODE_ENV === 'production' ? 'Certificate Holder not found.' : err.message });
       } else {
-        res.status(400).json({ status: 'error', message: err.message || 'Failed to update Certificate Holder.' });
+        res.status(400).json({ status: 'error', message: process.env.NODE_ENV === 'production' ? 'Failed to update Certificate Holder.' : err.message || 'Failed to update Certificate Holder.' });
       }
     }
   };
@@ -237,9 +237,9 @@ export class CertificateController {
       });
     } catch (err: any) {
       if (err.message && err.message.includes('not found')) {
-        res.status(404).json({ status: 'error', message: err.message });
+        res.status(404).json({ status: 'error', message: process.env.NODE_ENV === 'production' ? 'Certificate Holder not found.' : err.message });
       } else {
-        res.status(400).json({ status: 'error', message: err.message || 'Failed to deactivate Certificate Holder.' });
+        res.status(400).json({ status: 'error', message: process.env.NODE_ENV === 'production' ? 'Failed to deactivate Certificate Holder.' : err.message || 'Failed to deactivate Certificate Holder.' });
       }
     }
   };
@@ -257,9 +257,9 @@ export class CertificateController {
       });
     } catch (err: any) {
       if (err.message && err.message.includes('not found')) {
-        res.status(404).json({ status: 'error', message: err.message });
+        res.status(404).json({ status: 'error', message: process.env.NODE_ENV === 'production' ? 'Certificate not found.' : err.message });
       } else {
-        res.status(400).json({ status: 'error', message: err.message || 'Failed to revoke Certificate.' });
+        res.status(400).json({ status: 'error', message: process.env.NODE_ENV === 'production' ? 'Failed to revoke Certificate.' : err.message || 'Failed to revoke Certificate.' });
       }
     }
   };
