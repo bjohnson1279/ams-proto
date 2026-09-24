@@ -73,3 +73,11 @@
 ## 2024-10-24 - Implementing Skip Links Safely
 **Learning:** Adding a "skip to main content" link requires setting `tabindex="-1"` on the target container (e.g., `<main>`) to ensure it can receive programmatic focus when the link is clicked. Without it, the browser scrolls but doesn't move focus, meaning the next Tab press will start from the top again.
 **Action:** Always ensure target elements for skip links have `tabindex="-1"`. Also, when using tools like `pnpm add` to install temporary testing dependencies (like Playwright), be incredibly careful to revert any unintended changes to lockfiles (`pnpm-lock.yaml`) to prevent accidental major version bumps of backend dependencies (like Express v5).
+
+## 2024-11-20 - [Hover Tooltips for Complex Actions]
+**Learning:** Adding descriptive `title` attributes to buttons representing complex domain actions (like "Parse AL3" or "Run Dry-Run Audit") provides necessary context without cluttering the UI.
+**Action:** Use `title` attributes on important, technical action buttons to provide quick, native tooltips explaining their behavior.
+
+## 2024-11-20 - [Visual Keyboard Shortcut Hints]
+**Learning:** For keyboard shortcuts (like `Esc` to close a modal), adding a visual `<kbd>` styled hint next to the relevant button significantly improves discoverability for power users and accessibility, making the shortcut explicit rather than hidden knowledge.
+**Action:** Always provide a visual `<kbd>` hint and a `title="Action (Key)"` tooltip when implementing or exposing keyboard shortcuts on interactive elements.

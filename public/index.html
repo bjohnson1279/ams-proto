@@ -561,8 +561,8 @@
             <textarea id="payload-editor" aria-label="Raw Legacy Export Payload" class="code-editor" spellcheck="false" placeholder="Select a format above or paste raw legacy JSON payload here..."></textarea>
           </div>
           <div class="btn-group">
-            <button id="btn-dry-run" class="btn btn-secondary" onclick="runDryRun()">🔍 Run Dry-Run Audit</button>
-            <button id="btn-import" class="btn btn-primary" onclick="executeImport()">🚀 Execute CoreAMS Import</button>
+            <button id="btn-dry-run" class="btn btn-secondary" onclick="runDryRun()" title="Simulate the import to review crosswalk logs and find deduplication matches without saving to the database">🔍 Run Dry-Run Audit</button>
+            <button id="btn-import" class="btn btn-primary" onclick="executeImport()" title="Process the payload, apply crosswalk transformations, and save records to the CoreAMS database">🚀 Execute CoreAMS Import</button>
           </div>
         </div>
 
@@ -792,8 +792,8 @@
 3TRGRENE12500.00
 2EOS0005</textarea>
           <div class="btn-group">
-            <button class="btn btn-secondary" onclick="parseRawAl3Sim(event)">⚡ Parse Raw AL3 Stream</button>
-            <button class="btn btn-primary" onclick="ingestAl3Batch(event)">🚀 Ingest IVANS Download Batch</button>
+            <button class="btn btn-secondary" onclick="parseRawAl3Sim(event)" title="Decode the AL3 file structure to preview policy and commission transactions before ingestion">⚡ Parse Raw AL3 Stream</button>
+            <button class="btn btn-primary" onclick="ingestAl3Batch(event)" title="Process the carrier download batch, auto-reconcile policies, and prepare commissions for general ledger posting">🚀 Ingest IVANS Download Batch</button>
           </div>
           <div id="al3-output-box" class="output-box" style="max-height: 180px;" aria-live="polite">
             <div style="color: var(--text-muted); font-style: italic;">Decoded AL3 record groups will appear here...</div>
@@ -876,7 +876,10 @@
           <h2 id="dec-title" style="font-family: var(--font-heading); font-size: 1.1rem; color: #fff;">ACORD 125/126 POLICY DECLARATION</h2>
           <p id="dec-acord-std" style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600;">ACORD COMPLIANT</p>
         </div>
-        <button aria-label="Close modal" onclick="closeModal()" style="background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <kbd style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.75rem; color: var(--text-muted); font-family: monospace; pointer-events: none;" aria-hidden="true">Esc</kbd>
+          <button aria-label="Close modal" title="Close (Esc)" onclick="closeModal()" style="background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+        </div>
       </div>
 
       <div class="dec-section">
