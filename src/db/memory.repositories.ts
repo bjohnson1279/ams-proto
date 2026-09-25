@@ -163,6 +163,7 @@ export class MemoryCertificateRepository implements ICertificateRepository {
 
 export class MemoryAccountingRepository implements IAccountingRepository {
   private accounts: GlAccount[] = DEFAULT_CHART_OF_ACCOUNTS.map(a => ({ ...a }));
+  private accountMap: Map<string, GlAccount> = new Map(this.accounts.map(a => [a.accountNumber, a]));
   private journalEntries: JournalEntry[] = INITIAL_JOURNAL_ENTRIES.map(je => ({
     ...je,
     lines: je.lines.map(l => ({ ...l }))
@@ -173,13 +174,21 @@ export class MemoryAccountingRepository implements IAccountingRepository {
   async getAccounts(tenantId: string): Promise<GlAccount[]> { return Promise.resolve(this.accounts); }
 
   async getAccountByNumber(tenantId: string, accountNumber: string): Promise<GlAccount | null> {
-    const acct = this.accounts.find(a => a.accountNumber === accountNumber);
+    // ⚡ Bolt: Replace O(N) array search with O(1) Map lookup
+    const acct = this.accountMap.get(accountNumber);
     return Promise.resolve(acct || null);
   }
 
   async getAccountsByNumbers(tenantId: string, accountNumbers: string[]): Promise<GlAccount[]> {
-    const numbersSet = new Set(accountNumbers);
-    return Promise.resolve(this.accounts.filter(a => numbersSet.has(a.accountNumber)));
+    // ⚡ Bolt: Replace O(N*M) array filtering with O(M) Map lookups
+    const matchedAccounts: GlAccount[] = [];
+    for (const accountNumber of accountNumbers) {
+      const acct = this.accountMap.get(accountNumber);
+      if (acct) {
+        matchedAccounts.push(acct);
+      }
+    }
+    return Promise.resolve(matchedAccounts);
   }
 
   async getJournalEntries(tenantId: string): Promise<JournalEntry[]> { return Promise.resolve(this.journalEntries); }
