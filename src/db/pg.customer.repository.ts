@@ -6,7 +6,24 @@ import { randomUUID } from 'crypto';
 export class PgCustomerRepository implements ICustomerRepository {
   async getAll(tenantId: string, filter?: any): Promise<Customer[]> {
     return withTenantTransaction(tenantId, async (client) => {
-      const res = await client.query('SELECT * FROM customers WHERE tenant_id = $1', [tenantId]);
+      let query = 'SELECT * FROM customers WHERE tenant_id = $1';
+      const params: any[] = [tenantId];
+      let paramIndex = 2;
+
+      if (filter?.feinOrSsn) {
+        query += ` AND fein_or_ssn = $${paramIndex}`;
+        params.push(filter.feinOrSsn);
+        paramIndex++;
+      }
+
+      if (filter?.name) {
+        const q = `%${filter.name.toLowerCase()}%`;
+        query += ` AND (LOWER(first_name || ' ' || last_name) LIKE $${paramIndex} OR LOWER(business_name) LIKE $${paramIndex} OR LOWER(dba) LIKE $${paramIndex})`;
+        params.push(q);
+        paramIndex++;
+      }
+
+      const res = await client.query(query, params);
       return res.rows.map(this.mapToCustomer);
     });
   }

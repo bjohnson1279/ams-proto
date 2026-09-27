@@ -116,3 +116,6 @@
 ## 2026-09-20 - Extract static objects from API route handlers to avoid reallocation overhead
 **Learning:** In `src/routes/wsapi.routes.ts`, the `handleValueListGet` endpoint reconstructed a large dictionary (`lists`) containing all supported value list configurations on every single API call. This caused unnecessary memory allocation and garbage collection overhead, particularly under load.
 **Action:** To optimize performance and reduce garbage collection overhead in frequently executed functions (like API route handlers), extract static object dictionaries or arrays outside the function scope into module-level constants to prevent them from being reallocated on every request.
+## 2026-09-27 - Push array filtering to DB query
+**Learning:** When an API route fetches a full table of records and filters them in memory, it creates an O(N) memory bottleneck and wastes DB bandwidth. Modifying the route to pass the filter criteria to the service layer and modifying the repository to execute a targeted `WHERE` query avoids fetching unnecessary rows.
+**Action:** Push filtering logic as close to the database as possible using parameterized SQL queries. Ensure all existing filters are still handled when modifying the SQL.
