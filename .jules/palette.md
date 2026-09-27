@@ -73,3 +73,7 @@
 ## 2024-10-24 - Implementing Skip Links Safely
 **Learning:** Adding a "skip to main content" link requires setting `tabindex="-1"` on the target container (e.g., `<main>`) to ensure it can receive programmatic focus when the link is clicked. Without it, the browser scrolls but doesn't move focus, meaning the next Tab press will start from the top again.
 **Action:** Always ensure target elements for skip links have `tabindex="-1"`. Also, when using tools like `pnpm add` to install temporary testing dependencies (like Playwright), be incredibly careful to revert any unintended changes to lockfiles (`pnpm-lock.yaml`) to prevent accidental major version bumps of backend dependencies (like Express v5).
+
+## 2026-10-27 - Real-time Input and Visual Hint UX
+**Learning:** Using `onkeyup` for real-time text inputs misses mutations like pasting, drag-and-drop, or autofill. Additionally, visual shortcut hints (like `<kbd>`) placed inside the input field can visually overlap with the entered text if not managed.
+**Action:** Always prefer `oninput` over `onkeyup` to capture all text mutations. Also, dynamically fade out visual shortcut hints inside the input when text is present to prevent visual overlap.
