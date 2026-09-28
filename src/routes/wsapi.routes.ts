@@ -221,13 +221,8 @@ async function handleCustomerGet(payload: CustomerGetRequest, res: Response, ten
   // Search by name or FEIN
   const customers = await amsService.getCustomers(tenantId, {
     name: payload?.name,
+    feinOrSsn: payload?.feinOrSsn,
   });
-
-  if (payload?.feinOrSsn) {
-    const filtered = customers.filter(c => c.feinOrSsn === payload.feinOrSsn);
-    sendSuccess(res, 'CustomerGet', { customers: filtered, count: filtered.length });
-    return;
-  }
 
   sendSuccess(res, 'CustomerGet', { customers, count: customers.length });
 }

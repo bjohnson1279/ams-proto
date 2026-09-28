@@ -29,7 +29,7 @@ export class AmsService {
   }
 
   // CUSTOMER OPERATIONS
-  public async getCustomers(tenantId: string, filter?: { name?: string; policyNumber?: string }): Promise<Customer[]> {
+  public async getCustomers(tenantId: string, filter?: { name?: string; policyNumber?: string; feinOrSsn?: string }): Promise<Customer[]> {
     let customers = await this.repos.customers.getAll(tenantId, filter);
 
     if (filter?.policyNumber) {

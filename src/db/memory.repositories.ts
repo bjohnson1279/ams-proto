@@ -18,15 +18,22 @@ export class MemoryCustomerRepository implements ICustomerRepository {
   private customers = [...INITIAL_CUSTOMERS];
 
   async getAll(tenantId: string, filter?: any): Promise<Customer[]> {
-    if (!filter || !filter.name) {
+    if (!filter || (!filter.name && !filter.feinOrSsn)) {
       return Promise.resolve([...this.customers]);
     }
-    const q = filter.name.toLowerCase();
+    const q = filter.name ? filter.name.toLowerCase() : null;
+    const feinOrSsn = filter.feinOrSsn;
     return Promise.resolve(this.customers.filter(c => {
-      const fullIndName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
-      const busName = (c.businessName || '').toLowerCase();
-      const dba = (c.dba || '').toLowerCase();
-      return fullIndName.includes(q) || busName.includes(q) || dba.includes(q);
+      if (feinOrSsn && c.feinOrSsn !== feinOrSsn) return false;
+      if (q) {
+        const fullIndName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
+        const busName = (c.businessName || '').toLowerCase();
+        const dba = (c.dba || '').toLowerCase();
+        if (!(fullIndName.includes(q) || busName.includes(q) || dba.includes(q))) {
+          return false;
+        }
+      }
+      return true;
     }));
   }
 
