@@ -33,16 +33,12 @@ export class AmsService {
     let customers = await this.repos.customers.getAll(tenantId, filter);
 
     if (filter?.policyNumber) {
-      const pNum = filter.policyNumber.toLowerCase();
-      const allPolicies = await this.repos.policies.getAll(tenantId);
+      // ⚡ Bolt: Pushed policyNumber filter to repository to prevent fetching all policies into memory
+      const matchingPolicies = await this.repos.policies.getAll(tenantId, { policyNumber: filter.policyNumber });
 
-      // ⚡ Bolt: Consolidated .filter().map() into a single loop to avoid intermediate array allocations
       const customerIdsWithPolicy = new Set<string>();
-      for (const p of allPolicies) {
-        if ((p.policyNumber && p.policyNumber.toLowerCase().includes(pNum)) ||
-            (p.policyId && p.policyId.toLowerCase().includes(pNum))) {
-          customerIdsWithPolicy.add(p.customerId);
-        }
+      for (const p of matchingPolicies) {
+        customerIdsWithPolicy.add(p.customerId);
       }
       customers = customers.filter(c => customerIdsWithPolicy.has(c.customerId));
     }

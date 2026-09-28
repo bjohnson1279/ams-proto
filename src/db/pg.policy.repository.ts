@@ -6,7 +6,35 @@ import { randomUUID } from 'crypto';
 export class PgPolicyRepository implements IPolicyRepository {
   async getAll(tenantId: string, filter?: any): Promise<Policy[]> {
     return withTenantTransaction(tenantId, async (client) => {
-      const res = await client.query('SELECT * FROM policies WHERE tenant_id = $1', [tenantId]);
+      let query = 'SELECT * FROM policies WHERE tenant_id = $1';
+      const values: any[] = [tenantId];
+      let paramIndex = 2;
+
+      if (filter) {
+        if (filter.customerId) {
+          query += ` AND customer_id = $${paramIndex++}`;
+          values.push(filter.customerId);
+        }
+        if (filter.carrierId) {
+          query += ` AND carrier_id = $${paramIndex++}`;
+          values.push(filter.carrierId);
+        }
+        if (filter.status) {
+          query += ` AND LOWER(policy_status) = LOWER($${paramIndex++})`;
+          values.push(filter.status);
+        }
+        if (filter.effectiveDate) {
+          query += ` AND effective_date >= $${paramIndex++}`;
+          values.push(filter.effectiveDate);
+        }
+        if (filter.policyNumber) {
+          query += ` AND (LOWER(policy_number) LIKE LOWER($${paramIndex}) OR LOWER(policy_id::text) LIKE LOWER($${paramIndex}))`;
+          values.push(`%${filter.policyNumber}%`);
+          paramIndex++;
+        }
+      }
+
+      const res = await client.query(query, values);
       return res.rows.map(this.mapToPolicy);
     });
   }
