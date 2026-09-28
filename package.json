@@ -11,7 +11,8 @@
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --no-cache",
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --no-cache",
     "test:import": "tsx src/scripts/testImport.ts",
-    "db:init": "tsx src/scripts/initDb.ts"
+    "db:init": "tsx src/scripts/initDb.ts",
+    "pr:simulate": "python scripts/simulate-prs.py"
   },
   "keywords": [
     "insurtech",

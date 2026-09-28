@@ -76,3 +76,8 @@
 ## 2024-05-30 - Improve live search UX and screen reader updates
 **Learning:** `onkeyup` fails to capture text pasted via mouse, drag-and-drop, or autofilled by the browser. Additionally, only announcing empty states to screen readers leaves visually impaired users unaware when actual results populate the screen. Shortcut hints (like `<kbd>`) visually overlap user text if they aren't hidden dynamically.
 **Action:** Use `oninput` for real-time text fields to catch all mutations. Ensure dynamic screen reader updates announce both empty states and successful data loads (e.g. `announceToScreenReader('Found X items')`). Hide visual decorators inside inputs when text is present.
+
+## 2026-09-28 - Accompany UX & Accessibility Changes with Automated DOM Tests
+**Learning:** Adding accessibility improvements (such as `announceToScreenReader`, ARIA attributes, or real-time event listeners like `oninput`) without DOM test assertions allows future UI redesigns to accidentally strip them away.
+**Action:** Whenever enhancing UI accessibility or interactive inputs, always add or augment assertions in the UI guardrail test suite (e.g., `tests/ui.empty-states.test.ts`) to verify that the required event handlers, ARIA states, and announcement hooks remain present in the DOM.
+

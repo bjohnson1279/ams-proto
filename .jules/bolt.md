@@ -119,3 +119,8 @@
 ## 2026-09-27 - Push array filtering to DB query
 **Learning:** When an API route fetches a full table of records and filters them in memory, it creates an O(N) memory bottleneck and wastes DB bandwidth. Modifying the route to pass the filter criteria to the service layer and modifying the repository to execute a targeted `WHERE` query avoids fetching unnecessary rows.
 **Action:** Push filtering logic as close to the database as possible using parameterized SQL queries. Ensure all existing filters are still handled when modifying the SQL.
+
+## 2026-09-28 - Accompany Performance Optimizations with Automated Unit Tests
+**Learning:** Optimizing query paths or pushing filters to repository/database layers without accompanying unit tests leaves new parameters vulnerable to silent regressions during future refactors.
+**Action:** Whenever introducing query optimizations, new repository filter parameters, or loop consolidations, always add corresponding unit test assertions in the relevant test files (e.g., `tests/wsapi.auth.test.ts`, `tests/customer.routes.test.ts`, or service test suites) to lock in the optimized behavior and maintain 100% test coverage.
+

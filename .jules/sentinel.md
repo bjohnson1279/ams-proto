@@ -56,3 +56,8 @@
 **Vulnerability:** Express controllers in the system (e.g., accounting, certificate, and policy controllers) returned raw `err.message` values directly to the client in HTTP 400 and 404 responses. This could potentially leak internal system mechanics, database errors, or file paths.
 **Learning:** While global error handlers are designed to catch and sanitize unhandled 500 errors, localized 400/404 responses in controller `catch` blocks must also be explicitly sanitized to prevent information exposure. However, blindly replacing these responses with `next(err)` can sometimes mask the HTTP status code intent or cause unhandled rejections if not structured perfectly with the global handler.
 **Prevention:** When preventing information leakage (e.g., exposing `err.message`) in Express `catch` blocks, sanitize the response dynamically based on the environment (e.g., `process.env.NODE_ENV === 'production' ? 'Generic Error' : err.message`). This secures production environments from leaking sensitive information while preserving full context for developers during debugging.
+
+## 2026-09-28 - Accompany Security Hardening with Automated Regression Tests
+**Learning:** Hardening error handlers or sanitizing responses without automated test assertions can lead to unintentional regressions where sensitive traces are leaked again in future updates.
+**Prevention:** Whenever sanitizing error messages or hardening endpoints against information leakage or XSS, always add automated test assertions verifying that production environments (`NODE_ENV=production`) correctly conceal internal exception details while test/dev modes preserve necessary debugging context.
+

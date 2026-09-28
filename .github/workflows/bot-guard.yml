@@ -7,7 +7,7 @@ on:
 jobs:
   audit-bot-pr:
     runs-on: ubuntu-latest
-    if: contains(github.actor, 'jules') || contains(github.actor, 'sentinel') || contains(github.head_ref, 'sentinel') || contains(github.head_ref, 'jules')
+    if: contains(github.actor, 'jules') || contains(github.actor, 'sentinel') || contains(github.actor, 'bolt') || contains(github.actor, 'palette') || contains(github.head_ref, 'sentinel') || contains(github.head_ref, 'jules') || contains(github.head_ref, 'bolt') || contains(github.head_ref, 'palette')
     steps:
       - uses: actions/checkout@v4
         with:
@@ -50,4 +50,13 @@ jobs:
             exit 1
           fi
 
+          # Verify that substantive application changes (src/ or public/) are accompanied by tests
+          APP_CHANGES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^(src|public)/' || true)
+          TEST_CHANGES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^tests/' || true)
+          if [ -n "$APP_CHANGES" ] && [ -z "$TEST_CHANGES" ]; then
+            echo "⚠️ NOTICE: PR modifies application source files without accompanying updates in tests/ directory."
+            echo "Bot authors should ensure behavioral changes, optimizations, and bug fixes include automated tests."
+          fi
+
           echo "✅ Bot Guardrail Passed."
+

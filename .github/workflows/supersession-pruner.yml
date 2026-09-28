@@ -9,7 +9,7 @@ on:
 jobs:
   prune-superseded:
     runs-on: ubuntu-latest
-    if: contains(github.actor, 'jules') || contains(github.actor, 'sentinel') || contains(github.head_ref, 'sentinel') || contains(github.head_ref, 'jules')
+    if: github.event_name == 'push' || contains(github.actor, 'jules') || contains(github.actor, 'sentinel') || contains(github.actor, 'bolt') || contains(github.actor, 'palette') || contains(github.head_ref, 'sentinel') || contains(github.head_ref, 'jules') || contains(github.head_ref, 'bolt') || contains(github.head_ref, 'palette')
     steps:
       - uses: actions/checkout@v4
         with:
@@ -19,16 +19,26 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "=== Checking if PR is superseded by main ==="
-          
-          # Check if the substantive diff is empty against main
-          # We ignore .jules/ logs and lockfiles when determining if logic was merged
-          SUBSTANTIVE_DIFF=$(git diff origin/${{ github.base_ref }}...HEAD -- ':!.jules/' ':!package-lock.json' ':!pnpm-lock.yaml' ':!composer.lock' || true)
-          
-          if [ -z "$SUBSTANTIVE_DIFF" ]; then
-            echo "🚨 Substantive changes are already present on origin/${{ github.base_ref }}."
-            echo "This PR is a duplicate or has been superseded. Closing automatically..."
-            gh pr close ${{ github.event.pull_request.number }} --comment "Closing as superseded: The substantive code changes in this PR have already been merged into the default branch via another PR or commit."
+          if [ -n "${{ github.event.pull_request.number }}" ]; then
+            echo "=== Checking if PR #${{ github.event.pull_request.number }} is superseded by main ==="
+            SUBSTANTIVE_DIFF=$(git diff origin/${{ github.base_ref }}...HEAD -- ':!.jules/' ':!package-lock.json' ':!pnpm-lock.yaml' ':!composer.lock' || true)
+            if [ -z "$SUBSTANTIVE_DIFF" ]; then
+              echo "🚨 Substantive changes are already present on origin/${{ github.base_ref }}."
+              echo "This PR is a duplicate or has been superseded. Closing automatically..."
+              gh pr close ${{ github.event.pull_request.number }} --comment "Closing as superseded: The substantive code changes in this PR have already been merged into the default branch via another PR or commit."
+            else
+              echo "✅ PR contains unique substantive changes."
+            fi
           else
-            echo "✅ PR contains unique substantive changes."
+            echo "=== Push to default branch detected. Auditing open bot PRs for supersession ==="
+            PR_LIST=$(gh pr list --state open --json number,headRefName --jq '.[] | select(.headRefName | test("bolt|palette|sentinel|jules")) | .number')
+            for PR_NUM in $PR_LIST; do
+              echo "Checking open bot PR #$PR_NUM..."
+              git fetch origin pull/$PR_NUM/head:pr-$PR_NUM || true
+              SUBSTANTIVE_DIFF=$(git diff origin/main...pr-$PR_NUM -- ':!.jules/' ':!package-lock.json' ':!pnpm-lock.yaml' ':!composer.lock' || true)
+              if [ -z "$SUBSTANTIVE_DIFF" ]; then
+                echo "🚨 Bot PR #$PR_NUM is now superseded by main. Auto-closing..."
+                gh pr close $PR_NUM --comment "Closing as superseded: The substantive code changes in this PR have already been merged into the default branch."
+              fi
+            done
           fi
