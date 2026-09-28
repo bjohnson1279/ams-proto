@@ -103,7 +103,7 @@ router.post('/:operation', wsapiLoginRateLimiter, wsapiAuthMiddleware, async (re
     }
   } catch (err: any) {
     const operation = req.params.operation || 'Unknown';
-    sendFault(res, operation, 'INTERNAL_ERROR', err.message || 'An unexpected error occurred.');
+    sendFault(res, operation, 'INTERNAL_ERROR', process.env.NODE_ENV === 'production' ? 'An unexpected error occurred.' : (err.message || 'An unexpected error occurred.'));
   }
 });
 
