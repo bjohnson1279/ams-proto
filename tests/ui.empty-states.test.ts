@@ -43,5 +43,18 @@ describe('UI Empty States & DOM Structure Guardrail', () => {
     expect(htmlContent).toMatch(/<a[^>]*href="#main-content"[^>]*class=["'][^"']*skip-link[^"']*["'][^>]*>Skip to main content<\/a>/);
     expect(htmlContent).toMatch(/<main[^>]*id="main-content"[^>]*tabindex="-1"/);
   });
+
+  it('should use oninput for real-time customer search and fade shortcut hint', () => {
+    // 🎨 Palette: Verify search-input uses oninput instead of onkeyup
+    expect(htmlContent).toMatch(/<input[^>]*id="search-input"[^>]*oninput="debouncedFilterCustomers\(\)"/);
+    expect(htmlContent).not.toMatch(/<input[^>]*id="search-input"[^>]*onkeyup/);
+
+    // 🎨 Palette: Verify CSS hides <kbd> shortcut hint when input contains text
+    expect(htmlContent).toContain('#search-input:not(:placeholder-shown) + kbd');
+
+    // 🎨 Palette: Verify screen reader announcement on search result retrieval
+    expect(htmlContent).toMatch(/announceToScreenReader\(`Found \$\{customers\.length\} customer/);
+  });
 });
+
 

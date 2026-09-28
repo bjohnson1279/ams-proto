@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import request from 'supertest';
 import app from '../src/app.js';
 import { AuthService } from '../src/services/auth.service.js';
@@ -256,6 +257,22 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
       expect(res.body.responsePayload.policies).toBeDefined();
       expect(Array.isArray(res.body.responsePayload.policies)).toBe(true);
     });
+
+    it('should filter customers by feinOrSsn', async () => {
+      const res = await request(app)
+        .post('/api/v1/wsapi/CustomerGet').set('x-tenant-id', 'tenant-001')
+        .set('X-WSAPI-Ticket', ticket)
+        .send({
+          operation: 'CustomerGet',
+          requestPayload: { feinOrSsn: '12-3456789' },
+        });
+
+      expect(res.status).toBe(200);
+      expect(res.body.responsePayload.customers).toBeDefined();
+      expect(res.body.responsePayload.customers.length).toBe(1);
+      expect(res.body.responsePayload.customers[0].customerId).toBe('CUST-1001');
+      expect(res.body.responsePayload.customers[0].feinOrSsn).toBe('12-3456789');
+    });
   });
 
   // ── CustomerInsert via WSAPI ────────────────────────────────────────
@@ -479,6 +496,46 @@ describe('WSAPI Auth & Operation Router (/api/v1/wsapi)', () => {
 
       expect(res.status).toBe(501);
       expect(res.body.fault.code).toBe('OPERATION_NOT_SUPPORTED');
+    });
+  });
+
+  // ── Error Sanitization Tests ─────────────────────────────────────────
+
+  describe('Error Sanitization', () => {
+    let ticket: string;
+
+    beforeEach(async () => {
+      const loginRes = await request(app)
+        .post('/api/v1/wsapi/Login').set('x-tenant-id', 'tenant-001')
+        .send({
+          operation: 'Login',
+          requestPayload: { loginId: 'wsapi-admin', password: 'admin123' },
+        });
+      ticket = loginRes.body.ticket;
+    });
+
+    it('should sanitize 500 error messages when NODE_ENV is production', async () => {
+      const origEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+
+      const amsService = (await import('../src/services/ams.service.js')).AmsService.getInstance();
+      const spy = jest.spyOn(amsService, 'getCustomers').mockRejectedValueOnce(new Error('Sensitive database connection failed: pg://user:secret@db:5432'));
+
+      try {
+        const res = await request(app)
+          .post('/api/v1/wsapi/CustomerGet').set('x-tenant-id', 'tenant-001')
+          .set('X-WSAPI-Ticket', ticket)
+          .send({ operation: 'CustomerGet', requestPayload: {} });
+
+        expect(res.status).toBe(500);
+        expect(res.body.status).toBe('fault');
+        expect(res.body.fault.code).toBe('INTERNAL_ERROR');
+        expect(res.body.fault.message).toBe('An unexpected error occurred.');
+        expect(res.body.fault.message).not.toContain('Sensitive');
+      } finally {
+        spy.mockRestore();
+        process.env.NODE_ENV = origEnv;
+      }
     });
   });
 });
