@@ -228,7 +228,16 @@ export class MemoryAccountingRepository implements IAccountingRepository {
     let totalDebits = 0;
     let totalCredits = 0;
 
-    const trialBalance = this.accounts.map(acct => {
+    const trialBalance: any[] = [];
+
+    // ⚡ Bolt: Consolidated array mapping and metrics lookup into a single loop to avoid redundant O(N) traversal and intermediate allocations
+    let arAcct: GlAccount | undefined;
+    let apAcct: GlAccount | undefined;
+    let opCashAcct: GlAccount | undefined;
+    let trustCashAcct: GlAccount | undefined;
+    let revAcct: GlAccount | undefined;
+
+    for (const acct of this.accounts) {
       let debitBalance = 0;
       let creditBalance = 0;
 
@@ -243,33 +252,22 @@ export class MemoryAccountingRepository implements IAccountingRepository {
       totalDebits += debitBalance;
       totalCredits += creditBalance;
 
-      return {
+      trialBalance.push({
         accountNumber: acct.accountNumber,
         accountName: acct.accountName,
         category: acct.category,
         debitBalance: Math.round(debitBalance * 100) / 100,
         creditBalance: Math.round(creditBalance * 100) / 100
-      };
-    });
+      });
+
+      if (!arAcct && acct.accountNumber === '1200') { arAcct = acct; }
+      else if (!apAcct && acct.accountNumber === '2000') { apAcct = acct; }
+      else if (!opCashAcct && acct.accountNumber === '1000') { opCashAcct = acct; }
+      else if (!trustCashAcct && acct.accountNumber === '1010') { trustCashAcct = acct; }
+      else if (!revAcct && acct.accountNumber === '4000') { revAcct = acct; }
+    }
 
     const isBalanced = Math.abs(totalDebits - totalCredits) < 0.01;
-
-    // ⚡ Bolt: Consolidated multiple .find() array scans into a single O(N) loop with early break
-    let arAcct: GlAccount | undefined;
-    let apAcct: GlAccount | undefined;
-    let opCashAcct: GlAccount | undefined;
-    let trustCashAcct: GlAccount | undefined;
-    let revAcct: GlAccount | undefined;
-
-    let foundCount = 0;
-    for (const a of this.accounts) {
-      if (!arAcct && a.accountNumber === '1200') { arAcct = a; foundCount++; }
-      else if (!apAcct && a.accountNumber === '2000') { apAcct = a; foundCount++; }
-      else if (!opCashAcct && a.accountNumber === '1000') { opCashAcct = a; foundCount++; }
-      else if (!trustCashAcct && a.accountNumber === '1010') { trustCashAcct = a; foundCount++; }
-      else if (!revAcct && a.accountNumber === '4000') { revAcct = a; foundCount++; }
-      if (foundCount === 5) break;
-    }
 
     return Promise.resolve({
       trialBalance,
