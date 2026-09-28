@@ -8,6 +8,7 @@ import {
   Policy
 } from '../types/domain.js';
 import { getRepositories, Repositories } from '../db/repository.factory.js';
+import { randomUUID } from 'crypto';
 
 export const DEFAULT_CHART_OF_ACCOUNTS: GlAccount[] = [
   { accountNumber: '1000', accountName: 'Cash - Operating Account', category: 'Asset', isTrustAccount: false, normalBalance: 'Debit', currentBalance: 125000.00 },
@@ -104,7 +105,7 @@ export class AccountingService {
     }
 
     const newEntry: Partial<JournalEntry> = {
-      entryId: `JE-${Date.now()}`,
+      entryId: `JE-${randomUUID()}`,
       entryDate: payload.entryDate || new Date().toISOString().split('T')[0],
       reference: payload.reference,
       memo: payload.memo,
@@ -202,7 +203,7 @@ export class AccountingService {
     }
 
     const depositAccount = payload.depositAccount || '1010'; // Fiduciary Trust Account
-    const payId = `PAY-${Date.now()}`;
+    const payId = `PAY-${randomUUID()}`;
 
     // Post double-entry payment transaction
     const je = await this.postJournalEntry(tenantId, {

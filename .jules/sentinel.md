@@ -27,14 +27,12 @@
 **Vulnerability:** The application was configured with `app.use(cors())` which by default allows cross-origin requests from any origin (`*`), leading to potential unwanted data exposure or CSRF-like risks.
 **Learning:** Default configuration for security middlewares like `cors` is often overly permissive for real-world applications. Express's default `cors()` without options allows all origins, which should be explicitly constrained.
 **Prevention:** Always define an explicit options object for `cors()` specifying an allowlist of allowed origins (e.g., pulling from environment variables like `CORS_ORIGIN` with a safe local fallback), alongside restricted HTTP methods and allowed headers to enforce the principle of least privilege.
-## 2024-05-23 - [Fix Overly Permissive CORS Configuration]
-**Vulnerability:** The Express backend was configured with a wildcard `cors()` middleware without options. This overly permissive setup allows requests from any origin, which is a significant risk for cross-origin request forgery (CSRF) and unauthorized data access in API endpoints.
-**Learning:** Defaulting to `cors()` without specifying origins effectively disables the same-origin policy enforcement by the browser for cross-origin requests.
-**Prevention:** Always restrict CORS origins to trusted domains (using environment variables like `process.env.CORS_ORIGIN` with a fallback) and explicitly specify allowed HTTP methods and headers to follow the principle of least privilege.
+
 ## 2025-02-27 - [Overly Permissive CORS Configuration]
 **Vulnerability:** The application was configured with `app.use(cors())`, which defaults to allowing all origins (`*`), opening the API up to unauthorized cross-origin requests.
 **Learning:** Default configurations of security middleware like `cors` often prioritize ease of use over security, leading to overly permissive access controls.
 **Prevention:** Always explicitly configure `cors` with restricted `origin`, `methods`, and `allowedHeaders` appropriately scoped for the application's needs. Ensure fallback defaults are secure (e.g., `http://localhost:3000`).
+
 ## 2024-03-24 - [Insecure Random ID Generation]
 **Vulnerability:** Weak random number generation (`Math.random()`) used for creating Certificate Holder IDs (`HOLDER-<id>`).
 **Learning:** `Math.random()` is predictable and not cryptographically secure, leading to potential Insecure Direct Object Reference (IDOR) vulnerabilities if used for token generation or object identifiers.
@@ -44,14 +42,17 @@
 **Vulnerability:** The WSAPI `Login` and `ValidateAgentLogin` endpoints were not explicitly rate-limited, relying only on the generic API rate limiter. This left them vulnerable to brute-force and credential-stuffing attacks.
 **Learning:** Global rate limits are often too permissive for authentication endpoints, which require much stricter limits to effectively deter automated attacks.
 **Prevention:** Implement specific, strict rate limiters (e.g., 5 requests per 15 minutes) for all endpoints that handle authentication or credential validation.
+
 ## 2024-05-24 - [Fix Hardcoded Tenant ID Authorization Bypass]
 **Vulnerability:** In `src/routes/wsapi.routes.ts`, multi-tenant API routes (like `CustomerGet`, `CustomerInsert`, `CustomerUpdate`, `PolicyGet`) used a hardcoded fallback tenant ID (`'tenant-001'`) instead of strictly requiring and extracting the `tenantId` from the authenticated user's session ticket.
 **Learning:** Hardcoding or falling back to a specific tenant ID in a multi-tenant system defeats the purpose of logical data isolation. If session validation logic is flawed or missing, the system defaults to allowing unauthorized access to the fallback tenant's data, causing a severe data leak and manipulation risk.
 **Prevention:** When implementing multi-tenant API routes (e.g., WSAPI endpoints), never use a hardcoded fallback tenant ID if the session's tenant ID is missing. Always fail securely (e.g., return an 'INVALID_TICKET' fault) to prevent cross-tenant authorization bypass.
+
 ## 2024-05-25 - [SQL Injection Risk via Manual String Sanitization]
 **Vulnerability:** The `generateRlsSessionQuery` method in `src/services/database.service.ts` constructed a Row-Level Security (RLS) SQL query via string concatenation, using a basic `replace(/'/g, "''")` to escape single quotes.
 **Learning:** Manual string sanitization is fragile and error-prone, leaving systems vulnerable to SQL injection (e.g., if backslashes are involved). Even if the query is only setting session configuration variables (`set_config`), building raw SQL strings dynamically with user or external input is a severe security anti-pattern.
 **Prevention:** Always use parameterized queries for all database interactions. Instead of returning a raw string to be executed, return a query object (e.g., `{ text: string, values: string[] }`) and pass the parameterized values securely to the database driver.
+
 ## 2026-09-22 - [Sanitize error messages in controller responses]
 **Vulnerability:** Express controllers in the system (e.g., accounting, certificate, and policy controllers) returned raw `err.message` values directly to the client in HTTP 400 and 404 responses. This could potentially leak internal system mechanics, database errors, or file paths.
 **Learning:** While global error handlers are designed to catch and sanitize unhandled 500 errors, localized 400/404 responses in controller `catch` blocks must also be explicitly sanitized to prevent information exposure. However, blindly replacing these responses with `next(err)` can sometimes mask the HTTP status code intent or cause unhandled rejections if not structured perfectly with the global handler.
@@ -61,3 +62,7 @@
 **Learning:** Hardening error handlers or sanitizing responses without automated test assertions can lead to unintentional regressions where sensitive traces are leaked again in future updates.
 **Prevention:** Whenever sanitizing error messages or hardening endpoints against information leakage or XSS, always add automated test assertions verifying that production environments (`NODE_ENV=production`) correctly conceal internal exception details while test/dev modes preserve necessary debugging context.
 
+## 2026-09-22 - [Insecure Random ID Generation via Date.now()]
+**Vulnerability:** The application used `Date.now()` to generate unique identifiers (e.g., `policyId`, `batchId`, `entryId`) across several services and transformers.
+**Learning:** `Date.now()` is highly predictable and not cryptographically secure, leading to potential Insecure Direct Object Reference (IDOR) vulnerabilities or identifier collisions if used for token generation or object identifiers.
+**Prevention:** Use Node.js's native `crypto` module (e.g., `randomUUID()` or `randomInt()`) to generate cryptographically secure random values.
