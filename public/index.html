@@ -1108,6 +1108,7 @@
       if (btn) {
         originalText = btn.innerText;
         btn.disabled = true;
+        btn.title = 'Processing...';
         btn.innerText = '⏳ Processing...';
       }
 
@@ -1135,6 +1136,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute('title');
           btn.innerText = originalText;
         }
       }
@@ -1145,6 +1147,7 @@
       const editorVal = document.getElementById('payload-editor').value;
       const btn = document.getElementById('btn-dry-run');
       btn.disabled = true;
+      btn.title = 'Running audit...';
       btn.innerText = '⏳ Analyzing...';
       try {
         const payload = JSON.parse(editorVal);
@@ -1159,6 +1162,7 @@
         alert('Invalid JSON in payload editor: ' + err.message);
       } finally {
         btn.disabled = false;
+          btn.removeAttribute('title');
         btn.innerText = '🔍 Run Dry-Run Audit';
       }
     }
@@ -1167,6 +1171,7 @@
       const editorVal = document.getElementById('payload-editor').value;
       const btn = document.getElementById('btn-import');
       btn.disabled = true;
+      btn.title = 'Importing data...';
       btn.innerText = '⏳ Importing...';
       try {
         const payload = JSON.parse(editorVal);
@@ -1182,6 +1187,7 @@
         alert('Import Error: ' + err.message);
       } finally {
         btn.disabled = false;
+          btn.removeAttribute('title');
         btn.innerText = '🚀 Execute CoreAMS Import';
       }
     }
@@ -1322,6 +1328,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute('title');
           btn.innerText = btn.dataset.originalText;
         }
       }
@@ -1566,6 +1573,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute('title');
           btn.innerText = originalText;
         }
       }
@@ -1582,6 +1590,7 @@
       if (btn) {
         originalText = btn.innerText;
         btn.disabled = true;
+        btn.title = 'Adding holder...';
         btn.innerText = '⏳ Saving...';
       }
 
@@ -1608,6 +1617,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute('title');
           btn.innerText = originalText;
         }
       }
@@ -1622,6 +1632,7 @@
       if (btn) {
         originalText = btn.innerText;
         btn.disabled = true;
+        btn.title = 'Processing...';
         btn.innerText = '⏳ Processing...';
       }
 
@@ -1648,6 +1659,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute('title');
           btn.innerText = originalText;
         }
       }
@@ -1764,6 +1776,7 @@
       const btn = event ? event.target.closest('.btn') : null;
       if (btn) {
         btn.disabled = true;
+        btn.title = 'Parsing AL3...';
         btn.innerText = '⏳ Parsing...';
       }
 
@@ -1811,6 +1824,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute('title');
           btn.innerText = '⚡ Parse Raw AL3 Stream';
         }
       }
@@ -1820,6 +1834,7 @@
       const btn = event ? event.target.closest('.btn') : null;
       if (btn) {
         btn.disabled = true;
+        btn.title = 'Ingesting batch...';
         btn.innerText = '⏳ Ingesting...';
       }
 
@@ -1852,6 +1867,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute('title');
           btn.innerText = '🚀 Ingest IVANS Download Batch';
         }
       }
@@ -1884,6 +1900,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute('title');
           btn.innerText = btn.dataset.originalText;
         }
       }
@@ -1895,6 +1912,7 @@
       if (btn) {
         originalText = btn.innerText;
         btn.disabled = true;
+        btn.title = 'Processing...';
         btn.innerText = '⏳ Processing...';
       }
 
@@ -1916,6 +1934,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute('title');
           btn.innerText = originalText;
         }
       }
