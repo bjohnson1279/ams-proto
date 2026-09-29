@@ -10,9 +10,13 @@
     "dev": "tsx watch src/server.ts",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --no-cache",
     "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --no-cache",
+    "test:related": "node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit --findRelatedTests",
     "test:import": "tsx src/scripts/testImport.ts",
     "db:init": "tsx src/scripts/initDb.ts",
-    "pr:simulate": "python scripts/simulate-prs.py"
+    "pr:simulate": "python scripts/triage-bot-prs.py --simulate-only",
+    "pr:triage": "python scripts/triage-bot-prs.py",
+    "pr:review": "python scripts/triage-bot-prs.py --run-tests",
+    "pr:merge-batch": "python scripts/triage-bot-prs.py --run-tests --auto-merge"
   },
   "keywords": [
     "insurtech",

@@ -7,6 +7,9 @@ on:
 jobs:
   audit-bot-pr:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     if: contains(github.actor, 'jules') || contains(github.actor, 'sentinel') || contains(github.actor, 'bolt') || contains(github.actor, 'palette') || contains(github.head_ref, 'sentinel') || contains(github.head_ref, 'jules') || contains(github.head_ref, 'bolt') || contains(github.head_ref, 'palette')
     steps:
       - uses: actions/checkout@v4
@@ -59,4 +62,12 @@ jobs:
           fi
 
           echo "✅ Bot Guardrail Passed."
+
+      - name: Enable Auto-Merge for Validated Bot PRs
+        if: success()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Attempting to enable auto-merge for PR #${{ github.event.pull_request.number }}..."
+          gh pr merge ${{ github.event.pull_request.number }} --auto --squash || echo "Auto-merge could not be set automatically (check repository auto-merge settings)."
 
