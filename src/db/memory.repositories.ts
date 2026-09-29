@@ -173,6 +173,9 @@ export class MemoryCertificateRepository implements ICertificateRepository {
 
 export class MemoryAccountingRepository implements IAccountingRepository {
   private accounts: GlAccount[] = DEFAULT_CHART_OF_ACCOUNTS.map(a => ({ ...a }));
+  // ⚡ Bolt: Maintained parallel Map to replace O(N) array methods with O(1) lookups for single and bulk ID queries
+  private accountMap: Map<string, GlAccount> = new Map(this.accounts.map(a => [a.accountNumber, a]));
+
   private journalEntries: JournalEntry[] = INITIAL_JOURNAL_ENTRIES.map(je => ({
     ...je,
     lines: je.lines.map(l => ({ ...l }))
@@ -183,13 +186,21 @@ export class MemoryAccountingRepository implements IAccountingRepository {
   async getAccounts(tenantId: string): Promise<GlAccount[]> { return Promise.resolve(this.accounts); }
 
   async getAccountByNumber(tenantId: string, accountNumber: string): Promise<GlAccount | null> {
-    const acct = this.accounts.find(a => a.accountNumber === accountNumber);
+    // ⚡ Bolt: Replaced O(N) .find() with O(1) Map lookup
+    const acct = this.accountMap.get(accountNumber);
     return Promise.resolve(acct || null);
   }
 
   async getAccountsByNumbers(tenantId: string, accountNumbers: string[]): Promise<GlAccount[]> {
-    const numbersSet = new Set(accountNumbers);
-    return Promise.resolve(this.accounts.filter(a => numbersSet.has(a.accountNumber)));
+    // ⚡ Bolt: Replaced O(N) .filter() with O(1) Map lookups
+    const result: GlAccount[] = [];
+    for (const num of accountNumbers) {
+      const acct = this.accountMap.get(num);
+      if (acct) {
+        result.push(acct);
+      }
+    }
+    return Promise.resolve(result);
   }
 
   async getJournalEntries(tenantId: string): Promise<JournalEntry[]> { return Promise.resolve(this.journalEntries); }
@@ -200,10 +211,9 @@ export class MemoryAccountingRepository implements IAccountingRepository {
 
     // Update account balances based on debits and credits
     if (je.lines) {
-      // ⚡ Bolt: Use Map for O(1) lookups instead of O(N*M) nested array scans
-      const accountMap = new Map(this.accounts.map(a => [a.accountNumber, a]));
+      // ⚡ Bolt: Reuse the parallel Map for O(1) lookups instead of instantiating a new Map on every call
       for (const line of je.lines) {
-        const acct = accountMap.get(line.accountNumber);
+        const acct = this.accountMap.get(line.accountNumber);
         if (acct) {
           const netChange = (line.debit || 0) - (line.credit || 0);
           if (acct.normalBalance === 'Debit') {
