@@ -89,9 +89,30 @@
 ## 2026-09-11 - Resolving Full-Table Fetch N+1 Bottleneck
 **Learning:** Fetching an entire database table (e.g., all GL accounts) to memory just to validate a subset of records in a transaction is a severe performance anti-pattern. While it avoids an N+1 query loop, it creates a massive memory payload bottleneck, trading a database connection issue for memory exhaustion.
 **Action:** To properly resolve N+1 query loops without incurring full-table fetch memory bottlenecks, use a `Set` to extract the unique identifiers needed from the payload subset, and execute a targeted concurrent fetch using `Promise.all()` or a batched `WHERE IN` query for only those required records, mapping the result for O(1) lookups.
+
 ## 2024-05-18 - Consolidate chained array mapping and iteration into single loop
 **Learning:** Sequential `.map()` calls followed by `for` loops on arrays create wasteful intermediate arrays that consume memory and cause redundant O(N) iterations. For example, `customerSearchData` in `carrierDownload.service.ts` was being mapped and then immediately iterated over.
 **Action:** Combine chained array operations into a single `for...of` loop or a single `.filter()` pass to calculate the final result in one iteration and prevent wasteful intermediate allocations.
+
+## 2025-02-20 - Replace Promise.all with batched query to resolve memory payload bottleneck
+**Learning:** Using `Promise.all` with individual DB queries for each item in a payload can lead to connection exhaustion and N+1 query problems. Replacing `Promise.all` over `getAccountByNumber` with a single batched `getAccountsByNumbers` lookup improves performance, avoids limits, and properly resolves the problem without fetching the entire table as an anti-pattern.
+**Action:** When correlating multiple nested items or validating lists against a database, use batched lookups (`WHERE id IN (...)` style queries) combined with returning a `Map` or using a single query rather than iterating and firing individual queries concurrently.
+
+## 2026-09-20 - Extract static objects from API route handlers to avoid reallocation overhead
+**Learning:** In `src/routes/wsapi.routes.ts`, the `handleValueListGet` endpoint reconstructed a large dictionary (`lists`) containing all supported value list configurations on every single API call. This caused unnecessary memory allocation and garbage collection overhead, particularly under load.
+**Action:** To optimize performance and reduce garbage collection overhead in frequently executed functions (like API route handlers), extract static object dictionaries or arrays outside the function scope into module-level constants to prevent them from being reallocated on every request.
+
+## 2026-09-27 - Push array filtering to DB query
+**Learning:** When an API route fetches a full table of records and filters them in memory, it creates an O(N) memory bottleneck and wastes DB bandwidth. Modifying the route to pass the filter criteria to the service layer and modifying the repository to execute a targeted `WHERE` query avoids fetching unnecessary rows.
+**Action:** Push filtering logic as close to the database as possible using parameterized SQL queries. Ensure all existing filters are still handled when modifying the SQL.
+
+## 2026-09-28 - Accompany Performance Optimizations with Automated Unit Tests
+**Learning:** Optimizing query paths or pushing filters to repository/database layers without accompanying unit tests leaves new parameters vulnerable to silent regressions during future refactors.
+**Action:** Whenever introducing query optimizations, new repository filter parameters, or loop consolidations, always add corresponding unit test assertions in the relevant test files (e.g., `tests/wsapi.auth.test.ts`, `tests/customer.routes.test.ts`, or service test suites) to lock in the optimized behavior and maintain 100% test coverage.
+
+## 2024-05-18 - PostgreSQL UUID LIKE Filtering
+**Learning:** When pushing `policyNumber` string filtering to PostgreSQL repositories using `LIKE` and `LOWER()`, those operations crash if run against a `UUID` type column (like `policy_id`) because `function lower(uuid) does not exist`.
+**Action:** Always explicitly cast UUID columns to text in queries before applying string operations, e.g., `LOWER(policy_id::text)`.
 
 ## Prevention Directives for Automated Refactoring
 - **Never Overwrite Complete Files**: Always use range-scoped replacement chunks for edits to `schema.prisma`, `index.ts`, `public/index.php`, `db/schema.rb`, or DDL SQL scripts.
@@ -109,18 +130,3 @@
 ## Hallucinatory Task & Empty PR Directives
 - **Zero-Diff Task Termination**: If the requested optimization, refactor, or fix is ALREADY natively present in the target branch, DO NOT create an empty pull request or commit an acknowledgment PR. Exit the task cleanly without opening a PR.
 - **Stale Suggestion Guard**: Always verify the current code on `main`/`master` before planning changes. If no actionable diff is required, cancel task execution immediately.
-## 2025-02-20 - Replace Promise.all with batched query to resolve memory payload bottleneck
-**Learning:** Using `Promise.all` with individual DB queries for each item in a payload can lead to connection exhaustion and N+1 query problems. Replacing `Promise.all` over `getAccountByNumber` with a single batched `getAccountsByNumbers` lookup improves performance, avoids limits, and properly resolves the problem without fetching the entire table as an anti-pattern.
-**Action:** When correlating multiple nested items or validating lists against a database, use batched lookups (`WHERE id IN (...)` style queries) combined with returning a `Map` or using a single query rather than iterating and firing individual queries concurrently.
-
-## 2026-09-20 - Extract static objects from API route handlers to avoid reallocation overhead
-**Learning:** In `src/routes/wsapi.routes.ts`, the `handleValueListGet` endpoint reconstructed a large dictionary (`lists`) containing all supported value list configurations on every single API call. This caused unnecessary memory allocation and garbage collection overhead, particularly under load.
-**Action:** To optimize performance and reduce garbage collection overhead in frequently executed functions (like API route handlers), extract static object dictionaries or arrays outside the function scope into module-level constants to prevent them from being reallocated on every request.
-## 2026-09-27 - Push array filtering to DB query
-**Learning:** When an API route fetches a full table of records and filters them in memory, it creates an O(N) memory bottleneck and wastes DB bandwidth. Modifying the route to pass the filter criteria to the service layer and modifying the repository to execute a targeted `WHERE` query avoids fetching unnecessary rows.
-**Action:** Push filtering logic as close to the database as possible using parameterized SQL queries. Ensure all existing filters are still handled when modifying the SQL.
-
-## 2026-09-28 - Accompany Performance Optimizations with Automated Unit Tests
-**Learning:** Optimizing query paths or pushing filters to repository/database layers without accompanying unit tests leaves new parameters vulnerable to silent regressions during future refactors.
-**Action:** Whenever introducing query optimizations, new repository filter parameters, or loop consolidations, always add corresponding unit test assertions in the relevant test files (e.g., `tests/wsapi.auth.test.ts`, `tests/customer.routes.test.ts`, or service test suites) to lock in the optimized behavior and maintain 100% test coverage.
-

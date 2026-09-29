@@ -53,16 +53,19 @@ export class MemoryPolicyRepository implements IPolicyRepository {
   private policies = [...INITIAL_POLICIES];
 
   async getAll(tenantId: string, filter?: any): Promise<Policy[]> {
-    if (!filter || (!filter.customerId && !filter.carrierId && !filter.status && !filter.effectiveDate)) {
+    if (!filter || (!filter.customerId && !filter.carrierId && !filter.status && !filter.effectiveDate && !filter.policyNumber)) {
       return Promise.resolve([...this.policies]);
     }
     const st = filter.status?.toLowerCase();
     const targetDate = filter.effectiveDate;
+    const pNum = filter.policyNumber?.toLowerCase();
+
     return Promise.resolve(this.policies.filter(p => {
       if (filter.customerId && p.customerId !== filter.customerId) return false;
       if (filter.carrierId && p.carrierId !== filter.carrierId) return false;
       if (st && p.status.toLowerCase() !== st) return false;
       if (targetDate && p.effectiveDate < targetDate) return false;
+      if (pNum && !((p.policyNumber && p.policyNumber.toLowerCase().includes(pNum)) || (p.policyId && p.policyId.toLowerCase().includes(pNum)))) return false;
       return true;
     }));
   }
