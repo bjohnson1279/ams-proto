@@ -66,3 +66,8 @@
 **Vulnerability:** The application used `Date.now()` to generate unique identifiers (e.g., `policyId`, `batchId`, `entryId`) across several services and transformers.
 **Learning:** `Date.now()` is highly predictable and not cryptographically secure, leading to potential Insecure Direct Object Reference (IDOR) vulnerabilities or identifier collisions if used for token generation or object identifiers.
 **Prevention:** Use Node.js's native `crypto` module (e.g., `randomUUID()` or `randomInt()`) to generate cryptographically secure random values.
+
+## 2024-06-25 - Secure CORS Configuration
+**Vulnerability:** The Express CORS middleware (`cors()`) was configured to only specify the allowed `origin`, leaving HTTP methods and allowed headers overly permissive. This could allow unintended cross-origin interactions.
+**Learning:** Default permissive configurations in libraries like `cors` violate the principle of least privilege. Explicitly defining allowed parameters narrows the attack surface.
+**Prevention:** Always define an explicit options object for `cors()` specifying `allowedOrigins`, `methods`, and `allowedHeaders`.
