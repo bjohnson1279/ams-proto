@@ -114,6 +114,14 @@
 **Learning:** When pushing `policyNumber` string filtering to PostgreSQL repositories using `LIKE` and `LOWER()`, those operations crash if run against a `UUID` type column (like `policy_id`) because `function lower(uuid) does not exist`.
 **Action:** Always explicitly cast UUID columns to text in queries before applying string operations, e.g., `LOWER(policy_id::text)`.
 
+## 2026-09-28 - Avoid Blind Assumptions on File Structure due to Output Truncation
+**Learning:** When using bash tools like `cat` to read large files in a single session, the output can be silently truncated, leading to incorrect assumptions about the underlying code structure (e.g., assuming `createJournalEntry` instantiates a new `Map` every time).
+**Action:** Always retrieve the exact implementation of target methods using targeted commands like `sed -n 'X,Yp'` or `grep -A` before planning or applying code modifications to ensure groundedness and accuracy.
+
+## 2026-09-29 - Replaced .filter() with native loop to prevent inline closure allocations
+**Learning:** In `src/db/memory.repositories.ts`, the `.filter()` array method was used in `MemoryDownloadRepository.getBatches` and `getTransactions`. This creates unnecessary inline closure allocations and intermediate arrays, adding overhead, especially for operations that execute frequently.
+**Action:** Replaced these `.filter()` operations with standard `for...of` loops that construct and return explicit `result` arrays. This eliminates the closure allocation and maintains identical functionality, improving runtime performance and reducing garbage collection overhead.
+
 ## Prevention Directives for Automated Refactoring
 - **Never Overwrite Complete Files**: Always use range-scoped replacement chunks for edits to `schema.prisma`, `index.ts`, `public/index.php`, `db/schema.rb`, or DDL SQL scripts.
 - **Do Not Remove Core Declarations**: Do not delete existing route registrations or database DDL tables.
@@ -130,6 +138,3 @@
 ## Hallucinatory Task & Empty PR Directives
 - **Zero-Diff Task Termination**: If the requested optimization, refactor, or fix is ALREADY natively present in the target branch, DO NOT create an empty pull request or commit an acknowledgment PR. Exit the task cleanly without opening a PR.
 - **Stale Suggestion Guard**: Always verify the current code on `main`/`master` before planning changes. If no actionable diff is required, cancel task execution immediately.
-## 2026-09-28 - Avoid Blind Assumptions on File Structure due to Output Truncation
-**Learning:** When using bash tools like `cat` to read large files in a single session, the output can be silently truncated, leading to incorrect assumptions about the underlying code structure (e.g., assuming `createJournalEntry` instantiates a new `Map` every time).
-**Action:** Always retrieve the exact implementation of target methods using targeted commands like `sed -n 'X,Yp'` or `grep -A` before planning or applying code modifications to ensure groundedness and accuracy.

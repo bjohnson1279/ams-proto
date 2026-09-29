@@ -313,7 +313,14 @@ export class MemoryDownloadRepository implements IDownloadRepository {
   private txs: any[] = [];
 
   async getBatches(tenantId: string): Promise<any[]> {
-    return Promise.resolve(this.batches.filter(b => !b.tenantId || b.tenantId === tenantId));
+    // ⚡ Bolt: Replaced .filter() with native loop to prevent inline closure allocations
+    const result = [];
+    for (const b of this.batches) {
+      if (!b.tenantId || b.tenantId === tenantId) {
+        result.push(b);
+      }
+    }
+    return Promise.resolve(result);
   }
 
   async getBatchById(tenantId: string, id: string): Promise<any | null> {
@@ -327,6 +334,13 @@ export class MemoryDownloadRepository implements IDownloadRepository {
   }
 
   async getTransactions(tenantId: string, batchId: string): Promise<any[]> {
-    return Promise.resolve(this.txs.filter(t => t.batchId === batchId));
+    // ⚡ Bolt: Replaced .filter() with native loop to prevent inline closure allocations
+    const result = [];
+    for (const t of this.txs) {
+      if (t.batchId === batchId) {
+        result.push(t);
+      }
+    }
+    return Promise.resolve(result);
   }
 }
