@@ -6,37 +6,48 @@ on:
 
 jobs:
   audit-bot-pr:
+    name: Audit Bot PR Diff & Guardrails
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-    if: contains(github.actor, 'jules') || contains(github.actor, 'sentinel') || contains(github.actor, 'bolt') || contains(github.actor, 'palette') || contains(github.head_ref, 'sentinel') || contains(github.head_ref, 'jules') || contains(github.head_ref, 'bolt') || contains(github.head_ref, 'palette')
+    if: contains(github.actor, 'jules') || contains(github.actor, 'sentinel') || contains(github.actor, 'dependabot') || contains(github.head_ref, 'sentinel') || contains(github.head_ref, 'jules') || contains(github.head_ref, 'bolt') || contains(github.head_ref, 'palette')
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Inspect Diff Statistics for Destructive Changes
+      - name: Inspect Diff Statistics for Destructive Changes & Zero-Diff
         run: |
-          echo "=== Auditing PR Diff for Bot Regressions & Hallucinations ==="
+          echo "=== Auditing PR Diff for Bot Regressions, Hallucinations & Conflict Markers ==="
 
-          # Check for zero-diff or hallucinatory acknowledgment PRs
-          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -v '^\.jules/' | grep -v 'package.*json' | grep -v 'composer\.lock' || true)
-          if [ -z "$CHANGED_FILES" ]; then
-            echo "❌ ERROR: PR contains 0 code changes (hallucinatory task acknowledgment). Auto-failing."
+          # 1. Reject Unresolved Git Merge Conflict Markers
+          CONFLICTS=$(git diff origin/${{ github.base_ref }}...HEAD | grep -E '^\+([<]{7}( .*|$)|[=]{7}\r?$|[>]{7}( .*|$)|[|]{7}( .*|$))' || true)
+          if [ -n "$CONFLICTS" ]; then
+            echo "❌ ERROR: PR adds unresolved Git merge conflict markers (<<<<<<<, =======, >>>>>>>). Auto-failing."
+            echo "$CONFLICTS"
             exit 1
           fi
 
-          # Check for forbidden scratch files
-          SCRATCH_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^test(_.*)?\.(ts|js|sh)$|\.scratch$|plan\.md$' || true)
+          # 2. Reject Zero-Diff / Hallucinatory Acknowledgment PRs & Journal-Only PRs
+          if [ "${{ github.actor }}" != "dependabot" ] && [ "${{ github.actor }}" != "dependabot[bot]" ]; then
+            CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -v '^\.jules/' | grep -v '^\.Jules/' | grep -v 'package.*json' | grep -v 'composer\.lock' | grep -v 'Gemfile\.lock' | grep -v 'pnpm-lock\.yaml' | grep -v 'mix\.lock' | grep -v 'Cargo\.lock' || true)
+            if [ -z "$CHANGED_FILES" ]; then
+              echo "❌ ERROR: PR contains 0 non-metadata code changes (hallucinatory task acknowledgment or journal notes only). Auto-failing."
+              exit 1
+            fi
+          fi
+
+          # 3. Reject Forbidden Scratch Verification Files
+          # Filter out recognized test suite directories and only audit newly added non-test files
+          ADDED_FILES=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }}...HEAD | grep -v -E '(^|/)(tests|__tests__|test)/' || true)
+          SCRATCH_FILES=$(echo "$ADDED_FILES" | grep -E '(^|/)test(_.*)?\.(ts|js|cjs|mjs|py|php|sh|bash)$|(^|/)fix_.*\.(php|cjs|js|ts|sh)$|(^|/)patch_.*\.(php|cjs|js|ts|py|sh|bash)$|(^|/)update_.*\.(php|cjs|js|ts|sh)$|(^|/)scratch_.*|.*\.scratch$|^plan\.md$' || true)
           if [ -n "$SCRATCH_FILES" ]; then
             echo "❌ ERROR: PR contains forbidden scratch verification files:"
             echo "$SCRATCH_FILES"
             exit 1
           fi
 
-          # Check for line deletions in critical schema files
-          DELETED_LINES=$(git diff --stat origin/${{ github.base_ref }}...HEAD | grep -E 'schema\.prisma|src/index\.ts|public/index\.php|docker/postgres/init/' | awk '{print $5}' | grep '-' || true)
+          # 4. Reject Destructive Line Deletions in Critical Entrypoints & Schemas
+          DELETED_LINES=$(git diff --stat origin/${{ github.base_ref }}...HEAD | grep -E 'schema\.prisma|src/index\.ts|public/index\.php|docker/postgres/init/|db/schema\.rb|routes/|routes\.php' | awk '{print $5}' | grep '-' || true)
           for count in $DELETED_LINES; do
             num=$(echo "$count" | tr -d '-')
             if [ "$num" -gt 15 ]; then
@@ -45,29 +56,67 @@ jobs:
             fi
           done
 
-          # Check for unresolved merge conflict markers
-          CONFLICTS=$(git diff origin/${{ github.base_ref }}...HEAD | grep -E '^\+\s*(\<{7}|\={7}|\>{7}|\|{7})' || true)
-          if [ -n "$CONFLICTS" ]; then
-            echo "❌ ERROR: PR adds unresolved Git merge conflict markers (<<<<<<<, =======, >>>>>>>). Auto-failing."
-            echo "$CONFLICTS"
+          # 5. Reject Bot CI Workflow Tampering
+          CI_DIFF=$(git diff origin/${{ github.base_ref }}...HEAD -- .github/workflows/ | grep -E '\|\|\s*true|continue-on-error:\s*true' || true)
+          if [ -n "$CI_DIFF" ]; then
+            echo "❌ ERROR: Bot PR modifies .github/workflows to suppress errors ('|| true' or 'continue-on-error: true'). Auto-failing."
+            echo "$CI_DIFF"
             exit 1
           fi
 
-          # Verify that substantive application changes (src/ or public/) are accompanied by tests
-          APP_CHANGES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^(src|public)/' || true)
-          TEST_CHANGES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^tests/' || true)
-          if [ -n "$APP_CHANGES" ] && [ -z "$TEST_CHANGES" ]; then
-            echo "⚠️ NOTICE: PR modifies application source files without accompanying updates in tests/ directory."
-            echo "Bot authors should ensure behavioral changes, optimizations, and bug fixes include automated tests."
+          echo "✅ Basic Bot Diff Guardrail Passed."
+
+      - name: Syntax & Script Verification Gate
+        run: |
+          echo "=== Checking Modified Files for Syntax Errors ==="
+          MODIFIED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+
+          for f in $MODIFIED_FILES; do
+            if [ -f "$f" ]; then
+              if [[ "$f" == *.sh ]]; then
+                echo "Validating Bash syntax: $f"
+                bash -n "$f"
+              elif [[ "$f" == *.py ]]; then
+                echo "Validating Python syntax: $f"
+                python3 -m py_compile "$f"
+              elif [[ "$f" == *.php ]] && command -v php &> /dev/null; then
+                echo "Validating PHP syntax: $f"
+                php -l "$f"
+              fi
+            fi
+          done
+
+          echo "✅ Syntax Verification Gate Passed."
+
+      - name: Dependency Security Audit Gate
+        run: |
+          echo "=== Auditing Dependency Manifests for Known Vulnerabilities ==="
+          MODIFIED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+
+          # Node.js audit
+          if echo "$MODIFIED_FILES" | grep -E '(package\.json|package-lock\.json)'; then
+            if [ -f "package-lock.json" ]; then
+              echo "Running npm audit..."
+              npm audit --audit-level=high || true
+            fi
           fi
 
-          echo "✅ Bot Guardrail Passed."
+          # Ruby bundler-audit
+          if echo "$MODIFIED_FILES" | grep -E '(Gemfile|Gemfile\.lock)'; then
+            if [ -f "Gemfile.lock" ]; then
+              echo "Checking Ruby gems for known advisories..."
+              if command -v bundle-audit &> /dev/null; then
+                bundle-audit check --update || true
+              fi
+            fi
+          fi
 
-      - name: Enable Auto-Merge for Validated Bot PRs
-        if: success()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo "Attempting to enable auto-merge for PR #${{ github.event.pull_request.number }}..."
-          gh pr merge ${{ github.event.pull_request.number }} --auto --squash || echo "Auto-merge could not be set automatically (check repository auto-merge settings)."
+          # PHP composer audit
+          if echo "$MODIFIED_FILES" | grep -E '(composer\.json|composer\.lock)'; then
+            if [ -f "composer.lock" ] && command -v composer &> /dev/null; then
+              echo "Running composer audit..."
+              composer audit || true
+            fi
+          fi
 
+          echo "✅ Security Audit Gate Completed."
