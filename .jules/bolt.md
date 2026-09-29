@@ -130,3 +130,6 @@
 ## Hallucinatory Task & Empty PR Directives
 - **Zero-Diff Task Termination**: If the requested optimization, refactor, or fix is ALREADY natively present in the target branch, DO NOT create an empty pull request or commit an acknowledgment PR. Exit the task cleanly without opening a PR.
 - **Stale Suggestion Guard**: Always verify the current code on `main`/`master` before planning changes. If no actionable diff is required, cancel task execution immediately.
+## 2026-09-28 - Avoid Blind Assumptions on File Structure due to Output Truncation
+**Learning:** When using bash tools like `cat` to read large files in a single session, the output can be silently truncated, leading to incorrect assumptions about the underlying code structure (e.g., assuming `createJournalEntry` instantiates a new `Map` every time).
+**Action:** Always retrieve the exact implementation of target methods using targeted commands like `sed -n 'X,Yp'` or `grep -A` before planning or applying code modifications to ensure groundedness and accuracy.
