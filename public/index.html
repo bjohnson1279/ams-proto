@@ -1136,7 +1136,6 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.removeAttribute('title');
           btn.innerText = originalText;
         }
       }
@@ -1162,7 +1161,6 @@
         alert('Invalid JSON in payload editor: ' + err.message);
       } finally {
         btn.disabled = false;
-          btn.removeAttribute('title');
         btn.innerText = '🔍 Run Dry-Run Audit';
       }
     }
@@ -1187,7 +1185,6 @@
         alert('Import Error: ' + err.message);
       } finally {
         btn.disabled = false;
-          btn.removeAttribute('title');
         btn.innerText = '🚀 Execute CoreAMS Import';
       }
     }
@@ -1292,6 +1289,7 @@
       modalTriggerElement = document.activeElement;
       if (btn) {
         btn.disabled = true;
+        btn.setAttribute("aria-busy", "true");
         btn.dataset.originalText = btn.innerText;
         btn.innerText = '⏳ Loading...';
       }
@@ -1328,7 +1326,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.removeAttribute('title');
+          btn.removeAttribute("aria-busy");
           btn.innerText = btn.dataset.originalText;
         }
       }
@@ -1546,6 +1544,7 @@
       if (btn) {
         originalText = btn.innerText;
         btn.disabled = true;
+        btn.setAttribute("aria-busy", "true");
         btn.innerText = '⏳ Generating...';
       }
 
@@ -1572,8 +1571,8 @@
         alert('Failed to generate certificate: ' + err.message);
       } finally {
         if (btn) {
+          btn.removeAttribute("aria-busy");
           btn.disabled = false;
-          btn.removeAttribute('title');
           btn.innerText = originalText;
         }
       }
@@ -1617,7 +1616,6 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.removeAttribute('title');
           btn.innerText = originalText;
         }
       }
@@ -1659,7 +1657,6 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.removeAttribute('title');
           btn.innerText = originalText;
         }
       }
@@ -1824,7 +1821,6 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.removeAttribute('title');
           btn.innerText = '⚡ Parse Raw AL3 Stream';
         }
       }
@@ -1867,7 +1863,6 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.removeAttribute('title');
           btn.innerText = '🚀 Ingest IVANS Download Batch';
         }
       }
@@ -1883,6 +1878,7 @@
     async function postBatchCommissions(batchId, btn = null) {
       if (btn) {
         btn.disabled = true;
+        btn.setAttribute("aria-busy", "true");
         btn.dataset.originalText = btn.innerText;
         btn.innerText = '⏳ Posting...';
       }
@@ -1899,8 +1895,8 @@
         alert('Commission Posting Error: ' + err.message);
       } finally {
         if (btn) {
+          btn.removeAttribute("aria-busy");
           btn.disabled = false;
-          btn.removeAttribute('title');
           btn.innerText = btn.dataset.originalText;
         }
       }
@@ -1934,7 +1930,6 @@
       } finally {
         if (btn) {
           btn.disabled = false;
-          btn.removeAttribute('title');
           btn.innerText = originalText;
         }
       }

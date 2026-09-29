@@ -81,3 +81,7 @@
 **Learning:** Adding accessibility improvements (such as `announceToScreenReader`, ARIA attributes, or real-time event listeners like `oninput`) without DOM test assertions allows future UI redesigns to accidentally strip them away.
 **Action:** Whenever enhancing UI accessibility or interactive inputs, always add or augment assertions in the UI guardrail test suite (e.g., `tests/ui.empty-states.test.ts`) to verify that the required event handlers, ARIA states, and announcement hooks remain present in the DOM.
 
+
+## 2026-09-28 - ARIA Busy vs Title on Async Action Buttons
+**Learning:** Adding `title` attributes to disabled buttons that already change their visible text to "Loading..." is redundant and discouraged for accessibility. The correct, standard ARIA pattern for signaling that a UI element is processing without redundant textual tooltips is to use `aria-busy="true"`.
+**Action:** When creating async button loading states, use `aria-busy="true"` on the button instead of injecting a temporary `title`, and ensure it is cleaned up using `removeAttribute('aria-busy')` in the finally block.
