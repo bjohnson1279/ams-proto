@@ -3,6 +3,7 @@ import { Al3ParserService } from './al3Parser.service.js';
 import { AmsService } from './ams.service.js';
 import { AccountingService } from './accounting.service.js';
 import { getRepositories, Repositories } from '../db/repository.factory.js';
+import { randomInt } from 'crypto';
 
 export class CarrierDownloadService {
   private static instance: CarrierDownloadService;
@@ -42,7 +43,7 @@ export class CarrierDownloadService {
    * Ingests a new carrier download package or AL3 stream.
    */
   public async ingestDownloadBatch(tenantId: string = 'tenant-001', payload: IngestDownloadBatchPayload): Promise<DownloadBatch> {
-    const batchId = `BATCH-DL-${Date.now().toString().slice(-6)}`;
+    const batchId = `BATCH-DL-${randomInt(100000, 999999)}`;
     const items: DownloadTransactionItem[] = [];
 
     let carrierCode = payload.carrierCode || 'TRV01';

@@ -1,4 +1,4 @@
-import { randomInt } from "crypto";
+import { randomInt, randomUUID } from "crypto";
 import { Customer, Policy, Carrier, Claim, AcordDecPagePayload, LineOfBusiness, PolicyStatus } from '../types/domain.js';
 import { INITIAL_CLAIMS } from '../data/seedData.js';
 import { CrosswalkEngine } from '../transformers/crosswalk.engine.js';
@@ -93,7 +93,7 @@ export class AmsService {
   public async createPolicy(tenantId: string, payload: Partial<Policy>): Promise<Policy> {
     const nextNum = randomInt(100000, 1000000);
     const newPolicy: Partial<Policy> = {
-      policyId: payload.policyId || `POL-${Date.now()}`,
+      policyId: payload.policyId || `POL-${randomUUID()}`,
       policyNumber: payload.policyNumber || `POL-NUM-${nextNum}`,
       customerId: payload.customerId || 'CUST-1001',
       carrierId: payload.carrierId || 'CARRIER-001',

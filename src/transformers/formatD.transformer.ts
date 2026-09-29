@@ -134,7 +134,7 @@ export class FormatDTransformer {
 
         const policy: Policy = {
           policyId: `POL-FMT-D-${rawPol.policy_uuid || randomInt(100000)}`,
-          policyNumber: rawPol.policy_num || `FMT-D-${Date.now()}`,
+          policyNumber: rawPol.policy_num || `FMT-D-${randomInt(100000, 999999)}`,
           customerId,
           carrierId,
           lineOfBusiness: lob,

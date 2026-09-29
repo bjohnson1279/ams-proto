@@ -118,7 +118,7 @@ export function transformFormatAPayload(
 
       const policy: Policy = {
         policyId: `POL-FMT-A-${rawPol.Policy_ID_FK || randomInt(100000)}`,
-        policyNumber: rawPol.Policy_Num || `FMT-A-${Date.now()}`,
+        policyNumber: rawPol.Policy_Num || `FMT-A-${randomInt(100000, 999999)}`,
         customerId,
         carrierId,
         lineOfBusiness: lob,
