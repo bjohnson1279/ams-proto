@@ -133,6 +133,30 @@ describe('Accounting & General Ledger Module (/api/v1/accounting)', () => {
     expect(res.body.data.netCarrierPayable).toBe(41225); // 85% of $48,500
   });
 
+  it('GET /api/v1/accounting/invoices/:id should retrieve an invoice by ID or return 404', async () => {
+    // Generate invoice first
+    const invRes = await request(app)
+      .post('/api/v1/accounting/invoices/generate').set('x-tenant-id', 'tenant-001')
+      .send({ policyId: 'POL-CA-2026-001', commissionRate: 15 });
+
+    const invoiceId = invRes.body.data.invoiceId;
+
+    // Fetch by invoiceId
+    const getRes = await request(app)
+      .get(`/api/v1/accounting/invoices/${invoiceId}`).set('x-tenant-id', 'tenant-001');
+
+    expect(getRes.status).toBe(200);
+    expect(getRes.body.success).toBe(true);
+    expect(getRes.body.data.invoiceId).toBe(invoiceId);
+
+    // Fetch non-existent ID
+    const notFoundRes = await request(app)
+      .get('/api/v1/accounting/invoices/NON-EXISTENT-INV').set('x-tenant-id', 'tenant-001');
+
+    expect(notFoundRes.status).toBe(404);
+    expect(notFoundRes.body.success).toBe(false);
+  });
+
   it('POST /api/v1/accounting/payments should process payment receipt to Trust Account', async () => {
     // First generate an invoice
     const invRes = await request(app)

@@ -72,6 +72,9 @@ def score_pr_diff(diff_text):
     if "WHERE" in diff_text and "IN (" in diff_text:
         score += 15
         improvements.append("Batched query execution replacing N+1 loop calls")
+    if re.search(r'repos\.\w+\.get|this\.repos\.', diff_text) and "find(" in diff_text:
+        score += 20
+        improvements.append("Delegated entity lookup to database/repository layer to avoid O(N) memory scans")
 
     # Pillar 2: Memory & GC Overhead
     if re.search(r'private \w+Map: Map<', diff_text):
@@ -96,6 +99,9 @@ def score_pr_diff(diff_text):
     if "aria-live=" in diff_text or "sr-only" in diff_text:
         score += 15
         improvements.append("Enhanced screen reader accessibility announcer")
+    if "aria-busy" in diff_text:
+        score += 15
+        improvements.append("Applied WAI-ARIA aria-busy loading states complying with WCAG 4.1.2")
     if "empty" in diff_text.lower() and "table" in diff_text.lower():
         score += 10
         improvements.append("Added actionable empty state guardrails")
@@ -129,14 +135,32 @@ def simulate_pr_merge(pr_number, head_ref, base_branch, repo_dir):
     return not has_conflicts, files, merge_out
 
 def run_targeted_tests(files, repo_dir):
-    """Runs Jest --findRelatedTests for fast pre-merge validation."""
+    """Runs Jest --findRelatedTests or mapped test fixtures for fast pre-merge validation."""
     code_files = [f for f in files if f.startswith("src/") and f.endswith(".ts")]
-    if not code_files:
+    extra_test_files = []
+    
+    # Map non-TS files to specific regression test suites
+    if any(f == "public/index.html" or f.startswith("public/") for f in files):
+        extra_test_files.append("tests/ui.empty-states.test.ts")
+
+    if not code_files and not extra_test_files:
         return True, "No source files require related test runs", 0.0
 
-    files_arg = " ".join(code_files)
+    targets = []
+    if code_files:
+        targets.extend(code_files)
+    if extra_test_files:
+        targets.extend(extra_test_files)
+
+    files_arg = " ".join(targets)
     start_time = time.time()
-    cmd = f"node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit --findRelatedTests {files_arg}"
+    
+    # Use findRelatedTests if source code exists, else execute direct test fixture
+    if code_files:
+        cmd = f"node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit --findRelatedTests {files_arg}"
+    else:
+        cmd = f"node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit {files_arg}"
+        
     out, err, code = run_cmd(cmd, cwd=repo_dir, timeout=60)
     elapsed = time.time() - start_time
 

@@ -252,6 +252,7 @@ export interface Invoice {
   balanceDue: number;
   lineItems: InvoiceLineItem[];
   journalEntryId?: string;
+  tenantId?: string;
   createdAt: string;
 }
 
@@ -264,6 +265,7 @@ export interface Payment {
   paymentMethod: 'Check' | 'ACH' | 'Credit_Card' | 'Wire';
   referenceNumber: string;
   depositedToAccount: string; // e.g. "1010" (Trust) or "1000" (Operating)
+  tenantId?: string;
   createdAt: string;
 }
 

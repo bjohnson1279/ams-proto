@@ -105,6 +105,13 @@
 - **Zero Scratch File Commits**: Never stage or commit ad-hoc verification, patch, or debug scripts (`test.cjs`, `fix_*.cjs`, `fix_*.php`, `patch_*.py`, `patch_*.sh`, `scratch_*`). Execute checks via the project's native test commands (`npm test`, `pytest`, `phpunit`, etc.) and delete temporary scripts before creating git commits.
 - **Never Weaken CI Workflows**: Do not modify `.github/workflows/**` to bypass failures (e.g. adding `|| true`, setting `continue-on-error: true`, or commenting out assertions). Always resolve the defect in the source code or test fixture.
 - **Explicit Parameter & Variable Types**: In TypeScript files, avoid implicit `any` by always providing explicit types on functions, parameters, and arrow callbacks (e.g. `(id: string) => ...`). Verify zero type errors with `tsc --noEmit` before committing.
+- **Cryptographically Secure UUID Generation**: Never use `Date.now()`, `Math.random()`, or predictable timestamps when generating entity IDs or fallback identifiers (such as policy numbers or customer IDs in legacy data transformers). Always import `{ randomUUID }` from Node `crypto`.
+- **Mandatory Journaling**: Every functional PR MUST append an entry to `.jules/sentinel.md` documenting the Learning and Action before committing.
+
+
+## 2026-09-30 - Replace Date.now() with cryptographically secure randomUUID()
+**Learning:** Using `Date.now()` to construct fallback policy numbers (e.g. `FMT-B-${Date.now()}` or `FMT-C-${Date.now()}`) in legacy payload transformers causes ID collisions when batch records are processed in the same millisecond, and exposes predictable identifiers.
+**Action:** Replace `Date.now()` with Node's native `randomUUID()` from `crypto` to guarantee non-predictability and eliminate race-condition collisions during concurrent data migrations.
 
 ## 2026-09-29 - Non-Destructive Security Patching & CI Protection
 **Learning:** Security patches must never weaken CI workflow files (`.github/workflows/**`) by appending `|| true` or `continue-on-error: true` to suppress test/build failures. Furthermore, when adding defensive type assertions or input validators in TypeScript, omitting explicit types can introduce `TS7006: Parameter implicitly has an 'any' type`.

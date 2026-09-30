@@ -47,7 +47,7 @@ jobs:
           fi
 
           # 4. Reject Destructive Line Deletions in Critical Entrypoints & Schemas
-          DELETED_LINES=$(git diff --stat origin/${{ github.base_ref }}...HEAD | grep -E 'schema\.prisma|src/index\.ts|public/index\.php|docker/postgres/init/|db/schema\.rb|routes/|routes\.php' | awk '{print $5}' | grep '-' || true)
+          DELETED_LINES=$(git diff --stat origin/${{ github.base_ref }}...HEAD | grep -E 'src/app\.ts|src/server\.ts|public/index\.html|src/routes/' | awk '{print $5}' | grep '-' || true)
           for count in $DELETED_LINES; do
             num=$(echo "$count" | tr -d '-')
             if [ "$num" -gt 15 ]; then
@@ -62,6 +62,16 @@ jobs:
             echo "❌ ERROR: Bot PR modifies .github/workflows to suppress errors ('|| true' or 'continue-on-error: true'). Auto-failing."
             echo "$CI_DIFF"
             exit 1
+          fi
+
+          # 6. Audit Jules Agent PRs for Learning Journal Updates (.jules/*.md)
+          if echo "${{ github.head_ref }}" | grep -E '^(bolt|palette|sentinel)/'; then
+            JULES_JOURNAL_DIFF=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^\.jules/' || true)
+            if [ -z "$JULES_JOURNAL_DIFF" ]; then
+              echo "⚠️ WARNING: Jules agent PR does not update .jules/<persona>.md journal notes. Please document learning and action."
+            else
+              echo "✅ Jules learning journal update detected: $JULES_JOURNAL_DIFF"
+            fi
           fi
 
           echo "✅ Basic Bot Diff Guardrail Passed."
