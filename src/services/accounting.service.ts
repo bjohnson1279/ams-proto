@@ -58,8 +58,9 @@ export class AccountingService {
   }
 
   public async getInvoiceById(tenantId: string, invoiceId: string): Promise<Invoice | undefined> {
-    const invoices = await this.getInvoices(tenantId);
-    return invoices.find(i => i.invoiceId === invoiceId || i.invoiceNumber === invoiceId);
+    // ⚡ Bolt: Push invoice lookup to database layer to avoid full table scans and memory bloat
+    const invoice = await this.repos.accounting.getInvoiceById(tenantId, invoiceId);
+    return invoice || undefined;
   }
 
   public async getPayments(tenantId: string): Promise<Payment[]> {

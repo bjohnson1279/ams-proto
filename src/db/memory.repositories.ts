@@ -229,6 +229,9 @@ export class MemoryAccountingRepository implements IAccountingRepository {
   }
 
   async getInvoices(tenantId: string): Promise<Invoice[]> { return Promise.resolve(this.invoices); }
+  async getInvoiceById(tenantId: string, id: string): Promise<Invoice | null> {
+    return Promise.resolve(this.invoices.find(i => i.invoiceId === id || i.invoiceNumber === id) || null);
+  }
 
   async createInvoice(tenantId: string, invoice: Partial<Invoice>): Promise<Invoice> {
     const inv = { ...invoice, invoiceId: invoice.invoiceId || randomUUID(), tenantId } as Invoice;
