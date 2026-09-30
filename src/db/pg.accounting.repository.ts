@@ -64,6 +64,10 @@ export class PgAccountingRepository implements IAccountingRepository {
     });
   }
 
+  async getInvoiceById(tenantId: string, invoiceId: string): Promise<Invoice | null> {
+    return Promise.resolve(null);
+  }
+
   async getInvoices(tenantId: string): Promise<Invoice[]> {
     return Promise.resolve([]);
   }

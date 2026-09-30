@@ -50,6 +50,7 @@ export interface IAccountingRepository {
   getJournalEntries(tenantId: string): Promise<JournalEntry[]>;
   createJournalEntry(tenantId: string, entry: Partial<JournalEntry>): Promise<JournalEntry>;
   getInvoices(tenantId: string): Promise<Invoice[]>;
+  getInvoiceById(tenantId: string, invoiceId: string): Promise<Invoice | null>;
   createInvoice(tenantId: string, invoice: Partial<Invoice>): Promise<Invoice>;
   getPayments(tenantId: string): Promise<Payment[]>;
   createPayment(tenantId: string, payment: Partial<Payment>): Promise<Payment>;
