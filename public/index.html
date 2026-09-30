@@ -1108,7 +1108,7 @@
       if (btn) {
         originalText = btn.innerText;
         btn.disabled = true;
-        btn.title = 'Processing...';
+        btn.setAttribute("aria-busy", "true");
         btn.innerText = '⏳ Processing...';
       }
 
@@ -1136,6 +1136,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute("aria-busy");
           btn.innerText = originalText;
         }
       }
@@ -1146,7 +1147,7 @@
       const editorVal = document.getElementById('payload-editor').value;
       const btn = document.getElementById('btn-dry-run');
       btn.disabled = true;
-      btn.title = 'Running audit...';
+      btn.setAttribute("aria-busy", "true");
       btn.innerText = '⏳ Analyzing...';
       try {
         const payload = JSON.parse(editorVal);
@@ -1161,6 +1162,7 @@
         alert('Invalid JSON in payload editor: ' + err.message);
       } finally {
         btn.disabled = false;
+        btn.removeAttribute("aria-busy");
         btn.innerText = '🔍 Run Dry-Run Audit';
       }
     }
@@ -1169,7 +1171,7 @@
       const editorVal = document.getElementById('payload-editor').value;
       const btn = document.getElementById('btn-import');
       btn.disabled = true;
-      btn.title = 'Importing data...';
+      btn.setAttribute("aria-busy", "true");
       btn.innerText = '⏳ Importing...';
       try {
         const payload = JSON.parse(editorVal);
@@ -1185,6 +1187,7 @@
         alert('Import Error: ' + err.message);
       } finally {
         btn.disabled = false;
+        btn.removeAttribute("aria-busy");
         btn.innerText = '🚀 Execute CoreAMS Import';
       }
     }
@@ -1589,7 +1592,7 @@
       if (btn) {
         originalText = btn.innerText;
         btn.disabled = true;
-        btn.title = 'Adding holder...';
+        btn.setAttribute("aria-busy", "true");
         btn.innerText = '⏳ Saving...';
       }
 
@@ -1616,6 +1619,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute("aria-busy");
           btn.innerText = originalText;
         }
       }
@@ -1630,7 +1634,7 @@
       if (btn) {
         originalText = btn.innerText;
         btn.disabled = true;
-        btn.title = 'Processing...';
+        btn.setAttribute("aria-busy", "true");
         btn.innerText = '⏳ Processing...';
       }
 
@@ -1657,6 +1661,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute("aria-busy");
           btn.innerText = originalText;
         }
       }
@@ -1773,7 +1778,7 @@
       const btn = event ? event.target.closest('.btn') : null;
       if (btn) {
         btn.disabled = true;
-        btn.title = 'Parsing AL3...';
+        btn.setAttribute("aria-busy", "true");
         btn.innerText = '⏳ Parsing...';
       }
 
@@ -1821,6 +1826,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute("aria-busy");
           btn.innerText = '⚡ Parse Raw AL3 Stream';
         }
       }
@@ -1830,7 +1836,7 @@
       const btn = event ? event.target.closest('.btn') : null;
       if (btn) {
         btn.disabled = true;
-        btn.title = 'Ingesting batch...';
+        btn.setAttribute("aria-busy", "true");
         btn.innerText = '⏳ Ingesting...';
       }
 
@@ -1863,6 +1869,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute("aria-busy");
           btn.innerText = '🚀 Ingest IVANS Download Batch';
         }
       }
@@ -1908,7 +1915,7 @@
       if (btn) {
         originalText = btn.innerText;
         btn.disabled = true;
-        btn.title = 'Processing...';
+        btn.setAttribute("aria-busy", "true");
         btn.innerText = '⏳ Processing...';
       }
 
@@ -1930,6 +1937,7 @@
       } finally {
         if (btn) {
           btn.disabled = false;
+          btn.removeAttribute("aria-busy");
           btn.innerText = originalText;
         }
       }
