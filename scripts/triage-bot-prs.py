@@ -161,11 +161,11 @@ def run_targeted_tests(files, repo_dir):
     else:
         cmd = f"node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit {files_arg}"
         
-    out, err, code = run_cmd(cmd, cwd=repo_dir, timeout=60)
+    out, err, code = run_cmd(cmd, cwd=repo_dir, timeout=180)
     elapsed = time.time() - start_time
 
     success = (code == 0)
-    details = f"{elapsed:.1f}s"
+    details = f"{elapsed:.1f}s" if success else f"FAIL ({elapsed:.1f}s): {err[:120] if err else out[:120]}"
     return success, details, elapsed
 
 def main():
@@ -182,9 +182,12 @@ def main():
     print(f"🔍 Fetching latest refs and checking open bot PRs in {repo_dir}...")
     run_cmd("git fetch origin", cwd=repo_dir)
 
-    out, _, code = run_cmd("gh pr list --state open --json number,title,headRefName,author,statusCheckRollup", cwd=repo_dir)
-    if code != 0 or not out:
-        print("✅ No open PRs found or GitHub CLI unavailable.")
+    out, err, code = run_cmd("gh pr list --state open --json number,title,headRefName,author,statusCheckRollup", cwd=repo_dir)
+    if code != 0:
+        print(f"❌ Error querying GitHub CLI: {err}")
+        return
+    if not out or out.strip() == "[]":
+        print("✅ No open PRs to process.")
         return
 
     try:
@@ -206,8 +209,10 @@ def main():
         head_ref = pr.get("headRefName", "")
         author = pr.get("author", {}).get("login", "")
 
-        # Diff inspection
-        diff_out, _, _ = run_cmd(f"gh pr diff {num}", cwd=repo_dir)
+        # Diff inspection (use fast local git diff if ref exists, fallback to gh pr diff)
+        diff_out, _, d_code = run_cmd(f"git diff origin/{args.base}...origin/{head_ref}", cwd=repo_dir)
+        if d_code != 0 or not diff_out:
+            diff_out, _, _ = run_cmd(f"gh pr diff {num}", cwd=repo_dir)
         score, tier, imps, risks = score_pr_diff(diff_out)
 
         # Merge simulation
