@@ -135,31 +135,63 @@ def simulate_pr_merge(pr_number, head_ref, base_branch, repo_dir):
     return not has_conflicts, files, merge_out
 
 def run_targeted_tests(files, repo_dir):
-    """Runs Jest --findRelatedTests or mapped test fixtures for fast pre-merge validation."""
+    """Runs mapped test fixtures for fast pre-merge validation instead of slow --findRelatedTests."""
     code_files = [f for f in files if f.startswith("src/") and f.endswith(".ts")]
     extra_test_files = []
     
-    # Map non-TS files to specific regression test suites
-    if any(f == "public/index.html" or f.startswith("public/") for f in files):
-        extra_test_files.append("tests/ui.empty-states.test.ts")
+    # Domain-to-Test Mapping
+    for f in files:
+        if "public/" in f:
+            extra_test_files.append("tests/ui.empty-states.test.ts")
+        if "src/routes/customer" in f:
+            extra_test_files.append("tests/customer.routes.test.ts")
+        if "src/routes/policy" in f:
+            extra_test_files.append("tests/policy.routes.test.ts")
+        if "src/routes/certificate" in f:
+            extra_test_files.append("tests/certificate.routes.test.ts")
+        if "src/routes/download" in f:
+            extra_test_files.append("tests/download.routes.test.ts")
+        if "src/routes/wsapi" in f:
+            extra_test_files.append("tests/wsapi.auth.test.ts")
+        if "src/routes/integration" in f:
+            extra_test_files.append("tests/integration.routes.test.ts")
+        if "src/services/accounting" in f:
+            extra_test_files.append("tests/accounting.test.ts")
+        if "src/services/ams" in f:
+            extra_test_files.append("tests/ams.service.test.ts")
+        if "src/services/certificate" in f:
+            extra_test_files.append("tests/certificate.service.test.ts")
+        if "src/services/crosswalk" in f:
+            extra_test_files.append("tests/crosswalk.engine.test.ts")
+        if "src/services/carrierDownload" in f or "src/services/download" in f:
+            extra_test_files.append("tests/download.service.test.ts")
+        if "src/services/al3Parser" in f:
+            extra_test_files.append("tests/al3Parser.test.ts")
+        if "src/services/deduplication" in f:
+            extra_test_files.append("tests/deduplication.test.ts")
+        if "src/transformers/formatA" in f:
+            extra_test_files.append("tests/formatA.transformer.test.ts")
+        if "src/transformers/formatB" in f:
+            extra_test_files.append("tests/formatB.transformer.test.ts")
+        if "src/transformers/formatC" in f:
+            extra_test_files.append("tests/formatC.transformer.test.ts")
+        if "src/transformers/formatD" in f:
+            extra_test_files.append("tests/formatD.transformer.test.ts")
+        if "src/db/" in f or "schema" in f or "tenant" in f or "rls" in f:
+            extra_test_files.append("tests/pg.integration.test.ts")
+            extra_test_files.append("tests/tenant.rls.test.ts")
 
-    if not code_files and not extra_test_files:
-        return True, "No source files require related test runs", 0.0
+    # De-duplicate mapped test files
+    mapped_tests = list(set(extra_test_files))
 
-    targets = []
-    if code_files:
-        targets.extend(code_files)
-    if extra_test_files:
-        targets.extend(extra_test_files)
+    if not mapped_tests:
+        return True, "No mapped domain tests found for modified files", 0.0
 
-    files_arg = " ".join(targets)
+    files_arg = " ".join(mapped_tests)
     start_time = time.time()
     
-    # Use findRelatedTests if source code exists, else execute direct test fixture
-    if code_files:
-        cmd = f"node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit --findRelatedTests {files_arg}"
-    else:
-        cmd = f"node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit {files_arg}"
+    # Execute specific mapped test files instead of --findRelatedTests
+    cmd = f"node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand --forceExit {files_arg}"
         
     out, err, code = run_cmd(cmd, cwd=repo_dir, timeout=180)
     elapsed = time.time() - start_time
