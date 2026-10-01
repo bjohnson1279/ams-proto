@@ -441,6 +441,19 @@
       text-transform: uppercase;
     }
 
+    .modal-close-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+
+    .modal-close-btn:hover {
+      color: var(--text-main);
+    }
+
     /* Accessibility: Focus visible styles */
     button:focus-visible,
     input:focus-visible,
@@ -586,7 +599,7 @@
     <div id="tab-customers" class="tab-content" role="tabpanel" aria-labelledby="nav-tab-customers">
       <div style="display: flex; gap: 1rem; align-items: center;">
         <div style="position: relative; width: 360px;">
-          <input type="text" id="search-input" aria-label="Search customers" placeholder="Search by customer name or policy number..."
+          <input type="search" id="search-input" aria-label="Search customers" placeholder="Search by customer name or policy number..."
             style="background: var(--bg-card); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 2.5rem 0.75rem 1rem; border-radius: 8px; width: 100%;"
             oninput="debouncedFilterCustomers()">
           <kbd style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.75rem; color: var(--text-muted); font-family: monospace; pointer-events: none; transition: opacity 0.2s;" aria-hidden="true">/</kbd>
@@ -880,7 +893,7 @@
           <h2 id="dec-title" style="font-family: var(--font-heading); font-size: 1.1rem; color: #fff;">ACORD 125/126 POLICY DECLARATION</h2>
           <p id="dec-acord-std" style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600;">ACORD COMPLIANT</p>
         </div>
-        <button aria-label="Close modal" onclick="closeModal()" style="background: transparent; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+        <button class="modal-close-btn" aria-label="Close modal" title="Close modal" onclick="closeModal()">&times;</button>
       </div>
 
       <div class="dec-section">

@@ -129,3 +129,7 @@
 ## 2026-09-30 - Fix redundant titles during async loading with aria-busy
 **Learning:** Setting `btn.title = 'Processing...'` or other status strings during async button execution creates redundant, disruptive browser tooltips that collide with assistive technologies and does not programmatically announce the loading state.
 **Action:** Replace `btn.title` overrides with `btn.setAttribute("aria-busy", "true")` and ensure cleanup via `btn.removeAttribute("aria-busy")` in `finally` blocks to adhere strictly to WCAG 4.1.2.
+
+## 2026-11-23 - Leverage Native Search Input Type
+**Learning:** For single-field text filters (like "Search customers"), using a generic `type="text"` requires writing custom JavaScript and HTML elements to provide a "clear" (x) button. Changing the input type to `type="search"` automatically provides a native, zero-configuration clear button in WebKit/Blink browsers without any extra code or JavaScript overhead.
+**Action:** When implementing simple search fields, always leverage `type="search"` instead of `type="text"` to immediately inherit native UX functionality and reduce custom code maintenance.
