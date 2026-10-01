@@ -35,7 +35,12 @@ export class PgPolicyRepository implements IPolicyRepository {
       }
 
       const res = await client.query(query, values);
-      return res.rows.map(this.mapToPolicy);
+      // ⚡ Bolt: Replaced O(N) Array.map() with a pre-allocated native loop to prevent inline closure allocations and improve hot-path performance
+      const policies = new Array(res.rows.length);
+      for (let i = 0; i < res.rows.length; i++) {
+        policies[i] = this.mapToPolicy(res.rows[i]);
+      }
+      return policies;
     });
   }
 

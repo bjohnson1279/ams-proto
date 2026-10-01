@@ -158,3 +158,6 @@
 ## 2026-09-30 - Push lookups to database layer to avoid full table scans
 **Learning:** When retrieving a single entity by ID in a service layer (e.g., `getInvoiceById`), fetching the entire collection into memory using `getInvoices()` and performing an O(N) array `.find()` creates a significant memory bottleneck and results in full-table scans at the database layer.
 **Action:** Always push ID lookups and filtering down to the repository/database layer by creating specific query methods (e.g., `getInvoiceById`) to enable O(1) indexed database lookups and prevent application memory bloat.
+## 2026-10-01 - Avoid Array.map closure allocations on hot paths
+**Learning:** Using `Array.prototype.map()` in hot paths (like repository methods returning large database result sets) creates hidden performance overhead due to inline closure allocations and dynamic array resizing.
+**Action:** To optimize array mapping on hot-paths (like transforming database result rows), replace `Array.prototype.map()` with a pre-allocated native loop (e.g., `const arr = new Array(length)`) to prevent inline closure allocations and array resizing overhead.

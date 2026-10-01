@@ -24,7 +24,12 @@ export class PgCustomerRepository implements ICustomerRepository {
       }
 
       const res = await client.query(query, params);
-      return res.rows.map(this.mapToCustomer);
+      // ⚡ Bolt: Replaced O(N) Array.map() with a pre-allocated native loop to prevent inline closure allocations and improve hot-path performance
+      const customers = new Array(res.rows.length);
+      for (let i = 0; i < res.rows.length; i++) {
+        customers[i] = this.mapToCustomer(res.rows[i]);
+      }
+      return customers;
     });
   }
 
