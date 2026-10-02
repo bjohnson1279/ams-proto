@@ -129,3 +129,11 @@
 ## 2026-09-29 - Non-Destructive Security Patching & CI Protection
 **Learning:** Security patches must never weaken CI workflow files (`.github/workflows/**`) by appending `|| true` or `continue-on-error: true` to suppress test/build failures. Furthermore, when adding defensive type assertions or input validators in TypeScript, omitting explicit types can introduce `TS7006: Parameter implicitly has an 'any' type`.
 **Action:** Never modify CI workflow definitions to bypass test failures; resolve the underlying issue in source code or test fixtures. Always provide explicit types on newly introduced parameters and helper functions. Ensure zero scratch scripts (`fix_*.php`, `test_*.js`) are committed.
+
+## 2024-10-02 - Ensure Template Strings for Text Insertion Do Not Need HTML Escaping
+**Learning:** Using `escapeHtml()` in raw text contexts, like `alert()` template strings or browser native popups, breaks functionality and degrades user experience by displaying raw HTML entities (`&amp;`, `&lt;`) where they aren't parsed by the DOM.
+**Action:** When mitigating XSS by adding `escapeHtml()`, explicitly verify the context. Only escape inputs going directly into HTML nodes (e.g., `innerHTML`). Never apply HTML escaping to plaintext contexts like JavaScript `alert()`, `console.log`, or native prompt functions.
+
+## 2024-10-02 - Validate Numeric Values to Prevent Accounting Arbitrary Manipulation
+**Learning:** Functions that accept parameters directly mapping to financial or calculation formulas (like `commissionRate` when creating an invoice) can be manipulated if the server does not enforce strong boundary checks, leading to absurd negative commissions or payouts exceeding 100%.
+**Action:** Always validate and bound incoming calculation variables. Explicitly parse inputs to floats/integers, ensure they are not `NaN`, and enforce business logic boundaries (e.g., `0 <= rate <= 100`) before proceeding to the service layer.
