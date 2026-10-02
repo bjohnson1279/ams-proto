@@ -114,6 +114,18 @@ export class AccountingController {
         return;
       }
 
+      // 🛡️ Sentinel: Validate commissionRate to prevent arbitrary or out-of-bounds calculations
+      if (commissionRate !== undefined) {
+        const rate = Number(commissionRate);
+        if (Number.isNaN(rate) || rate < 0 || rate > 100) {
+          res.status(400).json({
+            success: false,
+            error: "Invalid parameter 'commissionRate'. Must be a number between 0 and 100."
+          });
+          return;
+        }
+      }
+
       const policy = await this.amsService.getPolicyById(tenantId, policyId);
       if (!policy) {
         res.status(404).json({
