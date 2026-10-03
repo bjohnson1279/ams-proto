@@ -148,6 +148,5 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "Approving and enabling auto-merge for PR #${{ github.event.pull_request.number }}"
-          gh pr review ${{ github.event.pull_request.number }} -R ${{ github.repository }} --approve || true
-          gh pr merge ${{ github.event.pull_request.number }} -R ${{ github.repository }} --squash --auto || true
+          echo "Enabling squash merge for PR #${{ github.event.pull_request.number }}"
+          gh pr merge ${{ github.event.pull_request.number }} -R ${{ github.repository }} --squash || true
