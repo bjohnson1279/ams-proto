@@ -7,7 +7,12 @@ export class PgCertificateHolderRepository implements ICertificateHolderReposito
   async getAll(tenantId: string, filter?: any): Promise<CertificateHolder[]> {
     return withTenantTransaction(tenantId, async (client) => {
       const res = await client.query('SELECT * FROM certificate_holders WHERE tenant_id = $1', [tenantId]);
-      return res.rows.map(this.mapToHolder);
+      // ⚡ Bolt: Replaced O(N) Array.map() with a pre-allocated native loop to prevent inline closure allocations and improve hot-path performance
+      const holders = new Array(res.rows.length);
+      for (let i = 0; i < res.rows.length; i++) {
+        holders[i] = this.mapToHolder(res.rows[i]);
+      }
+      return holders;
     });
   }
 
@@ -79,7 +84,12 @@ export class PgCertificateRepository implements ICertificateRepository {
   async getAll(tenantId: string, filter?: any): Promise<CertificateOfInsurance[]> {
     return withTenantTransaction(tenantId, async (client) => {
       const res = await client.query('SELECT * FROM certificates WHERE tenant_id = $1', [tenantId]);
-      return res.rows.map(this.mapToCert);
+      // ⚡ Bolt: Replaced O(N) Array.map() with a pre-allocated native loop to prevent inline closure allocations and improve hot-path performance
+      const certs = new Array(res.rows.length);
+      for (let i = 0; i < res.rows.length; i++) {
+        certs[i] = this.mapToCert(res.rows[i]);
+      }
+      return certs;
     });
   }
 

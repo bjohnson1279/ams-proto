@@ -20,14 +20,20 @@ export class PgAccountingRepository implements IAccountingRepository {
   async getJournalEntries(tenantId: string): Promise<JournalEntry[]> {
     return withTenantTransaction(tenantId, async (client) => {
       const res = await client.query('SELECT * FROM journal_entries WHERE tenant_id = $1', [tenantId]);
-      return res.rows.map(row => ({
-        entryId: row.entry_id,
-        entryDate: row.posted_at,
-        reference: row.reference_id,
-        memo: row.description,
-        lines: row.lines || [], // requires JSONB column `lines`
-        createdAt: row.posted_at
-      }));
+      // ⚡ Bolt: Replaced O(N) Array.map() with a pre-allocated native loop to prevent inline closure allocations and improve hot-path performance
+      const entries = new Array(res.rows.length);
+      for (let i = 0; i < res.rows.length; i++) {
+        const row = res.rows[i];
+        entries[i] = {
+          entryId: row.entry_id,
+          entryDate: row.posted_at,
+          reference: row.reference_id,
+          memo: row.description,
+          lines: row.lines || [], // requires JSONB column `lines`
+          createdAt: row.posted_at
+        };
+      }
+      return entries;
     });
   }
 
