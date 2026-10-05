@@ -46,7 +46,7 @@ describe('UI Empty States & DOM Structure Guardrail', () => {
 
   it('should use oninput for real-time customer search and fade shortcut hint', () => {
     // 🎨 Palette: Verify search-input uses oninput instead of onkeyup
-    expect(htmlContent).toMatch(/<input[^>]*id="search-input"[^>]*oninput="debouncedFilterCustomers\(\)"/);
+    expect(htmlContent).toMatch(/<input[^>]*id=\"search-input\"[^>]*oninput=\"debouncedFilterCustomers\(\)\"/);
     expect(htmlContent).not.toMatch(/<input[^>]*id="search-input"[^>]*onkeyup/);
 
     // 🎨 Palette: Verify CSS hides <kbd> shortcut hint when input contains text
