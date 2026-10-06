@@ -1,4 +1,4 @@
-import { randomInt, randomUUID } from "crypto";
+import { randomUUID } from "crypto";
 import { Customer, Policy, LineOfBusiness } from '../types/domain.js';
 import { FormatBClientPayload, MappingLogEntry, MappingException } from '../types/legacy.js';
 
@@ -103,7 +103,7 @@ export function transformFormatBPayload(
       const carrierId = (rawPol.NAIC_CD && existingCarrierNaicMap.get(rawPol.NAIC_CD)) || 'CARRIER-002';
 
       const policy: Policy = {
-        policyId: `POL-FMT-B-${rawPol.POL_ID || randomInt(100000)}`,
+        policyId: `POL-FMT-B-${rawPol.POL_ID || Math.floor(Math.random() * 100000)}`,
         policyNumber: rawPol.POL_NUM || `FMT-B-${randomUUID()}`,
         customerId,
         carrierId,
