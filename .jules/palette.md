@@ -1,16 +1,5 @@
 # Agent Directives & Operational Scope
 
-## Scope
-- **Persona**: Frontend UI, Accessibility, and User Experience Engineer (Palette).
-- **Primary Domain**: React components, vanilla DOM accessibility, ARIA role management, interactive empty states, and WCAG compliance.
-- **Boundaries**: Focus on client-side rendering, accessibility, and user interaction. Do not modify backend database schema, API routing, or server-side security middleware unless required to support a UI feature.
-
-## Operational Constraints
-- **Autonomous Execution**: Proceed directly to PR submission once changes are implemented, DOM assertions pass, and accessibility invariants are met. Do not pause to ask for permission.
-- **Surgical Edits**: Use targeted replacements only. Avoid whole-file formatting that obscures the core accessibility/UX improvements.
-- **No Scratch Artifacts**: Do not stage or commit temporary DOM test scripts (`test_ui.js`). Clean up before committing.
-- **Scope Verification**: Always verify variables (like `loading` state) exist in the component scope before binding them to attributes (like `disabled` or `aria-busy`).
-
 ## 2024-05-18 - Modal Dialog Accessibility and Usability
 **Learning:** Adding `role="dialog"`, `aria-modal="true"`, and `aria-labelledby` ensures screen readers understand standard UI elements correctly. Closing a modal with the Escape key is a baseline usability pattern that users expect, especially keyboard-only users navigating the interface.
 **Action:** Always add keyboard handlers (like Escape to close) and explicit ARIA roles/labels when creating or modifying custom modals to prevent them from becoming accessibility traps.
@@ -86,6 +75,7 @@
 ## 2024-10-24 - Implementing Skip Links Safely
 **Learning:** Adding a "skip to main content" link requires setting `tabindex="-1"` on the target container (e.g., `<main>`) to ensure it can receive programmatic focus when the link is clicked. Without it, the browser scrolls but doesn't move focus, meaning the next Tab press will start from the top again.
 **Action:** Always ensure target elements for skip links have `tabindex="-1"`. Also, when using tools like `pnpm add` to install temporary testing dependencies (like Playwright), be incredibly careful to revert any unintended changes to lockfiles (`pnpm-lock.yaml`) to prevent accidental major version bumps of backend dependencies (like Express v5).
+
 ## 2024-05-30 - Improve live search UX and screen reader updates
 **Learning:** `onkeyup` fails to capture text pasted via mouse, drag-and-drop, or autofilled by the browser. Additionally, only announcing empty states to screen readers leaves visually impaired users unaware when actual results populate the screen. Shortcut hints (like `<kbd>`) visually overlap user text if they aren't hidden dynamically.
 **Action:** Use `oninput` for real-time text fields to catch all mutations. Ensure dynamic screen reader updates announce both empty states and successful data loads (e.g. `announceToScreenReader('Found X items')`). Hide visual decorators inside inputs when text is present.
@@ -94,10 +84,42 @@
 **Learning:** Adding accessibility improvements (such as `announceToScreenReader`, ARIA attributes, or real-time event listeners like `oninput`) without DOM test assertions allows future UI redesigns to accidentally strip them away.
 **Action:** Whenever enhancing UI accessibility or interactive inputs, always add or augment assertions in the UI guardrail test suite (e.g., `tests/ui.empty-states.test.ts`) to verify that the required event handlers, ARIA states, and announcement hooks remain present in the DOM.
 
-
 ## 2026-09-28 - ARIA Busy vs Title on Async Action Buttons
 **Learning:** Adding `title` attributes to disabled buttons that already change their visible text to "Loading..." is redundant and discouraged for accessibility. The correct, standard ARIA pattern for signaling that a UI element is processing without redundant textual tooltips is to use `aria-busy="true"`.
 **Action:** When creating async button loading states, use `aria-busy="true"` on the button instead of injecting a temporary `title`, and ensure it is cleaned up using `removeAttribute('aria-busy')` in the finally block.
+
+## 2026-09-29 - Scope Verification for Async Loading Attributes
+**Learning:** Blindly injecting `disabled={loading}` or `aria-busy={loading}` into JSX/TSX buttons causes fatal TypeScript compilation errors (`TS2304: Cannot find name 'loading'`) when `loading` is not declared in component props, state hooks (`useState`), or mutation results. Furthermore, using temporary patch scripts (`fix_*.cjs`) to manipulate source code pollutes the git index.
+**Action:** Before referencing any state identifier (such as `loading`, `isSubmitting`, `isPending`) in `disabled` or `aria-busy`, inspect the component scope. If no loading state is tracked, define it using `useState(false)` or check existing query/mutation hooks. Never bind undeclared variables. Always run `tsc --noEmit` locally and never commit temporary fix scripts.
+
+## 2026-09-30 - Fix redundant titles during async loading with aria-busy
+**Learning:** Setting `btn.title = 'Processing...'` or other status strings during async button execution creates redundant, disruptive browser tooltips that collide with assistive technologies and does not programmatically announce the loading state.
+**Action:** Replace `btn.title` overrides with `btn.setAttribute("aria-busy", "true")` and ensure cleanup via `btn.removeAttribute("aria-busy")` in `finally` blocks to adhere strictly to WCAG 4.1.2.
+
+## 2026-11-23 - Leverage Native Search Input Type
+**Learning:** For single-field text filters (like "Search customers"), using a generic `type="text"` requires writing custom JavaScript and HTML elements to provide a "clear" (x) button. Changing the input type to `type="search"` automatically provides a native, zero-configuration clear button in WebKit/Blink browsers without any extra code or JavaScript overhead.
+**Action:** When implementing simple search fields, always leverage `type="search"` instead of `type="text"` to immediately inherit native UX functionality and reduce custom code maintenance.
+
+## 2026-10-04 - Hide Decorative Emojis from Screen Readers in Empty States\n**Learning:** When using emojis purely for visual decoration in UI empty states (e.g., 🔍 for 'No customers found'), screen readers will read out their literal descriptions (e.g., 'Magnifying glass pointing right'). This creates unnecessary noise and cognitive overload. Furthermore, removing a `title` attribute from an icon-only button to satisfy perceived redundancy with `aria-label` removes the native tooltip for sighted users, causing a UX regression.\n**Action:** Add `aria-hidden="true"` to wrapper elements of decorative emojis to hide them from the accessibility tree, while leaving informative text visible. Always preserve existing `title` tooltips on icon-only buttons for sighted users.
+
+## 2026-12-05 - Hide search shortcut hint gracefully
+**Learning:** Adding a visible keyboard shortcut hint `<kbd>` to a search input is great for discoverability, but it visually overlaps with user text if they type a long string.
+**Action:** When adding shortcut hints over text inputs, ensure they dynamically fade out (e.g. `opacity: 0`) when the input is not empty, which can be accomplished by tying the opacity to `this.value` in the `oninput` handler, or via CSS `:placeholder-shown` pseudo-class.
+
+## 2026-10-06 - Programmatic Tab Switches Desync ARIA State and Lose Focus
+**Learning:** Relying on `event.target` to update tab states (like `aria-selected` and `active` classes) causes critical accessibility regressions when tabs are switched programmatically (e.g., via keyboard shortcuts like '/' or empty-state "Go to..." buttons). Because the triggering event is not on the tab button itself, the new tab visually activates but fails to receive the `aria-selected="true"` attribute or the `active` visual class, creating a mismatch between the DOM structure and screen reader announcements. Additionally, focus drops to the body, forcing keyboard users to manually tab back through the entire document to regain their context.
+**Action:** Never rely on `event.target` for tab state management. Always use explicit DOM selectors (like `document.querySelector('button[aria-controls="'+tabId+'"]')`) to target the correct tab. Furthermore, if a tab switch is triggered programmatically by a non-tab element, explicitly call `.focus()` on the newly activated tab button to preserve keyboard navigation context.
+
+## Scope
+- **Persona**: Frontend UI, Accessibility, and User Experience Engineer (Palette).
+- **Primary Domain**: React components, vanilla DOM accessibility, ARIA role management, interactive empty states, and WCAG compliance.
+- **Boundaries**: Focus on client-side rendering, accessibility, and user interaction. Do not modify backend database schema, API routing, or server-side security middleware unless required to support a UI feature.
+
+## Operational Constraints
+- **Autonomous Execution**: Proceed directly to PR submission once changes are implemented, DOM assertions pass, and accessibility invariants are met. Do not pause to ask for permission.
+- **Surgical Edits**: Use targeted replacements only. Avoid whole-file formatting that obscures the core accessibility/UX improvements.
+- **No Scratch Artifacts**: Do not stage or commit temporary DOM test scripts (`test_ui.js`). Clean up before committing.
+- **Scope Verification**: Always verify variables (like `loading` state) exist in the component scope before binding them to attributes (like `disabled` or `aria-busy`).
 
 ## Prevention Directives for Automated Refactoring
 - **Never Overwrite Complete Files**: Always use range-scoped replacement chunks for edits to `schema.prisma`, `index.ts`, `public/index.php`, `db/schema.rb`, or DDL SQL scripts.
@@ -120,10 +142,10 @@
 ## Assertiveness, Decisive PR Execution & Comparative Recommendations
 - **Proactive & Decisive PR Submission**: Do NOT repeatedly pause to ask permission to open a pull request (e.g., avoid "Would you like me to open a PR for this?", "Can I submit the PR?", "Should I go ahead and create the PR?"). When an optimization, fix, or feature satisfies requirements, passes local test runners/linters, and preserves architectural invariants, proceed decisively to create and submit the Pull Request with a clear, structured summary and rationale.
 - **Explicit Recommendations on Options**: When presenting multiple implementation strategies or architecture options (e.g., Option A vs. Option B), NEVER leave the choice open-ended or passive. Always make an explicit, reasoned recommendation (prefixed with `(Recommended)`) based on **overall technical effectiveness**:
-  1. *Algorithmic & Complexity Gains*: Time and space complexity impact (O(N*M) -> O(N+M), reduction of nested scans).
-  2. *Resource Overhead*: Heap allocations, memory pressure, and GC pause reduction.
-  3. *Domain & Architecture Invariants*: Strict backward compatibility, contract stability, and prevention of regression risks.
-  4. *Security & Reliability*: Input validation, cryptographic safety, and concurrency safety.
+1. *Algorithmic & Complexity Gains*: Time and space complexity impact (O(N*M) -> O(N+M), reduction of nested scans).
+2. *Resource Overhead*: Heap allocations, memory pressure, and GC pause reduction.
+3. *Domain & Architecture Invariants*: Strict backward compatibility, contract stability, and prevention of regression risks.
+4. *Security & Reliability*: Input validation, cryptographic safety, and concurrency safety.
 - **Lead with Recommended Path**: State clearly why the recommended solution delivers the highest net value and immediately execute or propose it as the primary course of action rather than asking open-ended questions.
 
 ## Scope Verification, Minimal Churn & CI Protection Directives
@@ -134,20 +156,3 @@
 - **Explicit Parameter & Variable Types**: In TypeScript files, avoid implicit `any` by always providing explicit types on functions, parameters, and arrow callbacks (e.g. `(id: string) => ...`). Verify zero type errors with `tsc --noEmit` before committing.
 - **WAI-ARIA Dynamic Loading States**: Use `btn.setAttribute("aria-busy", "true")` instead of `btn.title = "Processing..."` on buttons undergoing asynchronous tasks, and remove `aria-busy` in `finally` blocks. Tooltip title attributes interfere with screen reader announcements and fail WCAG 4.1.2. Always execute `node --experimental-vm-modules node_modules/jest/bin/jest.js tests/ui.empty-states.test.ts` when modifying `public/index.html`.
 - **Mandatory Journaling**: Every functional PR MUST append an entry to `.jules/palette.md` documenting the Learning and Action before committing.
-
-## 2026-09-29 - Scope Verification for Async Loading Attributes
-**Learning:** Blindly injecting `disabled={loading}` or `aria-busy={loading}` into JSX/TSX buttons causes fatal TypeScript compilation errors (`TS2304: Cannot find name 'loading'`) when `loading` is not declared in component props, state hooks (`useState`), or mutation results. Furthermore, using temporary patch scripts (`fix_*.cjs`) to manipulate source code pollutes the git index.
-**Action:** Before referencing any state identifier (such as `loading`, `isSubmitting`, `isPending`) in `disabled` or `aria-busy`, inspect the component scope. If no loading state is tracked, define it using `useState(false)` or check existing query/mutation hooks. Never bind undeclared variables. Always run `tsc --noEmit` locally and never commit temporary fix scripts.
-
-## 2026-09-30 - Fix redundant titles during async loading with aria-busy
-**Learning:** Setting `btn.title = 'Processing...'` or other status strings during async button execution creates redundant, disruptive browser tooltips that collide with assistive technologies and does not programmatically announce the loading state.
-**Action:** Replace `btn.title` overrides with `btn.setAttribute("aria-busy", "true")` and ensure cleanup via `btn.removeAttribute("aria-busy")` in `finally` blocks to adhere strictly to WCAG 4.1.2.
-
-## 2026-11-23 - Leverage Native Search Input Type
-**Learning:** For single-field text filters (like "Search customers"), using a generic `type="text"` requires writing custom JavaScript and HTML elements to provide a "clear" (x) button. Changing the input type to `type="search"` automatically provides a native, zero-configuration clear button in WebKit/Blink browsers without any extra code or JavaScript overhead.
-**Action:** When implementing simple search fields, always leverage `type="search"` instead of `type="text"` to immediately inherit native UX functionality and reduce custom code maintenance.
-## 2026-10-04 - Hide Decorative Emojis from Screen Readers in Empty States\n**Learning:** When using emojis purely for visual decoration in UI empty states (e.g., 🔍 for 'No customers found'), screen readers will read out their literal descriptions (e.g., 'Magnifying glass pointing right'). This creates unnecessary noise and cognitive overload. Furthermore, removing a `title` attribute from an icon-only button to satisfy perceived redundancy with `aria-label` removes the native tooltip for sighted users, causing a UX regression.\n**Action:** Add `aria-hidden="true"` to wrapper elements of decorative emojis to hide them from the accessibility tree, while leaving informative text visible. Always preserve existing `title` tooltips on icon-only buttons for sighted users.
-
-## 2026-12-05 - Hide search shortcut hint gracefully
-**Learning:** Adding a visible keyboard shortcut hint `<kbd>` to a search input is great for discoverability, but it visually overlaps with user text if they type a long string.
-**Action:** When adding shortcut hints over text inputs, ensure they dynamically fade out (e.g. `opacity: 0`) when the input is not empty, which can be accomplished by tying the opacity to `this.value` in the `oninput` handler, or via CSS `:placeholder-shown` pseudo-class.

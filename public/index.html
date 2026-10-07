@@ -1409,12 +1409,15 @@
         b.classList.remove('active');
         b.setAttribute('aria-selected', 'false');
       });
-      if (event?.target) {
-        // Need to traverse up to button if icon or span is clicked inside button. In this case, there are no icons, but good practice.
-        const btn = event.target.closest ? event.target.closest('.tab-btn') : event.target;
-        if (btn) {
-            btn.classList.add('active');
-            btn.setAttribute('aria-selected', 'true');
+
+      const targetBtn = document.querySelector(`button[aria-controls="${tabId}"]`);
+      if (targetBtn) {
+        targetBtn.classList.add('active');
+        targetBtn.setAttribute('aria-selected', 'true');
+
+        // If triggered programmatically (not by clicking the tab directly), move focus to the new tab
+        if (event && event.target && !event.target.classList.contains('tab-btn') && !event.target.closest('.tab-btn')) {
+          targetBtn.focus();
         }
       }
 
