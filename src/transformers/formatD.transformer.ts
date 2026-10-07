@@ -133,7 +133,7 @@ export class FormatDTransformer {
 
         const policy: Policy = {
           policyId: `POL-FMT-D-${rawPol.policy_uuid || Math.floor(Math.random() * 100000)}`,
-          policyNumber: rawPol.policy_num || `FMT-D-${Math.floor(Math.random() * 899999) + 100000}`,
+          policyNumber: rawPol.policy_num || `FMT-D-${Math.floor(Math.random() * 900000) + 100000}`,
           customerId,
           carrierId,
           lineOfBusiness: lob,
