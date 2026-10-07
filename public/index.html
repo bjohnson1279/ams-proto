@@ -976,15 +976,27 @@
         btn.classList.remove('active');
         btn.setAttribute('aria-selected', 'false');
       });
-      if (event?.target) {
-        const btn = event.target.closest('.format-pill');
-        if (btn) {
-          btn.classList.add('active');
-          btn.setAttribute('aria-selected', 'true');
-          const editorContainer = document.getElementById('payload-editor-container');
-          if (editorContainer) {
-            editorContainer.setAttribute('aria-labelledby', btn.id);
-          }
+
+      const formatToId = {
+        'FORMAT_A': 'fmt-pill-a',
+        'FORMAT_B': 'fmt-pill-b',
+        'FORMAT_C': 'fmt-pill-c',
+        'FORMAT_D': 'fmt-pill-d'
+      };
+
+      const btn = document.getElementById(formatToId[formatKey]);
+      if (btn) {
+        btn.classList.add('active');
+        btn.setAttribute('aria-selected', 'true');
+
+        const editorContainer = document.getElementById('payload-editor-container');
+        if (editorContainer) {
+          editorContainer.setAttribute('aria-labelledby', btn.id);
+        }
+
+        // If triggered programmatically (not via direct click), move focus
+        if (event && event.target && !event.target.classList.contains('format-pill') && !event.target.closest('.format-pill')) {
+          btn.focus();
         }
       }
 
