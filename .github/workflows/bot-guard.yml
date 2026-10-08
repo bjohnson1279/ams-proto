@@ -4,10 +4,6 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   audit-bot-pr:
     name: Audit Bot PR Diff & Guardrails
@@ -40,18 +36,17 @@ jobs:
             fi
           fi
 
-          # 3. Reject Forbidden Scratch Verification Files
-          # Filter out recognized test suite directories and only audit newly added non-test files
-          ADDED_FILES=$(git diff --name-only --diff-filter=A origin/${{ github.base_ref }}...HEAD | grep -v -E '(^|/)(tests|__tests__|test)/' || true)
-          SCRATCH_FILES=$(echo "$ADDED_FILES" | grep -E '(^|/)test(_.*)?\.(ts|js|cjs|mjs|py|php|sh|bash)$|(^|/)fix_.*\.(php|cjs|js|ts|sh)$|(^|/)patch_.*\.(php|cjs|js|ts|py|sh|bash)$|(^|/)update_.*\.(php|cjs|js|ts|sh)$|(^|/)scratch_.*|.*\.scratch$|^plan\.md$' || true)
+          # 3. Reject Forbidden Scratch Verification and Patch Files (Added or Modified)
+          TOUCHED_NON_TEST_FILES=$(git diff --name-only --diff-filter=d origin/${{ github.base_ref }}...HEAD | grep -v -E '(^|/)(tests|__tests__|test)/' || true)
+          SCRATCH_FILES=$(echo "$TOUCHED_NON_TEST_FILES" | grep -E '(^|/)test(_.*)?\.(ts|js|cjs|mjs|py|php|sh|bash)$|(^|/)fix_.*\.(php|cjs|js|ts|sh)$|(^|/)patch_.*\.(php|cjs|js|ts|py|sh|bash)$|(^|/)update_.*\.(php|cjs|js|ts|sh)$|(^|/)scratch_.*|.*\.scratch$|^plan\.md$|.*\.diff$|.*\.patch$' || true)
           if [ -n "$SCRATCH_FILES" ]; then
-            echo "❌ ERROR: PR contains forbidden scratch verification files:"
+            echo "❌ ERROR: PR contains forbidden scratch verification or patch files:"
             echo "$SCRATCH_FILES"
             exit 1
           fi
 
           # 4. Reject Destructive Line Deletions in Critical Entrypoints & Schemas
-          DELETED_LINES=$(git diff --stat origin/${{ github.base_ref }}...HEAD | grep -E 'src/app\.ts|src/server\.ts|public/index\.html|src/routes/' | awk '{print $5}' | grep '-' || true)
+          DELETED_LINES=$(git diff --stat origin/${{ github.base_ref }}...HEAD | grep -E 'schema\.prisma|src/index\.ts|public/index\.php|docker/postgres/init/|db/schema\.rb|routes/|routes\.php' | awk '{print $5}' | grep '-' || true)
           for count in $DELETED_LINES; do
             num=$(echo "$count" | tr -d '-')
             if [ "$num" -gt 15 ]; then
@@ -68,14 +63,12 @@ jobs:
             exit 1
           fi
 
-          # 6. Audit Jules Agent PRs for Learning Journal Updates (.jules/*.md)
-          if echo "${{ github.head_ref }}" | grep -E '^(bolt|palette|sentinel)/'; then
-            JULES_JOURNAL_DIFF=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '^\.jules/' || true)
-            if [ -z "$JULES_JOURNAL_DIFF" ]; then
-              echo "⚠️ WARNING: Jules agent PR does not update .jules/<persona>.md journal notes. Please document learning and action."
-            else
-              echo "✅ Jules learning journal update detected: $JULES_JOURNAL_DIFF"
-            fi
+          # 6. Reject Deletion of Dated Historical Journal Entries in .jules/
+          DELETED_JOURNAL=$(git diff origin/${{ github.base_ref }}...HEAD -- .jules/ .Jules/ | grep -E '^\-## [0-9]{4}-[0-9]{2}-[0-9]{2}' || true)
+          if [ -n "$DELETED_JOURNAL" ]; then
+            echo "❌ ERROR: PR deletes historical journal entries from .jules/*.md. Entries must be strictly append-only."
+            echo "$DELETED_JOURNAL"
+            exit 1
           fi
 
           echo "✅ Basic Bot Diff Guardrail Passed."
@@ -83,7 +76,7 @@ jobs:
       - name: Syntax & Script Verification Gate
         run: |
           echo "=== Checking Modified Files for Syntax Errors ==="
-          MODIFIED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          MODIFIED_FILES=$(git diff --name-only --diff-filter=d origin/${{ github.base_ref }}...HEAD)
 
           for f in $MODIFIED_FILES; do
             if [ -f "$f" ]; then
@@ -105,7 +98,7 @@ jobs:
       - name: Dependency Security Audit Gate
         run: |
           echo "=== Auditing Dependency Manifests for Known Vulnerabilities ==="
-          MODIFIED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+          MODIFIED_FILES=$(git diff --name-only --diff-filter=d origin/${{ github.base_ref }}...HEAD)
 
           # Node.js audit
           if echo "$MODIFIED_FILES" | grep -E '(package\.json|package-lock\.json)'; then
@@ -149,4 +142,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Enabling squash merge for PR #${{ github.event.pull_request.number }}"
+          # Only use --squash, do NOT use --auto or gh pr review --approve unless branch protection is enforced
           gh pr merge ${{ github.event.pull_request.number }} -R ${{ github.repository }} --squash || true
