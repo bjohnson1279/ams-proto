@@ -137,3 +137,8 @@
 ## 2024-10-02 - Validate Numeric Values to Prevent Accounting Arbitrary Manipulation
 **Learning:** Functions that accept parameters directly mapping to financial or calculation formulas (like `commissionRate` when creating an invoice) can be manipulated if the server does not enforce strong boundary checks, leading to absurd negative commissions or payouts exceeding 100%.
 **Action:** Always validate and bound incoming calculation variables. Explicitly parse inputs to floats/integers, ensure they are not `NaN`, and enforce business logic boundaries (e.g., `0 <= rate <= 100`) before proceeding to the service layer.
+
+## 2024-10-08 - [Insecure Random ID Generation via Math.random()]
+**Vulnerability:** The codebase used `Math.random()` to generate fallback unique identifiers (like `policyId` or `policyNumber`) during data transformations in multiple files (e.g., Format A-D transformers).
+**Learning:** `Math.random()` is not cryptographically secure, and the numbers it generates are predictable. This increases the risk of identifier collisions, especially during batch operations or data migration, and could lead to data corruption or IDOR vulnerabilities.
+**Prevention:** Use Node.js's native `crypto` module methods (e.g., `randomInt()` or `randomUUID()`) to generate cryptographically secure numbers for identifiers and tokens.
