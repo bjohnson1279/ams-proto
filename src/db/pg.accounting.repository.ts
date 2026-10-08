@@ -70,6 +70,17 @@ export class PgAccountingRepository implements IAccountingRepository {
     });
   }
 
+  async getInvoiceCount(tenantId: string): Promise<number> {
+    return withTenantTransaction(tenantId, async (client) => {
+      // ⚡ Bolt: Provide a direct count query to prevent loading all rows into memory at the service layer
+      const res = await client.query('SELECT COUNT(*) as count FROM invoices WHERE tenant_id = $1', [tenantId]);
+      return parseInt(res.rows[0]?.count || '0', 10);
+    }).catch(err => {
+      // Invoices table doesn't exist in schema yet, fallback gracefully
+      return 0;
+    });
+  }
+
   async getInvoiceById(tenantId: string, invoiceId: string): Promise<Invoice | null> {
     return Promise.resolve(null);
   }

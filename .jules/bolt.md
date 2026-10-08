@@ -174,3 +174,7 @@
 ## 2026-10-01 - Avoid Array.map closure allocations on hot paths
 **Learning:** Using `Array.prototype.map()` in hot paths (like repository methods returning large database result sets) creates hidden performance overhead due to inline closure allocations and dynamic array resizing.
 **Action:** To optimize array mapping on hot-paths (like transforming database result rows), replace `Array.prototype.map()` with a pre-allocated native loop (e.g., `const arr = new Array(length)`) to prevent inline closure allocations and array resizing overhead.
+
+## 2026-10-08 - Push lookup counts to database layer to avoid full table scans
+**Learning:** Fetching an entire collection into memory just to determine its length or calculate a next sequence creates a massive memory bottleneck and triggers full-table scans.
+**Action:** Always push aggregate functions like count down to the database/repository layer using specific methods (e.g., getInvoiceCount).
