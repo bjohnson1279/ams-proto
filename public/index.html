@@ -590,7 +590,7 @@
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">2. Transformation Logs & Deduplication Audit</span>
-            <span id="audit-status" aria-live="polite" style="font-size: 0.8rem; color: var(--text-muted);">Ready for evaluation</span>
+            <span id="audit-status" style="font-size: 0.8rem; color: var(--text-muted);">Ready for evaluation</span>
           </div>
           <div id="output-box" class="output-box">
             <div style="color: var(--text-muted); font-style: italic;">Select a legacy export format and click 'Run Dry-Run Audit' to view field crosswalk logs, deduplication match recommendations, and mapping exceptions.</div>
@@ -733,7 +733,7 @@
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">Trial Balance Ledger</span>
-            <span id="trial-balance-status" aria-live="polite" class="badge badge-fmt-b">Balanced (Debits = Credits)</span>
+            <span id="trial-balance-status" class="badge badge-fmt-b">Balanced (Debits = Credits)</span>
           </div>
           <div class="table-container">
             <table>
@@ -816,7 +816,7 @@
             <button class="btn btn-secondary" onclick="parseRawAl3Sim(event)">⚡ Parse Raw AL3 Stream</button>
             <button class="btn btn-primary" onclick="ingestAl3Batch(event)">🚀 Ingest IVANS Download Batch</button>
           </div>
-          <div id="al3-output-box" class="output-box" style="max-height: 180px;" aria-live="polite">
+          <div id="al3-output-box" class="output-box" style="max-height: 180px;">
             <div style="color: var(--text-muted); font-style: italic;">Decoded AL3 record groups will appear here...</div>
           </div>
         </div>
@@ -833,7 +833,7 @@
             <div style="margin-top: 0.5rem;"><strong style="color: var(--accent-emerald);">Current Session Setting:</strong> <span id="current-rls-setting" style="color: #fff;">tenant-001</span></div>
           </div>
           <div class="panel-title" style="font-size: 0.95rem; margin-top: 0.5rem;">TimescaleDB Hypertable Ledger Audit Trail</div>
-          <div id="timescale-audit-box" class="output-box" style="height: 150px; overflow-y: auto;" aria-live="polite">
+          <div id="timescale-audit-box" class="output-box" style="height: 150px; overflow-y: auto;">
             <div class="log-line log-INFO">[TIMESCALEDB AUDIT] Partitioned time-chunk: 2026-08-07T00:00:00Z - RLS Context initialized for tenant-001</div>
           </div>
         </div>
@@ -1046,6 +1046,8 @@
             statusEl.className = 'badge badge-fmt-a';
           }
 
+          announceToScreenReader('Trial balance is ' + (res.data.isBalanced ? 'balanced' : 'unbalanced'));
+
           // Render Trial Balance
           const tbBody = document.getElementById('trial-balance-table-body');
           tbBody.innerHTML = '';
@@ -1216,6 +1218,8 @@
       const statusEl = document.getElementById('audit-status');
       statusEl.innerText = (isDryRun ? 'DRY-RUN ANALYSIS' : 'LIVE IMPORT') + ' COMPLETE (' + (res.summary?.totalRecordsProcessed || 0) + ' Records)';
       statusEl.style.color = 'var(--accent-emerald)';
+
+      announceToScreenReader(statusEl.innerText);
 
       if (res.result) {
         const r = res.result;
@@ -1817,6 +1821,8 @@
         headerDiv.innerHTML = `<strong>AL3 GROUP HEADER (2BOS):</strong> Sender: ${escapeHtml(res.header.senderId)} | Receiver: ${escapeHtml(res.header.receiverId)} | Seq: ${escapeHtml(res.header.sequenceNumber)}`;
         box.appendChild(headerDiv);
 
+        announceToScreenReader('AL3 stream parsed successfully');
+
         res.policies.forEach((p, idx) => {
           const div = document.createElement('div');
           div.className = 'log-line log-INFO';
@@ -1883,6 +1889,7 @@
           div.className = 'log-line log-INFO';
           div.innerHTML = `[TIMESCALEDB AUDIT] Ingested Download Batch <strong>${escapeHtml(batch.batchId)}</strong> for carrier ${escapeHtml(batch.carrierName)} under tenant <strong>${escapeHtml(currentTenantId)}</strong>.`;
           auditBox.prepend(div);
+          announceToScreenReader('TimescaleDB Audit: Ingested Download Batch ' + batch.batchId);
         }
       } catch (err) {
         alert('Ingest Error: ' + err.message);
