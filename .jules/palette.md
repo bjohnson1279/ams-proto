@@ -100,7 +100,9 @@
 **Learning:** For single-field text filters (like "Search customers"), using a generic `type="text"` requires writing custom JavaScript and HTML elements to provide a "clear" (x) button. Changing the input type to `type="search"` automatically provides a native, zero-configuration clear button in WebKit/Blink browsers without any extra code or JavaScript overhead.
 **Action:** When implementing simple search fields, always leverage `type="search"` instead of `type="text"` to immediately inherit native UX functionality and reduce custom code maintenance.
 
-## 2026-10-04 - Hide Decorative Emojis from Screen Readers in Empty States\n**Learning:** When using emojis purely for visual decoration in UI empty states (e.g., 🔍 for 'No customers found'), screen readers will read out their literal descriptions (e.g., 'Magnifying glass pointing right'). This creates unnecessary noise and cognitive overload. Furthermore, removing a `title` attribute from an icon-only button to satisfy perceived redundancy with `aria-label` removes the native tooltip for sighted users, causing a UX regression.\n**Action:** Add `aria-hidden="true"` to wrapper elements of decorative emojis to hide them from the accessibility tree, while leaving informative text visible. Always preserve existing `title` tooltips on icon-only buttons for sighted users.
+## 2026-10-04 - Hide Decorative Emojis from Screen Readers in Empty States
+**Learning:** When using emojis purely for visual decoration in UI empty states (e.g., 🔍 for 'No customers found'), screen readers will read out their literal descriptions (e.g., 'Magnifying glass pointing right'). This creates unnecessary noise and cognitive overload. Furthermore, removing a `title` attribute from an icon-only button to satisfy perceived redundancy with `aria-label` removes the native tooltip for sighted users, causing a UX regression.
+**Action:** Add `aria-hidden="true"` to wrapper elements of decorative emojis to hide them from the accessibility tree, while leaving informative text visible. Always preserve existing `title` tooltips on icon-only buttons for sighted users.
 
 ## 2026-12-05 - Hide search shortcut hint gracefully
 **Learning:** Adding a visible keyboard shortcut hint `<kbd>` to a search input is great for discoverability, but it visually overlaps with user text if they type a long string.
@@ -177,3 +179,7 @@
 ## 2024-06-25 - Added .sr-only <caption> to tables
 **Learning:** Screen readers often announce tables without context if there is no surrounding text or header directly tied to it. Adding a visually hidden `<caption>` element using `.sr-only` provides immediate context for screen reader users when they navigate into a table.
 **Action:** Always include a `.sr-only` `<caption>` on complex data tables to ensure screen reader users understand the table's purpose before traversing its rows.
+
+- **Strict Lowercase Directory Casing**: Always write learning notes to lowercase `.jules/<bot>.md`. Never create, commit, or reference uppercase `.Jules/`.
+
+- **Clean Markdown Formatting**: Always append journal entries using actual newline characters, never literal string escape sequences `\n`.
