@@ -114,6 +114,10 @@
 **Learning:** In addition to primary navigation tabs, secondary tab-like elements (like format selection pills) are equally vulnerable to state desynchronization if their selection logic relies strictly on `event.target`. When format options are pre-loaded or changed programmatically, the screen reader DOM state (`aria-selected`) fails to update, and focus is not managed.
 **Action:** Always decouple tab state management from click events by mapping the logical value (like a format key) to an explicit DOM ID, rather than relying on `event.target.closest`. Furthermore, if the change is triggered programmatically by a non-tab element, explicitly call `.focus()` on the newly activated pill button to preserve keyboard navigation context.
 
+## 2024-05-24 - Centralize screen reader announcements for dynamically updated content
+**Learning:** Injecting `aria-live` attributes into dynamic DOM elements populated via `innerHTML` is an accessibility anti-pattern. Because screen readers often fail to announce these elements reliably when they are inserted into the DOM dynamically, visually impaired users may miss critical updates (like completion status, validation responses, or audit updates). Decentralized `aria-live` regions also make it harder to manage announcement priority and verbosity.
+**Action:** Remove decentralized `aria-live` attributes from dynamic containers. Use a single, persistent, visually hidden element (`.sr-only`) with `aria-live="polite"` attached in the main HTML shell (e.g. `id="sr-announcer"`). Then, update its text content dynamically via a global helper function (`announceToScreenReader`) to ensure screen readers consistently detect and announce UI updates.
+
 ## Scope
 - **Persona**: Frontend UI, Accessibility, and User Experience Engineer (Palette).
 - **Primary Domain**: React components, vanilla DOM accessibility, ARIA role management, interactive empty states, and WCAG compliance.
