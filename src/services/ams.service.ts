@@ -132,6 +132,11 @@ export class AmsService {
   public async getCarriers(tenantId: string): Promise<Carrier[]> {
     return this.repos.carriers.getAll(tenantId);
   }
+  public async getCarrierById(tenantId: string, carrierId: string): Promise<Carrier | undefined> {
+    const carrier = await this.repos.carriers.getById(tenantId, carrierId);
+    return carrier || undefined;
+  }
+
 
   // ACORD DEC-PAGE GENERATOR
   public async generateDecPage(tenantId: string, policyIdOrNumber: string): Promise<AcordDecPagePayload> {
@@ -141,8 +146,15 @@ export class AmsService {
     }
 
     const customer = await this.getCustomerById(tenantId, policy.customerId);
-    const carriers = await this.getCarriers(tenantId);
-    const carrier = carriers.find(c => c.carrierId === policy.carrierId) || carriers[0];
+
+    // ⚡ Bolt: Replaced O(N) full-table fetch and memory array scan with O(1) direct ID lookup
+    let carrier = await this.getCarrierById(tenantId, policy.carrierId);
+
+    // Fallback if carrier not found by ID (maintaining original behavior)
+    if (!carrier) {
+      const carriers = await this.getCarriers(tenantId);
+      carrier = carriers[0];
+    }
 
     const insuredName = customer?.entityType === 'Commercial'
       ? (customer.businessName || 'Insured Commercial Entity')
