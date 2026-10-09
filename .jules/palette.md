@@ -110,6 +110,10 @@
 **Learning:** Relying on `event.target` to update tab states (like `aria-selected` and `active` classes) causes critical accessibility regressions when tabs are switched programmatically (e.g., via keyboard shortcuts like '/' or empty-state "Go to..." buttons). Because the triggering event is not on the tab button itself, the new tab visually activates but fails to receive the `aria-selected="true"` attribute or the `active` visual class, creating a mismatch between the DOM structure and screen reader announcements. Additionally, focus drops to the body, forcing keyboard users to manually tab back through the entire document to regain their context.
 **Action:** Never rely on `event.target` for tab state management. Always use explicit DOM selectors (like `document.querySelector('button[aria-controls="'+tabId+'"]')`) to target the correct tab. Furthermore, if a tab switch is triggered programmatically by a non-tab element, explicitly call `.focus()` on the newly activated tab button to preserve keyboard navigation context.
 
+## 2026-10-06 - Format Pills Programmatic Tab Switches Desync ARIA State and Lose Focus
+**Learning:** In addition to primary navigation tabs, secondary tab-like elements (like format selection pills) are equally vulnerable to state desynchronization if their selection logic relies strictly on `event.target`. When format options are pre-loaded or changed programmatically, the screen reader DOM state (`aria-selected`) fails to update, and focus is not managed.
+**Action:** Always decouple tab state management from click events by mapping the logical value (like a format key) to an explicit DOM ID, rather than relying on `event.target.closest`. Furthermore, if the change is triggered programmatically by a non-tab element, explicitly call `.focus()` on the newly activated pill button to preserve keyboard navigation context.
+
 ## Scope
 - **Persona**: Frontend UI, Accessibility, and User Experience Engineer (Palette).
 - **Primary Domain**: React components, vanilla DOM accessibility, ARIA role management, interactive empty states, and WCAG compliance.
