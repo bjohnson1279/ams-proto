@@ -49,6 +49,7 @@ export interface IAccountingRepository {
   getAccountsByNumbers(tenantId: string, accountNumbers: string[]): Promise<GlAccount[]>;
   getJournalEntries(tenantId: string): Promise<JournalEntry[]>;
   createJournalEntry(tenantId: string, entry: Partial<JournalEntry>): Promise<JournalEntry>;
+  getInvoiceCount(tenantId: string): Promise<number>;
   getInvoices(tenantId: string): Promise<Invoice[]>;
   getInvoiceById(tenantId: string, invoiceId: string): Promise<Invoice | null>;
   createInvoice(tenantId: string, invoice: Partial<Invoice>): Promise<Invoice>;

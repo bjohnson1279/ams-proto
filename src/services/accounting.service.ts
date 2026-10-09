@@ -125,8 +125,9 @@ export class AccountingService {
     const commAmount = Math.round((grossPremium * (commRate / 100)) * 100) / 100;
     const netCarrierPayable = Math.round((grossPremium - commAmount) * 100) / 100;
 
-    const invoices = await this.getInvoices(tenantId);
-    const nextInvNum = 1000 + invoices.length + 1;
+    // ⚡ Bolt: Pushed invoice count calculation to the database layer to avoid massive full-table scan memory bloat
+    const invoiceCount = await this.repos.accounting.getInvoiceCount(tenantId);
+    const nextInvNum = 1000 + invoiceCount + 1;
     const invoiceId = `INV-${nextInvNum}`;
     const invoiceNumber = `INV-2026-${nextInvNum}`;
 
