@@ -513,8 +513,8 @@
         <p>Legacy Crosswalk & Ingestion Integration Workbench</p>
       </div>
     </div>
-    <div class="status-badge">
-      <div class="pulse-dot"></div>
+    <div class="status-badge" role="status">
+      <div class="pulse-dot" aria-hidden="true"></div>
       CI Validated • 100% Test Coverage
     </div>
   </header>
@@ -611,6 +611,7 @@
       </div>
       <div class="table-container">
         <table>
+          <caption class="sr-only">Insured and Policy Registry Directory</caption>
           <thead>
             <tr>
               <th>Insured ID</th>
@@ -661,6 +662,7 @@
         </div>
         <div class="table-container">
           <table>
+            <caption class="sr-only">ACORD 25 Certificates of Liability Insurance List</caption>
             <thead>
               <tr>
                 <th>Certificate #</th>
@@ -685,6 +687,7 @@
         </div>
         <div class="table-container">
           <table>
+            <caption class="sr-only">Master Certificate Holder Directory</caption>
             <thead>
               <tr>
                 <th>Holder ID</th>
@@ -737,6 +740,7 @@
           </div>
           <div class="table-container">
             <table>
+              <caption class="sr-only">Trial Balance Ledger Accounts</caption>
               <thead>
                 <tr>
                   <th>Account #</th>
@@ -761,6 +765,7 @@
           </div>
           <div class="table-container">
             <table>
+              <caption class="sr-only">Agency Bill Invoices</caption>
               <thead>
                 <tr>
                   <th>Invoice #</th>
@@ -847,6 +852,7 @@
         </div>
         <div class="table-container">
           <table>
+            <caption class="sr-only">Carrier Download Batches and Auto-Reconciliation Ledger</caption>
             <thead>
               <tr>
                 <th>Batch ID</th>
@@ -871,6 +877,7 @@
     <div id="tab-matrix" class="tab-content" role="tabpanel" aria-labelledby="nav-tab-matrix">
       <div class="table-container">
         <table>
+          <caption class="sr-only">Crosswalk Matrix Field Mapping Rules</caption>
           <thead>
             <tr>
               <th>Source Format</th>
@@ -1554,7 +1561,7 @@
           <td style="color: var(--text-muted);">${escapeHtml(h.attention || '-')}</td>
           <td>${escapeHtml(loc)}</td>
           <td><span class="badge badge-core">${escapeHtml(h.deliveryPreference || 'Email')}</span></td>
-          <td style="font-size: 0.8rem; color: var(--text-muted); max-width: 300px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${escapeHtml(h.defaultSpecialWording || '-')}</td>
+          <td style="font-size: 0.8rem; color: var(--text-muted); max-width: 300px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;" title="${escapeHtml(h.defaultSpecialWording || '-')}">${escapeHtml(h.defaultSpecialWording || '-')}</td>
         `;
         tbody.appendChild(tr);
       });

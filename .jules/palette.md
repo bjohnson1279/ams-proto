@@ -174,3 +174,6 @@
 - **Strictly Append-Only Journaling**: When adding learnings to `.jules/*.md`, append strictly at the end of the file. Do not rewrite, deduplicate, or remove lines beginning with `## YYYY-MM-DD`.
 - **Surgical Scope Quarantine**: Modify only the files directly involved in the issue and their corresponding test fixtures. Do not delete, rename, or perform drive-by cleanups of unrelated root-level scripts or legacy files.
 - **Coupled Test Fixture Awareness for Security Invariants**: When changing fail-open fallback behavior (such as hardening decryption to fail closed), always update upstream test mocks that rely on plaintext credentials or mock values.
+## 2024-06-25 - Added .sr-only <caption> to tables
+**Learning:** Screen readers often announce tables without context if there is no surrounding text or header directly tied to it. Adding a visually hidden `<caption>` element using `.sr-only` provides immediate context for screen reader users when they navigate into a table.
+**Action:** Always include a `.sr-only` `<caption>` on complex data tables to ensure screen reader users understand the table's purpose before traversing its rows.
