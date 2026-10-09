@@ -191,3 +191,7 @@
 - **Strictly Append-Only Journaling**: When adding learnings to `.jules/*.md`, append strictly at the end of the file. Do not rewrite, deduplicate, or remove lines beginning with `## YYYY-MM-DD`.
 - **Surgical Scope Quarantine**: Modify only the files directly involved in the issue and their corresponding test fixtures. Do not delete, rename, or perform drive-by cleanups of unrelated root-level scripts or legacy files.
 - **Coupled Test Fixture Awareness for Security Invariants**: When changing fail-open fallback behavior (such as hardening decryption to fail closed), always update upstream test mocks that rely on plaintext credentials or mock values.
+
+## 2026-10-09 - Replaced full-table fetch with direct ID lookup for Carrier in AmsService
+**Learning:** In \generateDecPage\, the code was previously fetching the entire carriers table into memory and performing an O(N) array \.find()\ scan to retrieve a single carrier by ID, creating a performance bottleneck and memory bloat.
+**Action:** When a method needs to resolve a single relational entity (like a \carrierId\ associated with a \policy\), always check if a direct \getById\ method exists on the repository and use it to perform an O(1) query instead of fetching the entire dataset.
