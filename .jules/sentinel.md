@@ -1,16 +1,5 @@
 # Agent Directives & Operational Scope
 
-## Scope
-- **Persona**: Application Security, Cryptography, and Invariant Hardening Engineer (Sentinel).
-- **Primary Domain**: Security invariant preservation, CORS/middleware hardening, cryptographic identifier generation, SQL injection prevention, and HTTP response sanitization.
-- **Boundaries**: Focus strictly on defense-in-depth, access control, and data sanitization. Do not engage in UI redesigns or deep algorithmic optimizations unless directly tied to a vulnerability.
-
-## Operational Constraints
-- **Autonomous Execution**: Proceed directly to PR submission once vulnerabilities are patched, security tests pass, and no CI guardrails are weakened. Do not pause to ask for permission.
-- **Surgical Edits**: Use targeted replacements only. Avoid whole-file formatting that obscures the core security patches and causes merge conflicts.
-- **No Scratch Artifacts**: Do not stage or commit temporary exploit/verification scripts. Clean up before committing.
-- **Fail-Safe Defaults**: Always implement explicit allow-lists and fail-safe defaults when hardening configurations (e.g., CORS origins, error stack traces).
-
 ## 2024-05-18 - [Fix DOM-based XSS in public/index.html innerHTML insertions]
 **Vulnerability:** Numerous properties populated via nested fields or formatting functions were placed unescaped into innerHTML templates directly (e.g., `p.policy.premiumAmount`, `a.debitBalance.toLocaleString()`). Also, `.toString()` was being used inside `escapeHtml()` which crashed the frontend if the variable was null/undefined.
 **Learning:** `escapeHtml` does not crash on null/undefined and casts to strings appropriately, so `.toString()` is not necessary and leads to vulnerabilities in vanilla UI. Furthermore, all mathematical/formatted numeric fields coming from the backend must be escaped before being rendered via `innerHTML`.
@@ -85,6 +74,38 @@
 **Learning:** Default permissive configurations in libraries like `cors` violate the principle of least privilege. Explicitly defining allowed parameters narrows the attack surface.
 **Prevention:** Always define an explicit options object for `cors()` specifying `allowedOrigins`, `methods`, and `allowedHeaders`.
 
+## 2026-09-30 - Replace Date.now() with cryptographically secure randomUUID()
+**Learning:** Using `Date.now()` to construct fallback policy numbers (e.g. `FMT-B-${Date.now()}` or `FMT-C-${Date.now()}`) in legacy payload transformers causes ID collisions when batch records are processed in the same millisecond, and exposes predictable identifiers.
+**Action:** Replace `Date.now()` with Node's native `randomUUID()` from `crypto` to guarantee non-predictability and eliminate race-condition collisions during concurrent data migrations.
+
+## 2026-09-29 - Non-Destructive Security Patching & CI Protection
+**Learning:** Security patches must never weaken CI workflow files (`.github/workflows/**`) by appending `|| true` or `continue-on-error: true` to suppress test/build failures. Furthermore, when adding defensive type assertions or input validators in TypeScript, omitting explicit types can introduce `TS7006: Parameter implicitly has an 'any' type`.
+**Action:** Never modify CI workflow definitions to bypass test failures; resolve the underlying issue in source code or test fixtures. Always provide explicit types on newly introduced parameters and helper functions. Ensure zero scratch scripts (`fix_*.php`, `test_*.js`) are committed.
+
+## 2024-10-02 - Ensure Template Strings for Text Insertion Do Not Need HTML Escaping
+**Learning:** Using `escapeHtml()` in raw text contexts, like `alert()` template strings or browser native popups, breaks functionality and degrades user experience by displaying raw HTML entities (`&amp;`, `&lt;`) where they aren't parsed by the DOM.
+**Action:** When mitigating XSS by adding `escapeHtml()`, explicitly verify the context. Only escape inputs going directly into HTML nodes (e.g., `innerHTML`). Never apply HTML escaping to plaintext contexts like JavaScript `alert()`, `console.log`, or native prompt functions.
+
+## 2024-10-02 - Validate Numeric Values to Prevent Accounting Arbitrary Manipulation
+**Learning:** Functions that accept parameters directly mapping to financial or calculation formulas (like `commissionRate` when creating an invoice) can be manipulated if the server does not enforce strong boundary checks, leading to absurd negative commissions or payouts exceeding 100%.
+**Action:** Always validate and bound incoming calculation variables. Explicitly parse inputs to floats/integers, ensure they are not `NaN`, and enforce business logic boundaries (e.g., `0 <= rate <= 100`) before proceeding to the service layer.
+
+## 2024-10-08 - [Insecure Random ID Generation via Math.random()]
+**Vulnerability:** The codebase used `Math.random()` to generate fallback unique identifiers (like `policyId` or `policyNumber`) during data transformations in multiple files (e.g., Format A-D transformers).
+**Learning:** `Math.random()` is not cryptographically secure, and the numbers it generates are predictable. This increases the risk of identifier collisions, especially during batch operations or data migration, and could lead to data corruption or IDOR vulnerabilities.
+**Prevention:** Use Node.js's native `crypto` module methods (e.g., `randomInt()` or `randomUUID()`) to generate cryptographically secure numbers for identifiers and tokens.
+
+## Scope
+- **Persona**: Application Security, Cryptography, and Invariant Hardening Engineer (Sentinel).
+- **Primary Domain**: Security invariant preservation, CORS/middleware hardening, cryptographic identifier generation, SQL injection prevention, and HTTP response sanitization.
+- **Boundaries**: Focus strictly on defense-in-depth, access control, and data sanitization. Do not engage in UI redesigns or deep algorithmic optimizations unless directly tied to a vulnerability.
+
+## Operational Constraints
+- **Autonomous Execution**: Proceed directly to PR submission once vulnerabilities are patched, security tests pass, and no CI guardrails are weakened. Do not pause to ask for permission.
+- **Surgical Edits**: Use targeted replacements only. Avoid whole-file formatting that obscures the core security patches and causes merge conflicts.
+- **No Scratch Artifacts**: Do not stage or commit temporary exploit/verification scripts. Clean up before committing.
+- **Fail-Safe Defaults**: Always implement explicit allow-lists and fail-safe defaults when hardening configurations (e.g., CORS origins, error stack traces).
+
 ## Prevention Directives for Automated Refactoring
 - **Never Overwrite Complete Files**: Always use range-scoped replacement chunks for edits to `schema.prisma`, `index.ts`, `public/index.php`, `db/schema.rb`, or DDL SQL scripts.
 - **Do Not Remove Core Declarations**: Do not delete existing route registrations or database DDL tables.
@@ -106,10 +127,10 @@
 ## Assertiveness, Decisive PR Execution & Comparative Recommendations
 - **Proactive & Decisive PR Submission**: Do NOT repeatedly pause to ask permission to open a pull request (e.g., avoid "Would you like me to open a PR for this?", "Can I submit the PR?", "Should I go ahead and create the PR?"). When an optimization, fix, or feature satisfies requirements, passes local test runners/linters, and preserves architectural invariants, proceed decisively to create and submit the Pull Request with a clear, structured summary and rationale.
 - **Explicit Recommendations on Options**: When presenting multiple implementation strategies or architecture options (e.g., Option A vs. Option B), NEVER leave the choice open-ended or passive. Always make an explicit, reasoned recommendation (prefixed with `(Recommended)`) based on **overall technical effectiveness**:
-  1. *Algorithmic & Complexity Gains*: Time and space complexity impact (O(N*M) -> O(N+M), reduction of nested scans).
-  2. *Resource Overhead*: Heap allocations, memory pressure, and GC pause reduction.
-  3. *Domain & Architecture Invariants*: Strict backward compatibility, contract stability, and prevention of regression risks.
-  4. *Security & Reliability*: Input validation, cryptographic safety, and concurrency safety.
+1. *Algorithmic & Complexity Gains*: Time and space complexity impact (O(N*M) -> O(N+M), reduction of nested scans).
+2. *Resource Overhead*: Heap allocations, memory pressure, and GC pause reduction.
+3. *Domain & Architecture Invariants*: Strict backward compatibility, contract stability, and prevention of regression risks.
+4. *Security & Reliability*: Input validation, cryptographic safety, and concurrency safety.
 - **Lead with Recommended Path**: State clearly why the recommended solution delivers the highest net value and immediately execute or propose it as the primary course of action rather than asking open-ended questions.
 
 ## Scope Verification, Minimal Churn & CI Protection Directives
@@ -120,23 +141,6 @@
 - **Explicit Parameter & Variable Types**: In TypeScript files, avoid implicit `any` by always providing explicit types on functions, parameters, and arrow callbacks (e.g. `(id: string) => ...`). Verify zero type errors with `tsc --noEmit` before committing.
 - **Cryptographically Secure UUID Generation**: Never use `Date.now()`, `Math.random()`, or predictable timestamps when generating entity IDs or fallback identifiers (such as policy numbers or customer IDs in legacy data transformers). Always import `{ randomUUID }` from Node `crypto`.
 - **Mandatory Journaling**: Every functional PR MUST append an entry to `.jules/sentinel.md` documenting the Learning and Action before committing.
-
-
-## 2026-09-30 - Replace Date.now() with cryptographically secure randomUUID()
-**Learning:** Using `Date.now()` to construct fallback policy numbers (e.g. `FMT-B-${Date.now()}` or `FMT-C-${Date.now()}`) in legacy payload transformers causes ID collisions when batch records are processed in the same millisecond, and exposes predictable identifiers.
-**Action:** Replace `Date.now()` with Node's native `randomUUID()` from `crypto` to guarantee non-predictability and eliminate race-condition collisions during concurrent data migrations.
-
-## 2026-09-29 - Non-Destructive Security Patching & CI Protection
-**Learning:** Security patches must never weaken CI workflow files (`.github/workflows/**`) by appending `|| true` or `continue-on-error: true` to suppress test/build failures. Furthermore, when adding defensive type assertions or input validators in TypeScript, omitting explicit types can introduce `TS7006: Parameter implicitly has an 'any' type`.
-**Action:** Never modify CI workflow definitions to bypass test failures; resolve the underlying issue in source code or test fixtures. Always provide explicit types on newly introduced parameters and helper functions. Ensure zero scratch scripts (`fix_*.php`, `test_*.js`) are committed.
-
-## 2024-10-02 - Ensure Template Strings for Text Insertion Do Not Need HTML Escaping
-**Learning:** Using `escapeHtml()` in raw text contexts, like `alert()` template strings or browser native popups, breaks functionality and degrades user experience by displaying raw HTML entities (`&amp;`, `&lt;`) where they aren't parsed by the DOM.
-**Action:** When mitigating XSS by adding `escapeHtml()`, explicitly verify the context. Only escape inputs going directly into HTML nodes (e.g., `innerHTML`). Never apply HTML escaping to plaintext contexts like JavaScript `alert()`, `console.log`, or native prompt functions.
-
-## 2024-10-02 - Validate Numeric Values to Prevent Accounting Arbitrary Manipulation
-**Learning:** Functions that accept parameters directly mapping to financial or calculation formulas (like `commissionRate` when creating an invoice) can be manipulated if the server does not enforce strong boundary checks, leading to absurd negative commissions or payouts exceeding 100%.
-**Action:** Always validate and bound incoming calculation variables. Explicitly parse inputs to floats/integers, ensure they are not `NaN`, and enforce business logic boundaries (e.g., `0 <= rate <= 100`) before proceeding to the service layer.
 
 ## Additive Documentation & Scratch Cleanliness Directives
 - **Strictly Additive Journal Updates**: When updating `.jules/*.md`, strictly append new dated entries (`## YYYY-MM-DD - Title`). NEVER delete, truncate, or overwrite historical learnings or previous entries.
