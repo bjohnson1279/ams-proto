@@ -199,3 +199,6 @@
 - **Strict Lowercase Directory Casing**: Always write learning notes to lowercase `.jules/<bot>.md`. Never create, commit, or reference uppercase `.Jules/`.
 
 - **Clean Markdown Formatting**: Always append journal entries using actual newline characters, never literal string escape sequences `\n`.
+## 2026-10-10 - Push certificate length calculation to database layer
+**Learning:** Fetching an entire collection of certificates into memory just to determine the array length (e.g. `allCerts.length`) for generating a new sequence number creates a massive memory bottleneck and triggers O(N) full-table scans.
+**Action:** Always push aggregate functions like count down to the database/repository layer using specific methods (e.g. `getCertificateCount`).

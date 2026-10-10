@@ -81,6 +81,14 @@ export class PgCertificateHolderRepository implements ICertificateHolderReposito
 }
 
 export class PgCertificateRepository implements ICertificateRepository {
+  async getCertificateCount(tenantId: string): Promise<number> {
+    return withTenantTransaction(tenantId, async (client) => {
+      // ⚡ Bolt: Provide a direct count query to prevent loading all rows into memory at the service layer
+      const res = await client.query('SELECT COUNT(*) as count FROM certificates WHERE tenant_id = $1', [tenantId]);
+      return parseInt(res.rows[0]?.count || '0', 10);
+    });
+  }
+
   async getAll(tenantId: string, filter?: any): Promise<CertificateOfInsurance[]> {
     return withTenantTransaction(tenantId, async (client) => {
       const res = await client.query('SELECT * FROM certificates WHERE tenant_id = $1', [tenantId]);

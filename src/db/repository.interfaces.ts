@@ -37,6 +37,7 @@ export interface ICertificateHolderRepository {
 }
 
 export interface ICertificateRepository {
+  getCertificateCount(tenantId: string): Promise<number>;
   getAll(tenantId: string, filter?: any): Promise<CertificateOfInsurance[]>;
   getById(tenantId: string, id: string): Promise<CertificateOfInsurance | null>;
   create(tenantId: string, cert: Partial<CertificateOfInsurance>): Promise<CertificateOfInsurance>;

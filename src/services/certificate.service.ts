@@ -339,8 +339,8 @@ export class CertificateService {
       descParts.push('Certificate Holder is listed as Additional Insured as required by written contract subject to policy terms and conditions.');
     }
 
-    const allCerts = await this.repos.certificates.getAll(tenantId);
-    const certSeq = allCerts.length + 101;
+    const certCount = await this.repos.certificates.getCertificateCount(tenantId);
+    const certSeq = certCount + 101;
     const todayStr = new Date().toISOString().split('T')[0];
     const newCert: Partial<CertificateOfInsurance> = {
       certificateId: `CERT-2026-${certSeq}`,
