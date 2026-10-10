@@ -79,4 +79,23 @@ describe('CertificateService (ACORD 25 Engine)', () => {
   it('should throw error when rendering non-existent certificate', async () => {
     await expect(certService.renderAcord25Html('tenant-001', 'CERT-INVALID-999')).rejects.toThrow();
   });
+
+  it('should isolate certificate counts between distinct tenants', async () => {
+    const tenantACountBefore = await certService.getCertificateCount('tenant-001');
+    const tenantBCountBefore = await certService.getCertificateCount('tenant-002');
+
+    // Generate a certificate specifically for tenant-001
+    await certService.generateCertificate('tenant-001', {
+      customerId: 'CUST-1001',
+      holderId: 'HOLDER-1001',
+      policyIds: ['POL-GL-2026-002'],
+      descriptionOfOperations: 'Tenant isolation verification certificate'
+    });
+
+    const tenantACountAfter = await certService.getCertificateCount('tenant-001');
+    const tenantBCountAfter = await certService.getCertificateCount('tenant-002');
+
+    expect(tenantACountAfter).toBe(tenantACountBefore + 1);
+    expect(tenantBCountAfter).toBe(tenantBCountBefore);
+  });
 });

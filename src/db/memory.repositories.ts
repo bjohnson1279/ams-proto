@@ -144,7 +144,11 @@ export class MemoryCertificateRepository implements ICertificateRepository {
 
   async getCertificateCount(tenantId: string): Promise<number> {
     // ⚡ Bolt: Provide a direct count method instead of fetching the entire array and mapping/filtering in service layer
-    return Promise.resolve(this.certs.length);
+    let count = 0;
+    for (const c of this.certs) {
+      if (!c.tenantId || c.tenantId === tenantId) count++;
+    }
+    return Promise.resolve(count);
   }
 
   async getAll(tenantId: string, filter?: any): Promise<CertificateOfInsurance[]> {

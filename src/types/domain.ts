@@ -292,6 +292,7 @@ export interface FinancialSummary {
 // ACORD 25 CERTIFICATE OF INSURANCE TYPES
 export interface CertificateHolder {
   holderId: string;
+  tenantId?: string;
   name: string;
   attention?: string;
   address: Address;
@@ -403,6 +404,7 @@ export type CertificateStatus = 'Draft' | 'Issued' | 'Revoked' | 'Expired';
 
 export interface CertificateOfInsurance {
   certificateId: string;
+  tenantId?: string;
   certificateNumber: string;
   issueDate: string; // YYYY-MM-DD
   status: CertificateStatus;

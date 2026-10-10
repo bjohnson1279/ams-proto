@@ -91,6 +91,10 @@ export class CertificateService {
   }
 
   // CERTIFICATE OPERATIONS
+  public async getCertificateCount(tenantId: string): Promise<number> {
+    return this.repos.certificates.getCertificateCount(tenantId);
+  }
+
   public async getCertificates(tenantId: string, filter?: { customerId?: string; holderId?: string; status?: string }): Promise<CertificateOfInsurance[]> {
     return this.repos.certificates.getAll(tenantId, filter);
   }
