@@ -137,3 +137,8 @@
 ## 2024-10-02 - Validate Numeric Values to Prevent Accounting Arbitrary Manipulation
 **Learning:** Functions that accept parameters directly mapping to financial or calculation formulas (like `commissionRate` when creating an invoice) can be manipulated if the server does not enforce strong boundary checks, leading to absurd negative commissions or payouts exceeding 100%.
 **Action:** Always validate and bound incoming calculation variables. Explicitly parse inputs to floats/integers, ensure they are not `NaN`, and enforce business logic boundaries (e.g., `0 <= rate <= 100`) before proceeding to the service layer.
+
+## 2026-10-06 - [Hash stored credentials]
+**Vulnerability:** Static user credentials (`DEV_CREDENTIALS`) were stored in plaintext inside `src/services/auth.service.ts`.
+**Learning:** Storing passwords or secrets in plaintext is a critical vulnerability that allows credential exposure in case of source code leakage.
+**Prevention:** Passwords must always be hashed before storage using a secure hashing algorithm (e.g., Node.js `crypto` with `sha256` or `bcrypt`) and verified by hashing incoming inputs rather than comparing raw strings.
