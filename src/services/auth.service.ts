@@ -4,7 +4,7 @@
 // In development mode, accepts static credentials for testing.
 // ============================================================================
 
-import { randomUUID } from 'crypto';
+import { randomUUID, createHash } from 'crypto';
 import { WsapiSession } from '../types/wsapi.js';
 
 /** Default session TTL: 30 minutes */
@@ -19,25 +19,25 @@ const PRUNE_INTERVAL_MS = 5 * 60 * 1000;
  */
 const DEV_CREDENTIALS: Array<{
   loginId: string;
-  password: string;
+  passwordHash: string;
   displayName: string;
   tenantId: string;
 }> = [
   {
     loginId: 'wsapi-admin',
-    password: 'admin123',
+    passwordHash: '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9', // admin123
     displayName: 'WSAPI Administrator',
     tenantId: 'tenant-001',
   },
   {
     loginId: 'wsapi-user-1',
-    password: 'user123',
+    passwordHash: 'e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446', // user123
     displayName: 'Sarah Jenkins (Producer)',
     tenantId: 'tenant-001',
   },
   {
     loginId: 'wsapi-user-2',
-    password: 'user123',
+    passwordHash: 'e606e38b0d8c19b24cf0ee3808183162ea7cd63ff7912dbb22b5e803286b4446', // user123
     displayName: 'Mark Rivera (CSR)',
     tenantId: 'tenant-002',
   },
@@ -77,8 +77,9 @@ export class AuthService {
       return null;
     }
 
+    const incomingHash = createHash('sha256').update(password).digest('hex');
     const cred = DEV_CREDENTIALS.find(
-      (c) => c.loginId === loginId && c.password === password
+      (c) => c.loginId === loginId && c.passwordHash === incomingHash
     );
 
     if (!cred) {

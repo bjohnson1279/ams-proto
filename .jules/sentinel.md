@@ -95,6 +95,11 @@
 **Learning:** `Math.random()` is not cryptographically secure, and the numbers it generates are predictable. This increases the risk of identifier collisions, especially during batch operations or data migration, and could lead to data corruption or IDOR vulnerabilities.
 **Prevention:** Use Node.js's native `crypto` module methods (e.g., `randomInt()` or `randomUUID()`) to generate cryptographically secure numbers for identifiers and tokens.
 
+## 2026-10-06 - [Hash stored credentials]
+**Vulnerability:** Static user credentials (`DEV_CREDENTIALS`) were stored in plaintext inside `src/services/auth.service.ts`.
+**Learning:** Storing passwords or secrets in plaintext is a critical vulnerability that allows credential exposure in case of source code leakage.
+**Prevention:** Passwords must always be hashed before storage using a secure hashing algorithm (e.g., Node.js `crypto` with `sha256` or `bcrypt`) and verified by hashing incoming inputs rather than comparing raw strings.
+
 ## Scope
 - **Persona**: Application Security, Cryptography, and Invariant Hardening Engineer (Sentinel).
 - **Primary Domain**: Security invariant preservation, CORS/middleware hardening, cryptographic identifier generation, SQL injection prevention, and HTTP response sanitization.
