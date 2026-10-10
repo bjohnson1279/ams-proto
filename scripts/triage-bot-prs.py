@@ -242,19 +242,11 @@ def main():
             return
         print("✅ TypeScript compilation passed cleanly.")
 
-        j_learnings = os.path.join(repo_dir, ".Jules", "learnings")
-        if os.path.isdir(j_learnings):
-            try:
-                os.rmdir(j_learnings)
-            except Exception:
-                pass
-
         run_cmd("git add -A", cwd=repo_dir)
-        c_out, c_err, _ = run_cmd('git commit -m "chore(jules): track base.md directives in repository"', cwd=repo_dir)
+        c_out, c_err, _ = run_cmd('git commit -m "chore(jules): clean up redundant learnings directory and finalize triage script"', cwd=repo_dir)
         print(f"Commit output: {c_out.strip() or c_err.strip()}")
         p_out, p_err, _ = run_cmd("git push origin main", cwd=repo_dir)
         print(f"Push output: {p_out.strip() or p_err.strip()}")
-        run_cmd("git clean -fd", cwd=repo_dir)
 
     print(f"🔍 Checking open bot PRs across GitHub for bjohnson1279...", flush=True)
     all_out, _, _ = run_cmd("gh search prs --owner bjohnson1279 --state open --json repository,number,title,url,headRefName", cwd=repo_dir, timeout=20)
