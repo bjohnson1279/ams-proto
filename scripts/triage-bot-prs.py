@@ -254,6 +254,7 @@ def main():
         print(f"Commit output: {c_out.strip() or c_err.strip()}")
         p_out, p_err, _ = run_cmd("git push origin main", cwd=repo_dir)
         print(f"Push output: {p_out.strip() or p_err.strip()}")
+        run_cmd("git clean -fd", cwd=repo_dir)
 
     print(f"🔍 Checking open bot PRs across GitHub for bjohnson1279...", flush=True)
     all_out, _, _ = run_cmd("gh search prs --owner bjohnson1279 --state open --json repository,number,title,url,headRefName", cwd=repo_dir, timeout=20)
