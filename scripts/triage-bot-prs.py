@@ -249,8 +249,8 @@ def main():
             except Exception:
                 pass
 
-        run_cmd("git add .github/ .gitignore .jules/ scripts/ src/ tests/", cwd=repo_dir)
-        c_out, c_err, _ = run_cmd('git commit -m "fix(certificate,jules): enforce multi-tenant isolation in certificate count and streamline bot directives"', cwd=repo_dir)
+        run_cmd("git add -A", cwd=repo_dir)
+        c_out, c_err, _ = run_cmd('git commit -m "chore(jules): track base.md directives in repository"', cwd=repo_dir)
         print(f"Commit output: {c_out.strip() or c_err.strip()}")
         p_out, p_err, _ = run_cmd("git push origin main", cwd=repo_dir)
         print(f"Push output: {p_out.strip() or p_err.strip()}")
