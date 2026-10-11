@@ -136,6 +136,22 @@
 **Learning:** Fetching an entire collection into memory just to determine its length or calculate a next sequence creates a massive memory bottleneck and triggers full-table scans.
 **Action:** Always push aggregate functions like count down to the database/repository layer using specific methods (e.g., getInvoiceCount).
 
+## 2026-10-09 - Replaced full-table fetch with direct ID lookup for Carrier in AmsService
+**Learning:** In \generateDecPage\, the code was previously fetching the entire carriers table into memory and performing an O(N) array \.find()\ scan to retrieve a single carrier by ID, creating a performance bottleneck and memory bloat.
+**Action:** When a method needs to resolve a single relational entity (like a \carrierId\ associated with a \policy\), always check if a direct \getById\ method exists on the repository and use it to perform an O(1) query instead of fetching the entire dataset.
+
+- **Strict Lowercase Directory Casing**: Always write learning notes to lowercase `.jules/<bot>.md`. Never create, commit, or reference uppercase `.Jules/`.
+
+- **Clean Markdown Formatting**: Always append journal entries using actual newline characters, never literal string escape sequences `\n`.
+
+## 2026-10-10 - Push certificate length calculation to database layer
+**Learning:** Fetching an entire collection of certificates into memory just to determine the array length (e.g. `allCerts.length`) for generating a new sequence number creates a massive memory bottleneck and triggers O(N) full-table scans.
+**Action:** Always push aggregate functions like count down to the database/repository layer using specific methods (e.g. `getCertificateCount`), and ensure that in-memory mock repositories preserve multi-tenant isolation (`(!c.tenantId || c.tenantId === tenantId)`) instead of returning raw unfiltered array lengths (`this.certs.length`).
+
+## 2026-10-02 - Pushed sequential counting to database to avoid fetching complete collection payloads
+**Learning:** When calculating sequence numbers based on collection length (e.g., `invoices.length`), fetching the entire collection into memory creates a significant memory bottleneck and results in O(N) full-table scans.
+**Action:** Always push collection counting down to the database/repository layer (e.g., using a `getCount` query or iterating in memory at the repository level) to avoid application memory bloat and improve hot-path performance.
+
 ## Scope
 - **Persona**: Backend Performance & Algorithmic Optimization Engineer (Bolt).
 - **Primary Domain**: Algorithmic complexity reduction ($\mathcal{O}(N) \to \mathcal{O}(1)$), memory and GC overhead minimization, and database/repository access pattern optimization (e.g. resolving N+1 queries).
@@ -191,14 +207,3 @@
 - **Strictly Append-Only Journaling**: When adding learnings to `.jules/*.md`, append strictly at the end of the file. Do not rewrite, deduplicate, or remove lines beginning with `## YYYY-MM-DD`.
 - **Surgical Scope Quarantine**: Modify only the files directly involved in the issue and their corresponding test fixtures. Do not delete, rename, or perform drive-by cleanups of unrelated root-level scripts or legacy files.
 - **Coupled Test Fixture Awareness for Security Invariants**: When changing fail-open fallback behavior (such as hardening decryption to fail closed), always update upstream test mocks that rely on plaintext credentials or mock values.
-
-## 2026-10-09 - Replaced full-table fetch with direct ID lookup for Carrier in AmsService
-**Learning:** In \generateDecPage\, the code was previously fetching the entire carriers table into memory and performing an O(N) array \.find()\ scan to retrieve a single carrier by ID, creating a performance bottleneck and memory bloat.
-**Action:** When a method needs to resolve a single relational entity (like a \carrierId\ associated with a \policy\), always check if a direct \getById\ method exists on the repository and use it to perform an O(1) query instead of fetching the entire dataset.
-
-- **Strict Lowercase Directory Casing**: Always write learning notes to lowercase `.jules/<bot>.md`. Never create, commit, or reference uppercase `.Jules/`.
-
-- **Clean Markdown Formatting**: Always append journal entries using actual newline characters, never literal string escape sequences `\n`.
-## 2026-10-10 - Push certificate length calculation to database layer
-**Learning:** Fetching an entire collection of certificates into memory just to determine the array length (e.g. `allCerts.length`) for generating a new sequence number creates a massive memory bottleneck and triggers O(N) full-table scans.
-**Action:** Always push aggregate functions like count down to the database/repository layer using specific methods (e.g. `getCertificateCount`), and ensure that in-memory mock repositories preserve multi-tenant isolation (`(!c.tenantId || c.tenantId === tenantId)`) instead of returning raw unfiltered array lengths (`this.certs.length`).
