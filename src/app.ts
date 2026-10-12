@@ -14,9 +14,19 @@ const publicDir = path.resolve(__dirname, '../public');
 
 const app: Application = express();
 
+// 🛡️ Sentinel: Enforce Content Security Policy (CSP) headers to prevent XSS and data injection attacks
 app.use(
   helmet({
-    contentSecurityPolicy: false, // Allows embedded UI fonts and styles
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'", "'unsafe-inline'"],
+        styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc: ["'self'", "https://fonts.gstatic.com"],
+        imgSrc: ["'self'", "data:"],
+        connectSrc: ["'self'"]
+      }
+    }
   })
 );
 // CORS logic

@@ -160,3 +160,8 @@
 - **Strict Lowercase Directory Casing**: Always write learning notes to lowercase `.jules/<bot>.md`. Never create, commit, or reference uppercase `.Jules/`.
 
 - **Clean Markdown Formatting**: Always append journal entries using actual newline characters, never literal string escape sequences `\n`.
+
+## 2026-10-06 - [Configure CSP headers correctly]
+**Vulnerability:** The application had Content Security Policy completely disabled (`contentSecurityPolicy: false`) to allow UI styles, exposing it to XSS and injection attacks.
+**Learning:** Security features are often disabled entirely when they break frontend dependencies, leaving the application vulnerable.
+**Prevention:** When configuring Content Security Policy (CSP) headers (e.g. using `helmet`), explicitly whitelist necessary external assets (like Google Fonts) and inline resources (`unsafe-inline`) instead of disabling the policy entirely.
