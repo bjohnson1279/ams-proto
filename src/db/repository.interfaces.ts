@@ -53,7 +53,6 @@ export interface IAccountingRepository {
   getInvoiceCount(tenantId: string): Promise<number>;
   getInvoices(tenantId: string): Promise<Invoice[]>;
   getInvoiceById(tenantId: string, invoiceId: string): Promise<Invoice | null>;
-  getInvoiceCount(tenantId: string): Promise<number>;
   createInvoice(tenantId: string, invoice: Partial<Invoice>): Promise<Invoice>;
   getPayments(tenantId: string): Promise<Payment[]>;
   createPayment(tenantId: string, payment: Partial<Payment>): Promise<Payment>;
