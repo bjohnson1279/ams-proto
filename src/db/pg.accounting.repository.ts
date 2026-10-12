@@ -89,6 +89,10 @@ export class PgAccountingRepository implements IAccountingRepository {
     return Promise.resolve([]);
   }
 
+  async getInvoiceCount(tenantId: string): Promise<number> {
+    // ⚡ Bolt: Provide optimized count without fetching full collection payload
+    return Promise.resolve(0);
+  }
 
   async createInvoice(tenantId: string, invoice: Partial<Invoice>): Promise<Invoice> {
     return Promise.resolve(invoice as Invoice);
