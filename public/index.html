@@ -547,12 +547,12 @@
     <!-- Tabs Navigation & Multi-Tenant Switcher -->
     <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem;">
       <div class="tabs-nav" style="border-bottom: none; padding-bottom: 0;" role="tablist" aria-label="Main Navigation">
-        <button id="nav-tab-workbench" class="tab-btn active" onclick="switchTab('tab-workbench')" role="tab" aria-selected="true" aria-controls="tab-workbench">⚡ Migration Workbench</button>
-        <button id="nav-tab-customers" class="tab-btn" onclick="switchTab('tab-customers')" role="tab" aria-selected="false" aria-controls="tab-customers">👥 Insured & Policy Registry</button>
-        <button id="nav-tab-certificates" class="tab-btn" onclick="switchTab('tab-certificates'); fetchCertificatesData();" role="tab" aria-selected="false" aria-controls="tab-certificates">📜 Certificates (ACORD 25)</button>
-        <button id="nav-tab-accounting" class="tab-btn" onclick="switchTab('tab-accounting')" role="tab" aria-selected="false" aria-controls="tab-accounting">💰 General Ledger</button>
-        <button id="nav-tab-download" class="tab-btn" onclick="switchTab('tab-download'); fetchDownloadData();" role="tab" aria-selected="false" aria-controls="tab-download">📥 Carrier Download (AL3 / RLS)</button>
-        <button id="nav-tab-matrix" class="tab-btn" onclick="switchTab('tab-matrix')" role="tab" aria-selected="false" aria-controls="tab-matrix">📊 Crosswalk Matrix</button>
+        <button id="nav-tab-workbench" class="tab-btn active" onclick="switchTab('tab-workbench')" role="tab" aria-selected="true" aria-controls="tab-workbench"><span aria-hidden="true">⚡</span> Migration Workbench</button>
+        <button id="nav-tab-customers" class="tab-btn" onclick="switchTab('tab-customers')" role="tab" aria-selected="false" aria-controls="tab-customers"><span aria-hidden="true">👥</span> Insured & Policy Registry</button>
+        <button id="nav-tab-certificates" class="tab-btn" onclick="switchTab('tab-certificates'); fetchCertificatesData();" role="tab" aria-selected="false" aria-controls="tab-certificates"><span aria-hidden="true">📜</span> Certificates (ACORD 25)</button>
+        <button id="nav-tab-accounting" class="tab-btn" onclick="switchTab('tab-accounting')" role="tab" aria-selected="false" aria-controls="tab-accounting"><span aria-hidden="true">💰</span> General Ledger</button>
+        <button id="nav-tab-download" class="tab-btn" onclick="switchTab('tab-download'); fetchDownloadData();" role="tab" aria-selected="false" aria-controls="tab-download"><span aria-hidden="true">📥</span> Carrier Download (AL3 / RLS)</button>
+        <button id="nav-tab-matrix" class="tab-btn" onclick="switchTab('tab-matrix')" role="tab" aria-selected="false" aria-controls="tab-matrix"><span aria-hidden="true">📊</span> Crosswalk Matrix</button>
       </div>
 
       <div style="display: flex; align-items: center; gap: 0.5rem; background: var(--bg-card); border: 1px solid var(--border-color); padding: 0.35rem 0.8rem; border-radius: 8px; font-size: 0.85rem;">
@@ -582,8 +582,8 @@
             <textarea id="payload-editor" aria-label="Raw Legacy Export Payload" class="code-editor" spellcheck="false" placeholder="Select a format above or paste raw legacy JSON payload here..."></textarea>
           </div>
           <div class="btn-group">
-            <button id="btn-dry-run" class="btn btn-secondary" onclick="runDryRun()">🔍 Run Dry-Run Audit</button>
-            <button id="btn-import" class="btn btn-primary" onclick="executeImport()">🚀 Execute CoreAMS Import</button>
+            <button id="btn-dry-run" class="btn btn-secondary" onclick="runDryRun()"><span aria-hidden="true">🔍</span> Run Dry-Run Audit</button>
+            <button id="btn-import" class="btn btn-primary" onclick="executeImport()"><span aria-hidden="true">🚀</span> Execute CoreAMS Import</button>
           </div>
         </div>
 
@@ -653,11 +653,11 @@
 
       <div class="panel">
         <div class="panel-header">
-          <span class="panel-title">📜 ACORD 25 Certificates of Liability Insurance</span>
+          <span class="panel-title"><span aria-hidden="true">📜</span> ACORD 25 Certificates of Liability Insurance</span>
           <div class="btn-group">
             <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openCreateCertModal(event)">+ Generate ACORD 25 Certificate</button>
-            <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openNewHolderModal(event)">🏢 Add Certificate Holder</button>
-            <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openBulkIssueModal(event)">⚡ Bulk Issue COIs</button>
+            <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openNewHolderModal(event)"><span aria-hidden="true">🏢</span> Add Certificate Holder</button>
+            <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openBulkIssueModal(event)"><span aria-hidden="true">⚡</span> Bulk Issue COIs</button>
           </div>
         </div>
         <div class="table-container">
@@ -683,7 +683,7 @@
 
       <div class="panel">
         <div class="panel-header">
-          <span class="panel-title">🏢 Master Certificate Holder Directory</span>
+          <span class="panel-title"><span aria-hidden="true">🏢</span> Master Certificate Holder Directory</span>
         </div>
         <div class="table-container">
           <table>
@@ -818,8 +818,8 @@
 3TRGRENE12500.00
 2EOS0005</textarea>
           <div class="btn-group">
-            <button class="btn btn-secondary" onclick="parseRawAl3Sim(event)">⚡ Parse Raw AL3 Stream</button>
-            <button class="btn btn-primary" onclick="ingestAl3Batch(event)">🚀 Ingest IVANS Download Batch</button>
+            <button class="btn btn-secondary" onclick="parseRawAl3Sim(event)"><span aria-hidden="true">⚡</span> Parse Raw AL3 Stream</button>
+            <button class="btn btn-primary" onclick="ingestAl3Batch(event)"><span aria-hidden="true">🚀</span> Ingest IVANS Download Batch</button>
           </div>
           <div id="al3-output-box" class="output-box" style="max-height: 180px;">
             <div style="color: var(--text-muted); font-style: italic;">Decoded AL3 record groups will appear here...</div>
@@ -848,7 +848,7 @@
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Carrier Download Batches & Auto-Reconciliation Ledger</span>
-          <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="postSelectedBatchCommissions(event)">💰 Post Direct Bill Commissions to GL</button>
+          <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="postSelectedBatchCommissions(event)"><span aria-hidden="true">💰</span> Post Direct Bill Commissions to GL</button>
         </div>
         <div class="table-container">
           <table>
@@ -1090,7 +1090,7 @@
                   <div style="font-size: 2rem; margin-bottom: 0.5rem;" aria-hidden="true">⚖️</div>
                   <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No General Ledger entries found</div>
                   <div style="font-size: 0.9rem; margin-bottom: 1rem;">The trial balance is currently empty. Execute premium transactions or reconcile accounts to populate the ledger.</div>
-                  <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="switchTab('tab-workbench')">⚡ Go to Migration Workbench</button>
+                  <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="switchTab('tab-workbench')"><span aria-hidden="true">⚡</span> Go to Migration Workbench</button>
                 </td>
               </tr>
             `;
@@ -1142,12 +1142,12 @@
       if (!refStr) return;
 
       const btn = event ? event.target.closest('.btn') : null;
-      let originalText = '';
+      let originalHTML = '';
       if (btn) {
-        originalText = btn.innerText;
+        originalHTML = btn.innerHTML;
         btn.disabled = true;
         btn.setAttribute("aria-busy", "true");
-        btn.innerText = '⏳ Processing...';
+        btn.innerHTML = '<span aria-hidden="true">⏳</span> Processing...';
       }
 
       try {
@@ -1175,7 +1175,7 @@
         if (btn) {
           btn.disabled = false;
           btn.removeAttribute("aria-busy");
-          btn.innerText = originalText;
+          btn.innerHTML = originalHTML;
         }
       }
     }
@@ -1186,7 +1186,7 @@
       const btn = document.getElementById('btn-dry-run');
       btn.disabled = true;
       btn.setAttribute("aria-busy", "true");
-      btn.innerText = '⏳ Analyzing...';
+      btn.innerHTML = '<span aria-hidden="true">⏳</span> Analyzing...';
       try {
         const payload = JSON.parse(editorVal);
         const res = await fetch('/api/v1/integration/dry-run', {
@@ -1201,7 +1201,7 @@
       } finally {
         btn.disabled = false;
         btn.removeAttribute("aria-busy");
-        btn.innerText = '🔍 Run Dry-Run Audit';
+        btn.innerHTML = '<span aria-hidden="true">🔍</span> Run Dry-Run Audit';
       }
     }
 
@@ -1210,7 +1210,7 @@
       const btn = document.getElementById('btn-import');
       btn.disabled = true;
       btn.setAttribute("aria-busy", "true");
-      btn.innerText = '⏳ Importing...';
+      btn.innerHTML = '<span aria-hidden="true">⏳</span> Importing...';
       try {
         const payload = JSON.parse(editorVal);
         const res = await fetch('/api/v1/integration/import', {
@@ -1226,7 +1226,7 @@
       } finally {
         btn.disabled = false;
         btn.removeAttribute("aria-busy");
-        btn.innerText = '🚀 Execute CoreAMS Import';
+        btn.innerHTML = '<span aria-hidden="true">🚀</span> Execute CoreAMS Import';
       }
     }
 
@@ -1333,8 +1333,8 @@
       if (btn) {
         btn.disabled = true;
         btn.setAttribute("aria-busy", "true");
-        btn.dataset.originalText = btn.innerText;
-        btn.innerText = '⏳ Loading...';
+        btn.dataset.originalHTML = btn.innerHTML;
+        btn.innerHTML = '<span aria-hidden="true">⏳</span> Loading...';
       }
       try {
         const polRes = await fetch('/api/v1/policies').then(r => r.json());
@@ -1370,7 +1370,7 @@
         if (btn) {
           btn.disabled = false;
           btn.removeAttribute("aria-busy");
-          btn.innerText = btn.dataset.originalText;
+          btn.innerHTML = btn.dataset.originalHTML;
         }
       }
     }
@@ -1405,7 +1405,7 @@
                 <div style="font-size: 2rem; margin-bottom: 0.5rem;" aria-hidden="true">🔀</div>
                 <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No crosswalk rules defined</div>
                 <div style="font-size: 0.9rem; margin-bottom: 1rem;">Configure format mapping rules in the Migration Workbench.</div>
-                <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="switchTab('tab-workbench')">⚡ Go to Migration Workbench</button>
+                <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="switchTab('tab-workbench')"><span aria-hidden="true">⚡</span> Go to Migration Workbench</button>
               </td>
             </tr>
           `;
@@ -1524,7 +1524,7 @@
           <td><span class="badge badge-fmt-a">${escapeHtml(insurerLetters)}</span></td>
           <td><span style="color: var(--accent-emerald); font-weight: 600;">${escapeHtml(c.status)}</span></td>
           <td>
-            <button aria-label="View ACORD 25 for ${escapeHtml(c.insured.name)}" class="btn btn-secondary view-cert-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-cert-id="${escapeHtml(c.certificateId)}">📄 View ACORD 25</button>
+            <button aria-label="View ACORD 25 for ${escapeHtml(c.insured.name)}" class="btn btn-secondary view-cert-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-cert-id="${escapeHtml(c.certificateId)}"><span aria-hidden="true">📄</span> View ACORD 25</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -1586,12 +1586,12 @@
       const desc = prompt('Enter Description of Operations / Special Provisions:', 'Certificate Holder is listed as Additional Insured on General Liability as required by written contract.');
 
       const btn = event ? event.target.closest('.btn') : null;
-      let originalText = '';
+      let originalHTML = '';
       if (btn) {
-        originalText = btn.innerText;
+        originalHTML = btn.innerHTML;
         btn.disabled = true;
         btn.setAttribute("aria-busy", "true");
-        btn.innerText = '⏳ Generating...';
+        btn.innerHTML = '<span aria-hidden="true">⏳</span> Generating...';
       }
 
       try {
@@ -1619,7 +1619,7 @@
         if (btn) {
           btn.removeAttribute("aria-busy");
           btn.disabled = false;
-          btn.innerText = originalText;
+          btn.innerHTML = originalHTML;
         }
       }
     }
@@ -1631,12 +1631,12 @@
       const email = prompt('Enter Holder Email Address:', 'risk@apexcommercial.com');
 
       const btn = event ? event.target.closest('.btn') : null;
-      let originalText = '';
+      let originalHTML = '';
       if (btn) {
-        originalText = btn.innerText;
+        originalHTML = btn.innerHTML;
         btn.disabled = true;
         btn.setAttribute("aria-busy", "true");
-        btn.innerText = '⏳ Saving...';
+        btn.innerHTML = '<span aria-hidden="true">⏳</span> Saving...';
       }
 
       try {
@@ -1663,7 +1663,7 @@
         if (btn) {
           btn.disabled = false;
           btn.removeAttribute("aria-busy");
-          btn.innerText = originalText;
+          btn.innerHTML = originalHTML;
         }
       }
     }
@@ -1673,12 +1673,12 @@
       if (!custId) return;
 
       const btn = event ? event.target.closest('.btn') : null;
-      let originalText = '';
+      let originalHTML = '';
       if (btn) {
-        originalText = btn.innerText;
+        originalHTML = btn.innerHTML;
         btn.disabled = true;
         btn.setAttribute("aria-busy", "true");
-        btn.innerText = '⏳ Processing...';
+        btn.innerHTML = '<span aria-hidden="true">⏳</span> Processing...';
       }
 
       try {
@@ -1705,7 +1705,7 @@
         if (btn) {
           btn.disabled = false;
           btn.removeAttribute("aria-busy");
-          btn.innerText = originalText;
+          btn.innerHTML = originalHTML;
         }
       }
     }
@@ -1786,7 +1786,7 @@
               <div style="font-size: 2rem; margin-bottom: 0.5rem;" aria-hidden="true">📥</div>
               <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No download batches found</div>
               <div style="font-size: 0.9rem; margin-bottom: 1rem;">Parse an AL3 message or simulate an incoming carrier batch to view downloads.</div>
-              <button class="btn btn-primary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="document.getElementById('al3-input-editor')?.scrollIntoView({ behavior: 'smooth' }); document.getElementById('al3-input-editor')?.focus();">⚡ Parse AL3 Download</button>
+              <button class="btn btn-primary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="document.getElementById('al3-input-editor')?.scrollIntoView({ behavior: 'smooth' }); document.getElementById('al3-input-editor')?.focus();"><span aria-hidden="true">⚡</span> Parse AL3 Download</button>
             </td>
           </tr>
         `;
@@ -1809,7 +1809,7 @@
           <td>${statusBadge}</td>
           <td>
             ${b.status !== 'Commissions Posted' 
-              ? `<button aria-label="Post GL Commissions for Batch ${escapeHtml(b.batchId)}" class="btn btn-primary post-batch-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-batch-id="${escapeHtml(b.batchId)}">💰 Post GL Comm</button>`
+              ? `<button aria-label="Post GL Commissions for Batch ${escapeHtml(b.batchId)}" class="btn btn-primary post-batch-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-batch-id="${escapeHtml(b.batchId)}"><span aria-hidden="true">💰</span> Post GL Comm</button>`
               : `<span style="color: var(--accent-emerald); font-weight: 600; font-size: 0.8rem;">✓ Posted to GL</span>`}
           </td>
         `;
@@ -1822,7 +1822,7 @@
       if (btn) {
         btn.disabled = true;
         btn.setAttribute("aria-busy", "true");
-        btn.innerText = '⏳ Parsing...';
+        btn.innerHTML = '<span aria-hidden="true">⏳</span> Parsing...';
       }
 
       const raw = document.getElementById('al3-input-editor').value;
@@ -1872,7 +1872,7 @@
         if (btn) {
           btn.disabled = false;
           btn.removeAttribute("aria-busy");
-          btn.innerText = '⚡ Parse Raw AL3 Stream';
+          btn.innerHTML = '<span aria-hidden="true">⚡</span> Parse Raw AL3 Stream';
         }
       }
     }
@@ -1882,7 +1882,7 @@
       if (btn) {
         btn.disabled = true;
         btn.setAttribute("aria-busy", "true");
-        btn.innerText = '⏳ Ingesting...';
+        btn.innerHTML = '<span aria-hidden="true">⏳</span> Ingesting...';
       }
 
       const raw = document.getElementById('al3-input-editor').value;
@@ -1916,7 +1916,7 @@
         if (btn) {
           btn.disabled = false;
           btn.removeAttribute("aria-busy");
-          btn.innerText = '🚀 Ingest IVANS Download Batch';
+          btn.innerHTML = '<span aria-hidden="true">🚀</span> Ingest IVANS Download Batch';
         }
       }
     }
@@ -1932,8 +1932,8 @@
       if (btn) {
         btn.disabled = true;
         btn.setAttribute("aria-busy", "true");
-        btn.dataset.originalText = btn.innerText;
-        btn.innerText = '⏳ Posting...';
+        btn.dataset.originalHTML = btn.innerHTML;
+        btn.innerHTML = '<span aria-hidden="true">⏳</span> Posting...';
       }
       try {
         const batch = await fetch(`/api/v1/downloads/batches/${batchId}/post-commissions`, {
@@ -1950,19 +1950,19 @@
         if (btn) {
           btn.removeAttribute("aria-busy");
           btn.disabled = false;
-          btn.innerText = btn.dataset.originalText;
+          btn.innerHTML = btn.dataset.originalHTML;
         }
       }
     }
 
     async function postSelectedBatchCommissions(event) {
       const btn = event ? event.target.closest('.btn') : null;
-      let originalText = '';
+      let originalHTML = '';
       if (btn) {
-        originalText = btn.innerText;
+        originalHTML = btn.innerHTML;
         btn.disabled = true;
         btn.setAttribute("aria-busy", "true");
-        btn.innerText = '⏳ Processing...';
+        btn.innerHTML = '<span aria-hidden="true">⏳</span> Processing...';
       }
 
       try {
@@ -1984,7 +1984,7 @@
         if (btn) {
           btn.disabled = false;
           btn.removeAttribute("aria-busy");
-          btn.innerText = originalText;
+          btn.innerHTML = originalHTML;
         }
       }
     }

@@ -183,3 +183,6 @@
 - **Strict Lowercase Directory Casing**: Always write learning notes to lowercase `.jules/<bot>.md`. Never create, commit, or reference uppercase `.Jules/`.
 
 - **Clean Markdown Formatting**: Always append journal entries using actual newline characters, never literal string escape sequences `\n`.
+## 2024-10-12 - Wrap Emojis with aria-hidden
+**Learning:** Screen readers read out emojis by their accessible names (like "High voltage sign" for ⚡️). In interactive elements like buttons, this introduces a lot of cognitive overload when paired with text, as screen readers read both the emoji description and the text. Furthermore, using `innerText` for state management in JavaScript strips out any accessibility DOM nodes (like `.sr-only` or `aria-hidden` tags) inside an element.
+**Action:** Always wrap decorative emojis with `<span aria-hidden="true">emoji</span>` so screen readers ignore them. Use `innerHTML` instead of `innerText` for component state updates to preserve these accessibility spans.
