@@ -240,14 +240,6 @@ export class MemoryAccountingRepository implements IAccountingRepository {
     return Promise.resolve(je);
   }
 
-  async getInvoiceCount(tenantId: string): Promise<number> {
-    // ⚡ Bolt: Provide a direct count method instead of fetching the entire array and mapping/filtering in service layer
-    let count = 0;
-    for (const i of this.invoices) {
-      if (!i.tenantId || i.tenantId === tenantId) count++;
-    }
-    return Promise.resolve(count);
-  }
 
   async getInvoices(tenantId: string): Promise<Invoice[]> { return Promise.resolve(this.invoices); }
   async getInvoiceById(tenantId: string, id: string): Promise<Invoice | null> {
