@@ -29,21 +29,24 @@ export class AmsService {
   }
 
   // CUSTOMER OPERATIONS
-  public async getCustomers(tenantId: string, filter?: { name?: string; policyNumber?: string; feinOrSsn?: string }): Promise<Customer[]> {
-    let customers = await this.repos.customers.getAll(tenantId, filter);
-
+  public async getCustomers(tenantId: string, filter?: { name?: string; policyNumber?: string; feinOrSsn?: string; customerIds?: string[] }): Promise<Customer[]> {
     if (filter?.policyNumber) {
       // ⚡ Bolt: Pushed policyNumber filter to repository to prevent fetching all policies into memory
       const matchingPolicies = await this.repos.policies.getAll(tenantId, { policyNumber: filter.policyNumber });
+
+      if (matchingPolicies.length === 0) {
+        return [];
+      }
 
       const customerIdsWithPolicy = new Set<string>();
       for (const p of matchingPolicies) {
         customerIdsWithPolicy.add(p.customerId);
       }
-      customers = customers.filter(c => customerIdsWithPolicy.has(c.customerId));
+
+      return this.repos.customers.getAll(tenantId, { ...filter, customerIds: Array.from(customerIdsWithPolicy) });
     }
 
-    return customers;
+    return this.repos.customers.getAll(tenantId, filter);
   }
 
   public async getCustomerById(tenantId: string, customerId: string): Promise<Customer | undefined> {

@@ -18,13 +18,20 @@ export class MemoryCustomerRepository implements ICustomerRepository {
   private customers = [...INITIAL_CUSTOMERS];
 
   async getAll(tenantId: string, filter?: any): Promise<Customer[]> {
-    if (!filter || (!filter.name && !filter.feinOrSsn)) {
+    if (!filter || (!filter.name && !filter.feinOrSsn && !filter.customerIds)) {
       return Promise.resolve([...this.customers]);
+    }
+
+    if (filter.customerIds && filter.customerIds.length === 0) {
+      return Promise.resolve([]);
     }
     const q = filter.name ? filter.name.toLowerCase() : null;
     const feinOrSsn = filter.feinOrSsn;
+    const customerIdsSet = filter.customerIds ? new Set(filter.customerIds) : null;
+
     return Promise.resolve(this.customers.filter(c => {
       if (feinOrSsn && c.feinOrSsn !== feinOrSsn) return false;
+      if (customerIdsSet && !customerIdsSet.has(c.customerId)) return false;
       if (q) {
         const fullIndName = `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase();
         const busName = (c.businessName || '').toLowerCase();
@@ -253,6 +260,9 @@ export class MemoryAccountingRepository implements IAccountingRepository {
   async getInvoiceById(tenantId: string, id: string): Promise<Invoice | null> {
     return Promise.resolve(this.invoices.find(i => (!i.tenantId || i.tenantId === tenantId) && (i.invoiceId === id || i.invoiceNumber === id)) || null);
   }
+
+
+
 
   async getInvoiceCount(tenantId: string): Promise<number> {
     // ⚡ Bolt: Pushed invoice count to the repository layer to prevent O(N) memory allocation in the service layer

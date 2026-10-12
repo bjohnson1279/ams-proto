@@ -23,6 +23,12 @@ export class PgCustomerRepository implements ICustomerRepository {
         paramIndex++;
       }
 
+      if (filter?.customerIds && filter.customerIds.length > 0) {
+        query += ` AND customer_id = ANY($${paramIndex})`;
+        params.push(filter.customerIds);
+        paramIndex++;
+      }
+
       const res = await client.query(query, params);
       // ⚡ Bolt: Replaced O(N) Array.map() with a pre-allocated native loop to prevent inline closure allocations and improve hot-path performance
       const customers = new Array(res.rows.length);

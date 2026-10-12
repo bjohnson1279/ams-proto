@@ -207,3 +207,7 @@
 - **Strictly Append-Only Journaling**: When adding learnings to `.jules/*.md`, append strictly at the end of the file. Do not rewrite, deduplicate, or remove lines beginning with `## YYYY-MM-DD`.
 - **Surgical Scope Quarantine**: Modify only the files directly involved in the issue and their corresponding test fixtures. Do not delete, rename, or perform drive-by cleanups of unrelated root-level scripts or legacy files.
 - **Coupled Test Fixture Awareness for Security Invariants**: When changing fail-open fallback behavior (such as hardening decryption to fail closed), always update upstream test mocks that rely on plaintext credentials or mock values.
+
+## 2026-10-12 - Prevent N+1 queries using DB batch lookups
+**Learning:** Performing multiple independent database lookups using `Promise.all()` loops can overwhelm the database connection pool, leading to latency spikes or failed connections under high load.
+**Action:** Consolidate multiple individual queries into a single database call via batched operations, such as `WHERE id IN (...)` or using PostgreSQL array filtering like `ANY($1)` to fetch related entities efficiently in a single round-trip.
