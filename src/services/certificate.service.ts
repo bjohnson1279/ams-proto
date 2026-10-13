@@ -316,7 +316,11 @@ export class CertificateService {
         };
       } else {
         // Catch-all: map Commercial Property, Cyber, Professional Liability, Inland Marine, etc. to otherCoverages
-        const totalLimit = pol.coverages.reduce((sum, c) => sum + c.limitAmount, 0);
+        // ⚡ Bolt: Replaced .reduce() with loop to prevent inline closure allocations
+        let totalLimit = 0;
+        for (let idx = 0; idx < pol.coverages.length; idx++) {
+          totalLimit += pol.coverages[idx].limitAmount;
+        }
         const otherCov: Acord25OtherCoverage = {
           insurerLetter: letter,
           coverageDescription: pol.lineOfBusiness,
