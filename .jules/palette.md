@@ -186,3 +186,6 @@
 ## 2024-10-12 - Wrap Emojis with aria-hidden
 **Learning:** Screen readers read out emojis by their accessible names (like "High voltage sign" for ⚡️). In interactive elements like buttons, this introduces a lot of cognitive overload when paired with text, as screen readers read both the emoji description and the text. Furthermore, using `innerText` for state management in JavaScript strips out any accessibility DOM nodes (like `.sr-only` or `aria-hidden` tags) inside an element.
 **Action:** Always wrap decorative emojis with `<span aria-hidden="true">emoji</span>` so screen readers ignore them. Use `innerHTML` instead of `innerText` for component state updates to preserve these accessibility spans.
+## 2024-10-13 - Add aria-hidden to dynamically injected emojis
+**Learning:** Decorative emojis that are dynamically injected into the DOM (e.g., via JavaScript) must also be wrapped in `<span aria-hidden="true">` to prevent screen readers from announcing their accessibility names and causing cognitive overload, just like static emojis in HTML. This requires changing the injection method from `innerText` to `innerHTML`.
+**Action:** When dynamically generating text containing decorative emojis, construct the string with `<span aria-hidden="true">emoji</span>` and apply it using `innerHTML` rather than `innerText`.
