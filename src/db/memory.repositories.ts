@@ -254,15 +254,6 @@ export class MemoryAccountingRepository implements IAccountingRepository {
     return Promise.resolve(this.invoices.find(i => (!i.tenantId || i.tenantId === tenantId) && (i.invoiceId === id || i.invoiceNumber === id)) || null);
   }
 
-  async getInvoiceCount(tenantId: string): Promise<number> {
-    // ⚡ Bolt: Pushed invoice count to the repository layer to prevent O(N) memory allocation in the service layer
-    let count = 0;
-    for (const inv of this.invoices) {
-      if (!inv.tenantId || inv.tenantId === tenantId) count++;
-    }
-    return Promise.resolve(count);
-  }
-
   async createInvoice(tenantId: string, invoice: Partial<Invoice>): Promise<Invoice> {
     const inv = { ...invoice, invoiceId: invoice.invoiceId || randomUUID(), tenantId } as Invoice;
     this.invoices.push(inv);

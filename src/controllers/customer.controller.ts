@@ -54,13 +54,6 @@ export class CustomerController {
     try {
       const tenantId = (req as TenantRequest).tenantId as string;
       const payload = req.body;
-      if (!payload || (!payload.businessName && !payload.lastName)) {
-        res.status(400).json({
-          status: 'error',
-          message: 'Invalid customer payload. Must provide businessName or lastName.'
-        });
-        return;
-      }
 
       const created = await this.amsService.createCustomer(tenantId, payload);
       res.status(201).json({
