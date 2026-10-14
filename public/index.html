@@ -1268,7 +1268,8 @@
         sumDiv.style.marginTop = '1rem';
         sumDiv.style.color = '#fff';
         sumDiv.style.fontWeight = 'bold';
-        sumDiv.innerText = `✅ Transformed ${r.successfullyTransformedCustomers} Customers & ${r.successfullyTransformedPolicies} Policies. (${isDryRun ? 'Dry-Run: CoreAMS Database Unchanged' : 'Committed to Memory Store'})`;
+        sumDiv.textContent = ` Transformed ${r.successfullyTransformedCustomers} Customers & ${r.successfullyTransformedPolicies} Policies. (${isDryRun ? 'Dry-Run: CoreAMS Database Unchanged' : 'Committed to Memory Store'})`;
+        sumDiv.insertAdjacentHTML('afterbegin', '<span aria-hidden="true">✅</span>');
         box.appendChild(sumDiv);
       }
     }
