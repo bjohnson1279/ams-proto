@@ -211,3 +211,7 @@
 ## 2026-10-12 - Prevent N+1 queries using DB batch lookups
 **Learning:** Performing multiple independent database lookups using `Promise.all()` loops can overwhelm the database connection pool, leading to latency spikes or failed connections under high load.
 **Action:** Consolidate multiple individual queries into a single database call via batched operations, such as `WHERE id IN (...)` or using PostgreSQL array filtering like `ANY($1)` to fetch related entities efficiently in a single round-trip.
+
+## 2026-10-15 - Replaced nested linear deduplication scans with O(1) multi-value Map lookups
+**Learning:** Performing O(N) array scans inside of `evaluate` for incoming candidate customers effectively causes O(N * M) nested looping in high-volume batch ingestion, severely degrading performance. Additionally, mapping purely to single elements fails to cover use cases where multiple records share the same matched characteristic (like `cleanFein`).
+**Action:** Implemented a pre-allocated O(1) fast-path map mechanism mapping traits to arrays of entities (`Map<string, CachedCustomer[]>`) during class instantiation. Evaluating candidates initially against the Hash Map bypassing the fallback array loop when strong exact matches are found guarantees scalable O(N+M) complexity for hot-paths.
