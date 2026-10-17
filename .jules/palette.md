@@ -186,3 +186,7 @@
 ## 2024-10-12 - Wrap Emojis with aria-hidden
 **Learning:** Screen readers read out emojis by their accessible names (like "High voltage sign" for ⚡️). In interactive elements like buttons, this introduces a lot of cognitive overload when paired with text, as screen readers read both the emoji description and the text. Furthermore, using `innerText` for state management in JavaScript strips out any accessibility DOM nodes (like `.sr-only` or `aria-hidden` tags) inside an element.
 **Action:** Always wrap decorative emojis with `<span aria-hidden="true">emoji</span>` so screen readers ignore them. Use `innerHTML` instead of `innerText` for component state updates to preserve these accessibility spans.
+
+## 2024-10-17 - Symmetrical aria-live Announcements for Dynamic Tables
+**Learning:** When using `aria-live` regions to announce dynamic table data updates (like search results or newly fetched rows), it's a common anti-pattern to only announce the empty states (e.g. "No results found"). If successful data loads aren't announced, screen reader users might think the UI is broken or frozen since they receive no feedback that the table has populated.
+**Action:** Always ensure symmetrical `aria-live` announcements. If you announce an empty state, you must also announce the populated state (e.g., "Found X results").
