@@ -301,7 +301,7 @@
       border: 1px solid var(--border-color);
     }
 
-    .btn-secondary:hover {
+    .btn-secondary:not(:disabled):hover {
       background: var(--border-color);
     }
 
@@ -311,7 +311,7 @@
       box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
     }
 
-    .btn-primary:hover {
+    .btn-primary:not(:disabled):hover {
       transform: translateY(-1px);
       box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
     }

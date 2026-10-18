@@ -190,3 +190,7 @@
 ## 2024-10-17 - Symmetrical aria-live Announcements for Dynamic Tables
 **Learning:** When using `aria-live` regions to announce dynamic table data updates (like search results or newly fetched rows), it's a common anti-pattern to only announce the empty states (e.g. "No results found"). If successful data loads aren't announced, screen reader users might think the UI is broken or frozen since they receive no feedback that the table has populated.
 **Action:** Always ensure symmetrical `aria-live` announcements. If you announce an empty state, you must also announce the populated state (e.g., "Found X results").
+
+## 2024-11-20 - Prevent hover states on disabled buttons
+**Learning:** CSS `:hover` pseudo-class continues to trigger on buttons even when they are `disabled` (e.g. during an async loading state). This gives visually misleading interactive feedback, making users think the button is still clickable when it isn't.
+**Action:** Always write button hover states as `:not(:disabled):hover` instead of just `:hover` to ensure hover styles are only applied when the button is actually interactive.
