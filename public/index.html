@@ -904,7 +904,7 @@
           <h2 id="dec-title" style="font-family: var(--font-heading); font-size: 1.1rem; color: #fff;">ACORD 125/126 POLICY DECLARATION</h2>
           <p id="dec-acord-std" style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600;">ACORD COMPLIANT</p>
         </div>
-        <button class="modal-close-btn" aria-label="Close modal" title="Close modal" onclick="closeModal()">&times;</button>
+        <button class="modal-close-btn" aria-label="Close modal" title="Close modal" onclick="closeModal()"><span aria-hidden="true">&times;</span></button>
       </div>
 
       <div class="dec-section">
@@ -1071,6 +1071,7 @@
           const tbBody = document.getElementById('trial-balance-table-body');
           tbBody.innerHTML = '';
           if (res.data.trialBalance && res.data.trialBalance.length > 0) {
+            announceToScreenReader(`Found ${res.data.trialBalance.length} ledger entries`);
             res.data.trialBalance.forEach(a => {
               const tr = document.createElement('tr');
               tr.innerHTML = `
@@ -1102,6 +1103,7 @@
           const invBody = document.getElementById('invoices-table-body');
           invBody.innerHTML = '';
           if (invRes.data && invRes.data.length > 0) {
+            announceToScreenReader(`Found ${invRes.data.length} agency bill invoices`);
             invRes.data.forEach(inv => {
               const tr = document.createElement('tr');
               tr.innerHTML = `
@@ -1412,6 +1414,7 @@
           `;
           return;
         }
+        announceToScreenReader(`Found ${res.matrix.length} crosswalk rules`);
         res.matrix.forEach(m => {
           const tr = document.createElement('tr');
           const clsMap = { 'FORMAT_A': 'badge-fmt-a', 'FORMAT_B': 'badge-fmt-b', 'FORMAT_C': 'badge-fmt-c', 'FORMAT_D': 'badge-fmt-d' };
@@ -1513,6 +1516,7 @@
         return;
       }
 
+      announceToScreenReader(`Found ${certs.length} certificate${certs.length === 1 ? '' : 's'}`);
       certs.forEach(c => {
         const tr = document.createElement('tr');
         const insurerLetters = c.insurers ? c.insurers.map(i => i.letter).join(', ') : 'A';
@@ -1552,6 +1556,7 @@
         return;
       }
 
+      announceToScreenReader(`Found ${holders.length} certificate holder${holders.length === 1 ? '' : 's'}`);
       holders.forEach(h => {
         const tr = document.createElement('tr');
         const loc = h.address ? `${h.address.city}, ${h.address.state}` : 'N/A';
@@ -1794,6 +1799,7 @@
         return;
       }
 
+      announceToScreenReader(`Found ${batches.length} download batch${batches.length === 1 ? '' : 'es'}`);
       batches.forEach(b => {
         const tr = document.createElement('tr');
         const statusBadge = b.status === 'Commissions Posted' 
@@ -1811,7 +1817,7 @@
           <td>
             ${b.status !== 'Commissions Posted' 
               ? `<button aria-label="Post GL Commissions for Batch ${escapeHtml(b.batchId)}" class="btn btn-primary post-batch-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-batch-id="${escapeHtml(b.batchId)}"><span aria-hidden="true">💰</span> Post GL Comm</button>`
-              : `<span style="color: var(--accent-emerald); font-weight: 600; font-size: 0.8rem;">✓ Posted to GL</span>`}
+              : `<span style="color: var(--accent-emerald); font-weight: 600; font-size: 0.8rem;"><span aria-hidden="true">✓</span> Posted to GL</span>`}
           </td>
         `;
         tbody.appendChild(tr);
