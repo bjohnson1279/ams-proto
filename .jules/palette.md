@@ -186,3 +186,6 @@
 ## 2024-10-12 - Wrap Emojis with aria-hidden
 **Learning:** Screen readers read out emojis by their accessible names (like "High voltage sign" for ⚡️). In interactive elements like buttons, this introduces a lot of cognitive overload when paired with text, as screen readers read both the emoji description and the text. Furthermore, using `innerText` for state management in JavaScript strips out any accessibility DOM nodes (like `.sr-only` or `aria-hidden` tags) inside an element.
 **Action:** Always wrap decorative emojis with `<span aria-hidden="true">emoji</span>` so screen readers ignore them. Use `innerHTML` instead of `innerText` for component state updates to preserve these accessibility spans.
+## 2024-11-20 - Prevent hover states on disabled buttons
+**Learning:** CSS `:hover` pseudo-class continues to trigger on buttons even when they are `disabled` (e.g. during an async loading state). This gives visually misleading interactive feedback, making users think the button is still clickable when it isn't.
+**Action:** Always write button hover states as `:not(:disabled):hover` instead of just `:hover` to ensure hover styles are only applied when the button is actually interactive.
