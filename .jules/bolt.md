@@ -211,3 +211,7 @@
 ## 2026-10-12 - Prevent N+1 queries using DB batch lookups
 **Learning:** Performing multiple independent database lookups using `Promise.all()` loops can overwhelm the database connection pool, leading to latency spikes or failed connections under high load.
 **Action:** Consolidate multiple individual queries into a single database call via batched operations, such as `WHERE id IN (...)` or using PostgreSQL array filtering like `ANY($1)` to fetch related entities efficiently in a single round-trip.
+
+## 2026-11-20 - Resolve Duplicate Method Implementations During Merges
+**Learning:** Overlapping PRs implementing the same conceptual optimization (like `getInvoiceCount`) can introduce duplicated method implementations in class definitions resulting in TypeScript compilation errors.
+**Action:** Always strictly verify compile output with `tsc --noEmit` locally, specifically looking for `error TS2393: Duplicate function implementation` to catch cross-PR merge conflicts that Git merges might have missed before completing tasks.
