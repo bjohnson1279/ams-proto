@@ -80,7 +80,14 @@ export class AccountingService {
     let totalCredit = 0;
 
     // ⚡ Bolt: Fetch only the required accounts in a single batched query to resolve the full-table fetch memory payload bottleneck and avoid Promise.all concurrency limits
-    const uniqueAccountNumbers = Array.from(new Set(payload.lines.map(l => l.accountNumber)));
+    const uniqueAccountNumbers: string[] = [];
+    const seenAccts = new Set<string>();
+    for (const l of payload.lines) {
+      if (!seenAccts.has(l.accountNumber)) {
+        seenAccts.add(l.accountNumber);
+        uniqueAccountNumbers.push(l.accountNumber);
+      }
+    }
     const fetchedAccounts = await this.getAccountsByNumbers(tenantId, uniqueAccountNumbers);
 
     const accountMap = new Map();
