@@ -194,3 +194,7 @@
 ## 2024-11-20 - Prevent hover states on disabled buttons
 **Learning:** CSS `:hover` pseudo-class continues to trigger on buttons even when they are `disabled` (e.g. during an async loading state). This gives visually misleading interactive feedback, making users think the button is still clickable when it isn't.
 **Action:** Always write button hover states as `:not(:disabled):hover` instead of just `:hover` to ensure hover styles are only applied when the button is actually interactive.
+
+## 2024-11-20 - Use tooltips on disabled buttons instead of native alerts
+**Learning:** Letting users interact with buttons that trigger a predictable fail state (like submitting empty payloads or re-triggering completed processes) and throwing a native browser `alert()` is disruptive and provides poor feedback. Disabling the button makes the state clear, but a permanently disabled button leaves users confused as to *why* it's disabled.
+**Action:** Always proactively disable buttons when their action is a predictable no-op or invalid state. Furthermore, attach a `title` tooltip to the disabled button so sighted mouse users understand exactly why the button is unavailable (e.g., "All commissions have already been posted.").

@@ -579,7 +579,7 @@
             </div>
           </div>
           <div id="payload-editor-container" role="tabpanel" aria-labelledby="fmt-pill-a">
-            <textarea id="payload-editor" aria-label="Raw Legacy Export Payload" class="code-editor" spellcheck="false" placeholder="Select a format above or paste raw legacy JSON payload here..."></textarea>
+            <textarea id="payload-editor" aria-label="Raw Legacy Export Payload" class="code-editor" spellcheck="false" placeholder="Select a format above or paste raw legacy JSON payload here..." oninput="updateWorkbenchButtons()"></textarea>
           </div>
           <div class="btn-group">
             <button id="btn-dry-run" class="btn btn-secondary" onclick="runDryRun()"><span aria-hidden="true">🔍</span> Run Dry-Run Audit</button>
@@ -812,14 +812,14 @@
             <span class="panel-title">1. Raw ACORD AL3 Download Simulator</span>
             <span class="badge badge-fmt-d">IVANS AL3 Protocol</span>
           </div>
-          <textarea id="al3-input-editor" aria-label="Raw ACORD AL3 Download Simulator" class="code-editor" style="height: 180px; font-family: monospace; font-size: 0.8rem;" spellcheck="false" placeholder="Paste raw IVANS AL3 string here...">2BOSIVANS-NETCOREAMS-0100010120260801
+          <textarea id="al3-input-editor" aria-label="Raw ACORD AL3 Download Simulator" class="code-editor" style="height: 180px; font-family: monospace; font-size: 0.8rem;" spellcheck="false" placeholder="Paste raw IVANS AL3 string here..." oninput="updateAl3Buttons()">2BOSIVANS-NETCOREAMS-0100010120260801
 2PRTTRV01TRV-2026-9041Acme Logistics LLC   Commercial Auto     2026080112500.00
 3CVICOMPComprehensive & Collision               1500
 3TRGRENE12500.00
 2EOS0005</textarea>
           <div class="btn-group">
-            <button class="btn btn-secondary" onclick="parseRawAl3Sim(event)"><span aria-hidden="true">⚡</span> Parse Raw AL3 Stream</button>
-            <button class="btn btn-primary" onclick="ingestAl3Batch(event)"><span aria-hidden="true">🚀</span> Ingest IVANS Download Batch</button>
+            <button id="btn-parse-al3" class="btn btn-secondary" onclick="parseRawAl3Sim(event)"><span aria-hidden="true">⚡</span> Parse Raw AL3 Stream</button>
+            <button id="btn-ingest-al3" class="btn btn-primary" onclick="ingestAl3Batch(event)"><span aria-hidden="true">🚀</span> Ingest IVANS Download Batch</button>
           </div>
           <div id="al3-output-box" class="output-box" style="max-height: 180px;">
             <div style="color: var(--text-muted); font-style: italic;">Decoded AL3 record groups will appear here...</div>
@@ -848,7 +848,7 @@
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Carrier Download Batches & Auto-Reconciliation Ledger</span>
-          <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="postSelectedBatchCommissions(event)"><span aria-hidden="true">💰</span> Post Direct Bill Commissions to GL</button>
+          <button id="btn-post-all-commissions" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="postSelectedBatchCommissions(event)"><span aria-hidden="true">💰</span> Post Direct Bill Commissions to GL</button>
         </div>
         <div class="table-container">
           <table>
@@ -959,6 +959,7 @@
       await fetchMetrics();
       await fetchSamples();
       await fetchCrosswalkMatrix();
+      updateAl3Buttons();
     }
 
     async function fetchSamples() {
@@ -1010,6 +1011,7 @@
       if (samplePayloads[formatKey]) {
         document.getElementById('payload-editor').value = JSON.stringify(samplePayloads[formatKey], null, 2);
       }
+      updateWorkbenchButtons();
     }
 
     async function fetchMetrics() {
@@ -1452,6 +1454,48 @@
       document.getElementById(tabId).classList.add('active');
     }
 
+    function updateWorkbenchButtons() {
+      const editor = document.getElementById('payload-editor');
+      const dryRunBtn = document.getElementById('btn-dry-run');
+      const importBtn = document.getElementById('btn-import');
+
+      if (editor && dryRunBtn && importBtn) {
+        if (!editor.value.trim()) {
+          dryRunBtn.disabled = true;
+          importBtn.disabled = true;
+          const msg = "Please select a legacy export format or paste a raw payload first.";
+          dryRunBtn.title = msg;
+          importBtn.title = msg;
+        } else {
+          dryRunBtn.disabled = false;
+          importBtn.disabled = false;
+          dryRunBtn.removeAttribute('title');
+          importBtn.removeAttribute('title');
+        }
+      }
+    }
+
+    function updateAl3Buttons() {
+      const editor = document.getElementById('al3-input-editor');
+      const parseBtn = document.getElementById('btn-parse-al3');
+      const ingestBtn = document.getElementById('btn-ingest-al3');
+
+      if (editor && parseBtn && ingestBtn) {
+        if (!editor.value.trim()) {
+          parseBtn.disabled = true;
+          ingestBtn.disabled = true;
+          const msg = "Please paste a raw IVANS AL3 string first.";
+          parseBtn.title = msg;
+          ingestBtn.title = msg;
+        } else {
+          parseBtn.disabled = false;
+          ingestBtn.disabled = false;
+          parseBtn.removeAttribute('title');
+          ingestBtn.removeAttribute('title');
+        }
+      }
+    }
+
     // ⚡ Bolt: Debounce helper to prevent excessive function calls
     function debounce(func, wait) {
       let timeout;
@@ -1773,6 +1817,21 @@
           document.getElementById('dl-metric-commissions').innerText = '$' + totalCommissions.toLocaleString('en-US', { minimumFractionDigits: 2 });
 
           renderDownloadBatchesTable(batches);
+
+          const postAllBtn = document.getElementById('btn-post-all-commissions');
+          if (postAllBtn) {
+            const hasUnposted = batches.some(b => b.status !== 'Commissions Posted');
+            if (!hasUnposted && batches.length > 0) {
+              postAllBtn.disabled = true;
+              postAllBtn.title = "All download batch commissions have already been posted to the General Ledger.";
+            } else if (batches.length === 0) {
+              postAllBtn.disabled = true;
+              postAllBtn.title = "No download batches available to post.";
+            } else {
+              postAllBtn.disabled = false;
+              postAllBtn.removeAttribute('title');
+            }
+          }
         }
       } catch (err) {
         console.error('Failed to fetch download batches:', err);
