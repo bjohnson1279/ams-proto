@@ -119,6 +119,18 @@ export class MemoryCertificateHolderRepository implements ICertificateHolderRepo
     return Promise.resolve(this.holders.find(h => h.holderId === id) || null);
   }
 
+  async getByIds(tenantId: string, ids: string[]): Promise<CertificateHolder[]> {
+    if (!ids || ids.length === 0) return Promise.resolve([]);
+    const idSet = new Set(ids);
+    const results = [];
+    for (const h of this.holders) {
+      if (idSet.has(h.holderId) && (!h.tenantId || h.tenantId === tenantId)) {
+        results.push(h);
+      }
+    }
+    return Promise.resolve(results);
+  }
+
   async create(tenantId: string, payload: Partial<CertificateHolder>): Promise<CertificateHolder> {
     const holder = { ...payload, holderId: payload.holderId || randomUUID(), tenantId } as CertificateHolder;
     this.holders.push(holder);
@@ -247,14 +259,6 @@ export class MemoryAccountingRepository implements IAccountingRepository {
     return Promise.resolve(je);
   }
 
-  async getInvoiceCount(tenantId: string): Promise<number> {
-    // ⚡ Bolt: Provide a direct count method instead of fetching the entire array and mapping/filtering in service layer
-    let count = 0;
-    for (const i of this.invoices) {
-      if (!i.tenantId || i.tenantId === tenantId) count++;
-    }
-    return Promise.resolve(count);
-  }
 
   async getInvoices(tenantId: string): Promise<Invoice[]> { return Promise.resolve(this.invoices); }
   async getInvoiceById(tenantId: string, id: string): Promise<Invoice | null> {
