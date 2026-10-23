@@ -211,3 +211,7 @@
 ## 2026-10-12 - Prevent N+1 queries using DB batch lookups
 **Learning:** Performing multiple independent database lookups using `Promise.all()` loops can overwhelm the database connection pool, leading to latency spikes or failed connections under high load.
 **Action:** Consolidate multiple individual queries into a single database call via batched operations, such as `WHERE id IN (...)` or using PostgreSQL array filtering like `ANY($1)` to fetch related entities efficiently in a single round-trip.
+
+## $(date +%Y-%m-%d) - Array map to loop optimization
+**Learning:** Replacing `.map()` and `Set` conversions with a more efficient `for` loop and a `Set` lookup in hot-paths prevents unnecessary intermediate array allocations, while still preserving deduplication and order. Modifying cold paths (e.g. `.map` for coverage summaries in `ams.service.ts`) is a premature optimization that sacrifices readability for negligible gains, violating the project constraint.
+**Action:** Before optimizing `.map()`, evaluate whether the code is in a critical 'hot path' (frequently executed) or a 'cold path'. Optimize the former to reduce garbage collection overhead, and leave the latter alone to prioritize readability.
