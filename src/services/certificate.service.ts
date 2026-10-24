@@ -43,6 +43,10 @@ export class CertificateService {
     return holder || undefined;
   }
 
+  public async getCertificateHoldersByIds(tenantId: string, holderIds: string[]): Promise<CertificateHolder[]> {
+    return this.repos.certificateHolders.getByIds(tenantId, holderIds);
+  }
+
   public async createCertificateHolder(tenantId: string, payload: Partial<CertificateHolder>): Promise<CertificateHolder> {
     if (!payload.name) {
       throw new Error('Certificate Holder name is required');
@@ -123,7 +127,7 @@ export class CertificateService {
   public async generateCertificate(
     tenantId: string,
     req: CreateCertificateRequest,
-    context?: { customer: Customer; selectedPolicies: Policy[]; allCarriersMap: Map<string, Carrier> }
+    context?: { customer: Customer; selectedPolicies: Policy[]; allCarriersMap: Map<string, Carrier>; certificateHolder?: CertificateHolder }
   ): Promise<CertificateOfInsurance> {
     const amsService = AmsService.getInstance();
 
@@ -132,7 +136,7 @@ export class CertificateService {
       throw new Error(`Customer with ID ${req.customerId} not found`);
     }
 
-    const holder = await this.getCertificateHolderById(tenantId, req.holderId);
+    const holder = context?.certificateHolder || await this.getCertificateHolderById(tenantId, req.holderId);
     if (!holder) {
       throw new Error(`Certificate Holder with ID ${req.holderId} not found`);
     }
@@ -413,17 +417,29 @@ export class CertificateService {
     const carriers = await amsService.getCarriers(tenantId);
     const allCarriersMap = new Map(carriers.map(c => [c.carrierId, c]));
 
-    const context = { customer, selectedPolicies, allCarriersMap };
+    // ⚡ Bolt: Fetch all certificate holders in a single query to eliminate O(H) N+1 lookup bottleneck
+    const holders = await this.getCertificateHoldersByIds(tenantId, req.holderIds);
+    const holderMap = new Map<string, CertificateHolder>();
+    for (const h of holders) {
+      holderMap.set(h.holderId, h);
+    }
+
+    const baseContext = { customer, selectedPolicies, allCarriersMap };
 
     const issued: CertificateOfInsurance[] = [];
     for (const holderId of req.holderIds) {
+      const certificateHolder = holderMap.get(holderId);
+      if (!certificateHolder) {
+        throw new Error(`Certificate Holder with ID ${holderId} not found`);
+      }
+
       const cert = await this.generateCertificate(tenantId, {
         customerId: req.customerId,
         holderId,
         policyIds: req.policyIds,
         descriptionOfOperations: req.descriptionOfOperations,
         cancellationNoticeDays: req.cancellationNoticeDays
-      }, context);
+      }, { ...baseContext, certificateHolder });
       issued.push(cert);
     }
     return issued;

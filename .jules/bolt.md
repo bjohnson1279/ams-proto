@@ -211,3 +211,7 @@
 ## 2026-10-12 - Prevent N+1 queries using DB batch lookups
 **Learning:** Performing multiple independent database lookups using `Promise.all()` loops can overwhelm the database connection pool, leading to latency spikes or failed connections under high load.
 **Action:** Consolidate multiple individual queries into a single database call via batched operations, such as `WHERE id IN (...)` or using PostgreSQL array filtering like `ANY($1)` to fetch related entities efficiently in a single round-trip.
+
+## 2026-10-18 - Replacing iterative getById loop database calls with batched getByIds lookups
+**Learning:** Calling `getById` inside a loop (like `bulkIssueCertificates`'s `for...of` loop over `holderIds`) results in an N+1 query problem, causing severe database connection pool exhaustion and memory overhead under high load scenarios (such as bulk issuance).
+**Action:** Replace iterative database lookups in loops with a single batch `getByIds` call using `WHERE id = ANY($2)` (or `IN (...)`), and construct a `Map` in memory for $\mathcal{O}(1)$ entity retrieval during processing.

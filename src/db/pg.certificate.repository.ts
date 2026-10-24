@@ -24,6 +24,19 @@ export class PgCertificateHolderRepository implements ICertificateHolderReposito
     });
   }
 
+  async getByIds(tenantId: string, ids: string[]): Promise<CertificateHolder[]> {
+    if (!ids || ids.length === 0) return [];
+    return withTenantTransaction(tenantId, async (client) => {
+      const res = await client.query('SELECT * FROM certificate_holders WHERE tenant_id = $1 AND holder_id = ANY($2)', [tenantId, ids]);
+      // ⚡ Bolt: Replaced O(N) Array.map() with a pre-allocated native loop to prevent inline closure allocations and improve hot-path performance
+      const holders = new Array(res.rows.length);
+      for (let i = 0; i < res.rows.length; i++) {
+        holders[i] = this.mapToHolder(res.rows[i]);
+      }
+      return holders;
+    });
+  }
+
   async create(tenantId: string, payload: Partial<CertificateHolder>): Promise<CertificateHolder> {
     return withTenantTransaction(tenantId, async (client) => {
       const id = payload.holderId || randomUUID();

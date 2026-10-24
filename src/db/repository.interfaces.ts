@@ -31,6 +31,7 @@ export interface ICarrierRepository {
 export interface ICertificateHolderRepository {
   getAll(tenantId: string, filter?: any): Promise<CertificateHolder[]>;
   getById(tenantId: string, id: string): Promise<CertificateHolder | null>;
+  getByIds(tenantId: string, ids: string[]): Promise<CertificateHolder[]>;
   create(tenantId: string, payload: Partial<CertificateHolder>): Promise<CertificateHolder>;
   update(tenantId: string, id: string, payload: Partial<CertificateHolder>): Promise<CertificateHolder>;
   deactivate(tenantId: string, id: string): Promise<void>;
@@ -50,7 +51,6 @@ export interface IAccountingRepository {
   getAccountsByNumbers(tenantId: string, accountNumbers: string[]): Promise<GlAccount[]>;
   getJournalEntries(tenantId: string): Promise<JournalEntry[]>;
   createJournalEntry(tenantId: string, entry: Partial<JournalEntry>): Promise<JournalEntry>;
-  getInvoiceCount(tenantId: string): Promise<number>;
   getInvoices(tenantId: string): Promise<Invoice[]>;
   getInvoiceById(tenantId: string, invoiceId: string): Promise<Invoice | null>;
   getInvoiceCount(tenantId: string): Promise<number>;
