@@ -31,6 +31,7 @@ export interface ICarrierRepository {
 export interface ICertificateHolderRepository {
   getAll(tenantId: string, filter?: any): Promise<CertificateHolder[]>;
   getById(tenantId: string, id: string): Promise<CertificateHolder | null>;
+  getByIds(tenantId: string, ids: string[]): Promise<CertificateHolder[]>;
   create(tenantId: string, payload: Partial<CertificateHolder>): Promise<CertificateHolder>;
   update(tenantId: string, id: string, payload: Partial<CertificateHolder>): Promise<CertificateHolder>;
   deactivate(tenantId: string, id: string): Promise<void>;

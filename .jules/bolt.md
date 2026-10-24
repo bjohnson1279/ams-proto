@@ -215,3 +215,7 @@
 ## 2026-10-23 - Array map to loop optimization
 **Learning:** Replacing .map() and Set conversions with a more efficient or loop and a Set lookup in hot-paths prevents unnecessary intermediate array allocations, while still preserving deduplication and order. Modifying cold paths (e.g. .map for coverage summaries in ms.service.ts) is a premature optimization that sacrifices readability for negligible gains, violating the project constraint.
 **Action:** Before optimizing .map(), evaluate whether the code is in a critical 'hot path' (frequently executed) or a 'cold path'. Optimize the former to reduce garbage collection overhead, and leave the latter alone to prioritize readability.
+
+## 2026-10-18 - Replacing iterative getById loop database calls with batched getByIds lookups
+**Learning:** Calling `getById` inside a loop (like `bulkIssueCertificates`'s `for...of` loop over `holderIds`) results in an N+1 query problem, causing severe database connection pool exhaustion and memory overhead under high load scenarios (such as bulk issuance).
+**Action:** Replace iterative database lookups in loops with a single batch `getByIds` call using `WHERE id = ANY($2)` (or `IN (...)`), and construct a `Map` in memory for $\mathcal{O}(1)$ entity retrieval during processing.
