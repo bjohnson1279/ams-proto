@@ -165,3 +165,8 @@
 **Vulnerability:** The application had Content Security Policy completely disabled (`contentSecurityPolicy: false`) to allow UI styles, exposing it to XSS and injection attacks.
 **Learning:** Security features are often disabled entirely when they break frontend dependencies, leaving the application vulnerable.
 **Prevention:** When configuring Content Security Policy (CSP) headers (e.g. using `helmet`), explicitly whitelist necessary external assets (like Google Fonts) and inline resources (`unsafe-inline`) instead of disabling the policy entirely.
+
+## 2024-05-24 - [Input Validation Hardening]
+**Vulnerability:** The application was missing strict input validation on the `POST /api/v1/customers` endpoint, relying only on basic existence checks, which could allow malformed payloads to bypass business logic or cause downstream errors.
+**Learning:** Even if the downstream service handles data gracefully, the lack of explicit schema validation at the controller boundary violates defense in depth principles and opens the door for mass assignment or unexpected data structures.
+**Prevention:** Always use schema validation libraries like `zod` at the controller layer to strictly enforce data shapes, types, and constraints before passing requests to business logic services.
