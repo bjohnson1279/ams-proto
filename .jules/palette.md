@@ -198,3 +198,7 @@
 ## 2024-11-20 - Use tooltips on disabled buttons instead of native alerts
 **Learning:** Letting users interact with buttons that trigger a predictable fail state (like submitting empty payloads or re-triggering completed processes) and throwing a native browser `alert()` is disruptive and provides poor feedback. Disabling the button makes the state clear, but a permanently disabled button leaves users confused as to *why* it's disabled.
 **Action:** Always proactively disable buttons when their action is a predictable no-op or invalid state. Furthermore, attach a `title` tooltip to the disabled button so sighted mouse users understand exactly why the button is unavailable (e.g., "All commissions have already been posted.").
+
+## 2026-10-26 - Prevent Hover States on Disabled Buttons
+**Learning:** Buttons like .tab-btn, .format-pill, and .modal-close-btn continued displaying interactive hover background/color states when disabled, confusing users into thinking non-interactive controls are clickable.
+**Action:** Use the \:not(:disabled):hover\ pseudo-class selector to strictly isolate hover styling to active, interactive buttons.

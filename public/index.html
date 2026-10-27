@@ -182,7 +182,7 @@
       transition: all 0.2s;
     }
 
-    .tab-btn:hover {
+    .tab-btn:not(:disabled):hover {
       color: var(--text-main);
       background: rgba(255, 255, 255, 0.05);
     }
@@ -246,7 +246,7 @@
       transition: all 0.2s;
     }
 
-    .format-pill:hover, .format-pill.active {
+    .format-pill:not(:disabled):hover, .format-pill.active {
       border-color: var(--accent-cyan);
       color: var(--accent-cyan);
       background: rgba(6, 182, 212, 0.1);
@@ -450,7 +450,7 @@
       transition: color 0.2s;
     }
 
-    .modal-close-btn:hover {
+    .modal-close-btn:not(:disabled):hover {
       color: var(--text-main);
     }
 
