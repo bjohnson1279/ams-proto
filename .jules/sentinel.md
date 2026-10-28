@@ -170,3 +170,8 @@
 **Vulnerability:** The application was missing strict input validation on the `POST /api/v1/customers` endpoint, relying only on basic existence checks, which could allow malformed payloads to bypass business logic or cause downstream errors.
 **Learning:** Even if the downstream service handles data gracefully, the lack of explicit schema validation at the controller boundary violates defense in depth principles and opens the door for mass assignment or unexpected data structures.
 **Prevention:** Always use schema validation libraries like `zod` at the controller layer to strictly enforce data shapes, types, and constraints before passing requests to business logic services.
+
+## 2024-05-24 - [Input Validation Hardening]
+**Vulnerability:** The `PolicyController.createPolicy()` endpoint was missing strict input validation, relying only on basic existence checks, which could allow malformed payloads to bypass business logic or cause downstream errors.
+**Learning:** Even if the downstream service handles data gracefully, the lack of explicit schema validation at the controller boundary violates defense in depth principles and opens the door for mass assignment or unexpected data structures.
+**Prevention:** Always use schema validation libraries like `zod` at the controller layer to strictly enforce data shapes, types, and constraints before passing requests to business logic services.

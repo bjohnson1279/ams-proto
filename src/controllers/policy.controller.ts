@@ -1,6 +1,28 @@
 import { Request, Response, NextFunction } from 'express';
 import { AmsService } from '../services/ams.service.js';
 import { TenantRequest } from '../middleware/tenant.middleware.js';
+import { z } from 'zod';
+
+
+const policyCreateSchema = z.object({
+  policyId: z.string().trim().optional(),
+  policyNumber: z.string().trim().optional(),
+  customerId: z.string().trim(),
+  carrierId: z.string().trim().optional(),
+  lineOfBusiness: z.enum(['Commercial Auto', 'General Liability', 'Commercial Property', 'Workers Comp', 'BOP', 'Personal Auto', 'Homeowners']),
+  effectiveDate: z.string().trim().optional(),
+  expirationDate: z.string().trim().optional(),
+  status: z.enum(['Active', 'Expired', 'Cancelled', 'Pending']).optional(),
+  premiumAmount: z.number().or(z.string().transform((v) => Number(v))).optional(),
+  billingType: z.enum(['Agency Bill', 'Direct Bill']).optional(),
+  coverages: z.array(z.object({
+    code: z.string(),
+    name: z.string(),
+    limitAmount: z.number(),
+    deductibleAmount: z.number(),
+    premiumAmount: z.number()
+  })).optional()
+});
 
 export class PolicyController {
   private amsService: AmsService;
@@ -55,16 +77,22 @@ export class PolicyController {
   public createPolicy = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const tenantId = (req as TenantRequest).tenantId as string;
-      const payload = req.body;
-      if (!payload || !payload.customerId || !payload.lineOfBusiness) {
+
+      // 🛡️ Sentinel: Enforce strict input validation to prevent malformed data and injection attacks
+      const validationResult = policyCreateSchema.safeParse(req.body);
+
+      if (!validationResult.success) {
         res.status(400).json({
           status: 'error',
-          message: 'Invalid policy payload. Must specify customerId and lineOfBusiness.'
+          message: 'Invalid policy payload.',
+          errors: validationResult.error.errors
         });
         return;
       }
 
-      const created = await this.amsService.createPolicy(tenantId, payload);
+      const payload = validationResult.data;
+
+      const created = await this.amsService.createPolicy(tenantId, payload as Parameters<AmsService["createPolicy"]>[1]);
       res.status(201).json({
         status: 'success',
         message: 'Policy created successfully.',
