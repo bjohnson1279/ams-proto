@@ -198,3 +198,7 @@
 ## 2024-11-20 - Use tooltips on disabled buttons instead of native alerts
 **Learning:** Letting users interact with buttons that trigger a predictable fail state (like submitting empty payloads or re-triggering completed processes) and throwing a native browser `alert()` is disruptive and provides poor feedback. Disabling the button makes the state clear, but a permanently disabled button leaves users confused as to *why* it's disabled.
 **Action:** Always proactively disable buttons when their action is a predictable no-op or invalid state. Furthermore, attach a `title` tooltip to the disabled button so sighted mouse users understand exactly why the button is unavailable (e.g., "All commissions have already been posted.").
+
+## 2026-10-24 - Playwright Event Triggers for Raw JS Listeners
+**Learning:** When using Playwright to verify frontend changes involving raw JavaScript `oninput` event listeners (e.g., on `#payload-editor`), `locator.fill()` might not trigger the event correctly or at all, causing tests to fail by seeing stale states.
+**Action:** When interacting with inputs that rely on custom native JS event listeners in Playwright scripts, always explicitly trigger the event after filling the value using `page.evaluate("document.getElementById('element-id').dispatchEvent(new Event('input'))")`.
