@@ -202,3 +202,7 @@
 ## 2026-10-26 - Prevent Hover States on Disabled Buttons
 **Learning:** Buttons like .tab-btn, .format-pill, and .modal-close-btn continued displaying interactive hover background/color states when disabled, confusing users into thinking non-interactive controls are clickable.
 **Action:** Use the \:not(:disabled):hover\ pseudo-class selector to strictly isolate hover styling to active, interactive buttons.
+
+## 2026-10-24 - Playwright Event Triggers for Raw JS Listeners
+**Learning:** When using Playwright to verify frontend changes involving raw JavaScript `oninput` event listeners (e.g., on `#payload-editor`), `locator.fill()` might not trigger the event correctly or at all, causing tests to fail by seeing stale states.
+**Action:** When interacting with inputs that rely on custom native JS event listeners in Playwright scripts, always explicitly trigger the event after filling the value using `page.evaluate("document.getElementById('element-id').dispatchEvent(new Event('input'))")`.

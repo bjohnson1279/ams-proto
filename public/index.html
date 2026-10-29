@@ -1460,17 +1460,30 @@
       const importBtn = document.getElementById('btn-import');
 
       if (editor && dryRunBtn && importBtn) {
-        if (!editor.value.trim()) {
+        const val = editor.value.trim();
+        if (!val) {
           dryRunBtn.disabled = true;
           importBtn.disabled = true;
           const msg = "Please select a legacy export format or paste a raw payload first.";
           dryRunBtn.title = msg;
           importBtn.title = msg;
+          editor.style.borderColor = "";
         } else {
-          dryRunBtn.disabled = false;
-          importBtn.disabled = false;
-          dryRunBtn.removeAttribute('title');
-          importBtn.removeAttribute('title');
+          try {
+            JSON.parse(val);
+            dryRunBtn.disabled = false;
+            importBtn.disabled = false;
+            dryRunBtn.removeAttribute('title');
+            importBtn.removeAttribute('title');
+            editor.style.borderColor = "";
+          } catch (e) {
+            dryRunBtn.disabled = true;
+            importBtn.disabled = true;
+            const msg = "Invalid JSON format. Please correct the payload.";
+            dryRunBtn.title = msg;
+            importBtn.title = msg;
+            editor.style.borderColor = "var(--accent-rose)";
+          }
         }
       }
     }
