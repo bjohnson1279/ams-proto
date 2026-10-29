@@ -165,3 +165,8 @@
 **Vulnerability:** The application had Content Security Policy completely disabled (`contentSecurityPolicy: false`) to allow UI styles, exposing it to XSS and injection attacks.
 **Learning:** Security features are often disabled entirely when they break frontend dependencies, leaving the application vulnerable.
 **Prevention:** When configuring Content Security Policy (CSP) headers (e.g. using `helmet`), explicitly whitelist necessary external assets (like Google Fonts) and inline resources (`unsafe-inline`) instead of disabling the policy entirely.
+
+## 2026-10-13 - [Implemented Global Validation Middleware]
+**Vulnerability:** Express endpoints lacked strict schema-based input validation, relying instead on loose, manual `req.body` checks which could allow malformed data or prototype pollution attacks to reach the service layer.
+**Learning:** Manual inline validation is prone to errors, regressions, and often incomplete. It does not scale across a growing API surface.
+**Prevention:** Always implement a dedicated validation middleware layer (e.g., using Zod) directly on the route definitions to enforce strict schema boundaries before execution reaches the controller layer.
