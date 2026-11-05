@@ -219,3 +219,6 @@
 ## 2026-10-18 - Replacing iterative getById loop database calls with batched getByIds lookups
 **Learning:** Calling `getById` inside a loop (like `bulkIssueCertificates`'s `for...of` loop over `holderIds`) results in an N+1 query problem, causing severe database connection pool exhaustion and memory overhead under high load scenarios (such as bulk issuance).
 **Action:** Replace iterative database lookups in loops with a single batch `getByIds` call using `WHERE id = ANY($2)` (or `IN (...)`), and construct a `Map` in memory for $\mathcal{O}(1)$ entity retrieval during processing.
+## 2024-11-04 - In-memory O(1) Map Lookups
+**Learning:** In-memory repositories frequently use `.find()` or `.filter()` which can lead to O(N) lookup times on every access.
+**Action:** When working with in-memory array collections, initialize a parallel `Map` during constructor execution and update it synchronously on `create`, providing O(1) lookups for `getById` operations.
