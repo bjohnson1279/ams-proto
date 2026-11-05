@@ -89,7 +89,7 @@ export class CustomerController {
         res.status(400).json({
           status: 'error',
           message: 'Invalid customer payload.',
-          errors: validationResult.error.errors
+          errors: validationResult.error.format()
         });
         return;
       }
