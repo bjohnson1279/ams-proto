@@ -206,3 +206,6 @@
 ## 2026-10-24 - Playwright Event Triggers for Raw JS Listeners
 **Learning:** When using Playwright to verify frontend changes involving raw JavaScript `oninput` event listeners (e.g., on `#payload-editor`), `locator.fill()` might not trigger the event correctly or at all, causing tests to fail by seeing stale states.
 **Action:** When interacting with inputs that rely on custom native JS event listeners in Playwright scripts, always explicitly trigger the event after filling the value using `page.evaluate("document.getElementById('element-id').dispatchEvent(new Event('input'))")`.
+## 2024-05-24 - Provide visible inline validation and aria-live announcements for input errors
+**Learning:** Depending solely on red borders and `title` tooltips on disabled buttons for error states is a poor UX/accessibility pattern. Tooltips on disabled buttons are frequently inaccessible to keyboard-only and screen reader users, and red borders don't convey the *reason* for the error.
+**Action:** Use an empty container with `aria-live="polite"` directly beneath inputs. On error, populate it using `textContent` and `insertAdjacentHTML` (to safely add warning icons without XSS risks), and add `aria-invalid="true"` to the input element itself.
