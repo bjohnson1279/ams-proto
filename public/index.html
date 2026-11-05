@@ -254,7 +254,7 @@
 
     textarea.code-editor {
       width: 100%;
-      height: 340px;
+      height: 315px;
       background: var(--bg-input);
       border: 1px solid var(--border-color);
       border-radius: 8px;
@@ -578,8 +578,9 @@
               <button id="fmt-pill-d" class="format-pill" role="tab" aria-selected="false" aria-controls="payload-editor-container" onclick="loadSample('FORMAT_D')">Format D (Cloud)</button>
             </div>
           </div>
-          <div id="payload-editor-container" role="tabpanel" aria-labelledby="fmt-pill-a">
+          <div id="payload-editor-container" role="tabpanel" aria-labelledby="fmt-pill-a" style="display: flex; flex-direction: column; gap: 0.5rem;">
             <textarea id="payload-editor" aria-label="Raw Legacy Export Payload" class="code-editor" spellcheck="false" placeholder="Select a format above or paste raw legacy JSON payload here..." oninput="updateWorkbenchButtons()"></textarea>
+            <div id="payload-error-msg" aria-live="polite" style="color: var(--accent-rose); font-size: 0.85rem; min-height: 1.2em;"></div>
           </div>
           <div class="btn-group">
             <button id="btn-dry-run" class="btn btn-secondary" onclick="runDryRun()"><span aria-hidden="true">🔍</span> Run Dry-Run Audit</button>
@@ -1458,6 +1459,7 @@
       const editor = document.getElementById('payload-editor');
       const dryRunBtn = document.getElementById('btn-dry-run');
       const importBtn = document.getElementById('btn-import');
+      const errorMsg = document.getElementById('payload-error-msg');
 
       if (editor && dryRunBtn && importBtn) {
         const val = editor.value.trim();
@@ -1468,6 +1470,8 @@
           dryRunBtn.title = msg;
           importBtn.title = msg;
           editor.style.borderColor = "";
+          editor.removeAttribute('aria-invalid');
+          if (errorMsg) errorMsg.textContent = '';
         } else {
           try {
             JSON.parse(val);
@@ -1476,6 +1480,8 @@
             dryRunBtn.removeAttribute('title');
             importBtn.removeAttribute('title');
             editor.style.borderColor = "";
+            editor.removeAttribute('aria-invalid');
+            if (errorMsg) errorMsg.textContent = '';
           } catch (e) {
             dryRunBtn.disabled = true;
             importBtn.disabled = true;
@@ -1483,6 +1489,11 @@
             dryRunBtn.title = msg;
             importBtn.title = msg;
             editor.style.borderColor = "var(--accent-rose)";
+            editor.setAttribute('aria-invalid', 'true');
+            if (errorMsg) {
+              errorMsg.textContent = msg;
+              errorMsg.insertAdjacentHTML('afterbegin', '<span aria-hidden="true">⚠️ </span>');
+            }
           }
         }
       }

@@ -16,6 +16,7 @@ import { randomUUID } from 'crypto';
 
 export class MemoryCustomerRepository implements ICustomerRepository {
   private customers = [...INITIAL_CUSTOMERS];
+  private customerMap = new Map(this.customers.map(c => [c.customerId, c]));
 
   async getAll(tenantId: string, filter?: any): Promise<Customer[]> {
     if (!filter || (!filter.name && !filter.feinOrSsn && !filter.customerIds)) {
@@ -45,19 +46,21 @@ export class MemoryCustomerRepository implements ICustomerRepository {
   }
 
   async getById(tenantId: string, id: string): Promise<Customer | null> {
-    const c = this.customers.find(c => c.customerId === id);
+    const c = this.customerMap.get(id);
     return Promise.resolve(c || null);
   }
 
   async create(tenantId: string, payload: Partial<Customer>): Promise<Customer> {
     const customer = { ...payload, customerId: payload.customerId || randomUUID(), tenantId } as Customer;
     this.customers.push(customer);
+    this.customerMap.set(customer.customerId, customer);
     return Promise.resolve(customer);
   }
 }
 
 export class MemoryPolicyRepository implements IPolicyRepository {
   private policies = [...INITIAL_POLICIES];
+  private policyMap = new Map(this.policies.map(p => [p.policyId, p]));
 
   async getAll(tenantId: string, filter?: any): Promise<Policy[]> {
     if (!filter || (!filter.customerId && !filter.carrierId && !filter.status && !filter.effectiveDate && !filter.policyNumber)) {
@@ -78,13 +81,14 @@ export class MemoryPolicyRepository implements IPolicyRepository {
   }
 
   async getById(tenantId: string, id: string): Promise<Policy | null> {
-    const p = this.policies.find(p => p.policyId === id);
+    const p = this.policyMap.get(id);
     return Promise.resolve(p || null);
   }
 
   async create(tenantId: string, payload: Partial<Policy>): Promise<Policy> {
     const policy = { ...payload, policyId: payload.policyId || randomUUID(), tenantId } as Policy;
     this.policies.push(policy);
+    this.policyMap.set(policy.policyId, policy);
     return Promise.resolve(policy);
   }
 }
