@@ -170,3 +170,7 @@
 **Vulnerability:** The application was missing strict input validation on the `POST /api/v1/customers` endpoint, relying only on basic existence checks, which could allow malformed payloads to bypass business logic or cause downstream errors.
 **Learning:** Even if the downstream service handles data gracefully, the lack of explicit schema validation at the controller boundary violates defense in depth principles and opens the door for mass assignment or unexpected data structures.
 **Prevention:** Always use schema validation libraries like `zod` at the controller layer to strictly enforce data shapes, types, and constraints before passing requests to business logic services.
+## 2024-05-30 - Parameterizing Docker Secrets
+**Vulnerability:** Found hardcoded database passwords in `docker-compose.yml` and backup compose files.
+**Learning:** When replacing hardcoded secrets with environment variables in configuration files (like Docker Compose), ensure that the fallback values (e.g., `${POSTGRES_PASSWORD:-real_password}`) do not contain the actual sensitive credentials, as they will still be committed to version control. Use generic placeholders like 'secret' instead.
+**Prevention:** Always verify the diff of changes to ensure secrets are completely replaced, and aren't lingering as fallback strings.
