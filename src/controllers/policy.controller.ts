@@ -1,6 +1,21 @@
 import { Request, Response, NextFunction } from 'express';
 import { AmsService } from '../services/ams.service.js';
 import { TenantRequest } from '../middleware/tenant.middleware.js';
+import { z } from 'zod';
+
+
+// 🛡️ Sentinel: Enforce strict input validation
+const policyCreateSchema = z.object({
+  customerId: z.string().trim().min(1),
+  carrierId: z.string().trim().optional(),
+  policyNumber: z.string().trim().optional(),
+  lineOfBusiness: z.string().trim().min(1),
+  effectiveDate: z.string().trim().optional(),
+  expirationDate: z.string().trim().optional(),
+  status: z.string().trim().optional(),
+  billingType: z.string().trim().optional(),
+  billingStatus: z.string().trim().optional(),
+});
 
 export class PolicyController {
   private amsService: AmsService;
@@ -55,14 +70,16 @@ export class PolicyController {
   public createPolicy = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const tenantId = (req as TenantRequest).tenantId as string;
-      const payload = req.body;
-      if (!payload || !payload.customerId || !payload.lineOfBusiness) {
+      const validationResult = policyCreateSchema.safeParse(req.body);
+      if (!validationResult.success) {
         res.status(400).json({
           status: 'error',
-          message: 'Invalid policy payload. Must specify customerId and lineOfBusiness.'
+          message: 'Invalid policy payload.',
+          errors: validationResult.error.format()
         });
         return;
       }
+      const payload = validationResult.data as any;
 
       const created = await this.amsService.createPolicy(tenantId, payload);
       res.status(201).json({
