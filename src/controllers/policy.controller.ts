@@ -72,12 +72,12 @@ export class PolicyController {
         res.status(400).json({
           status: 'error',
           message: 'Invalid policy payload. Must specify customerId and lineOfBusiness.',
-          errors: validationResult.error.errors
+          errors: validationResult.error.issues
         });
         return;
       }
 
-      const created = await this.amsService.createPolicy(tenantId, validationResult.data);
+      const created = await this.amsService.createPolicy(tenantId, validationResult.data as any);
       res.status(201).json({
         status: 'success',
         message: 'Policy created successfully.',
