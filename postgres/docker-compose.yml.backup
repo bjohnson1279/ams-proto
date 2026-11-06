@@ -8,9 +8,9 @@ services:
     environment:
       POSTGRES_PORT: 5433  # Fallback port when 5432 is unavailable
       PGDATA: /var/lib/postgresql/data
-      POSTGRES_USER: ams
-      POSTGRES_PASSWORD: secret123
-      POSTGRES_DB: ams
+      POSTGRES_USER: ${POSTGRES_USER:-ams}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-secret}
+      POSTGRES_DB: ${POSTGRES_DB:-ams}
     volumes:
       - ../data:/var/lib/postgresql/data
       - ../sql:/docker-entrypoint-dml
