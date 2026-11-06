@@ -1003,10 +1003,8 @@
           editorContainer.setAttribute('aria-labelledby', btn.id);
         }
 
-        // If triggered programmatically (not via direct click), move focus
-        if (event && event.target && !event.target.classList.contains('format-pill') && !event.target.closest('.format-pill')) {
-          btn.focus();
-        }
+        // Focus target button unconditionally to maintain keyboard accessibility on programmatic triggers
+        btn.focus();
       }
 
       if (samplePayloads[formatKey]) {
@@ -1445,10 +1443,8 @@
         targetBtn.classList.add('active');
         targetBtn.setAttribute('aria-selected', 'true');
 
-        // If triggered programmatically (not by clicking the tab directly), move focus to the new tab
-        if (event && event.target && !event.target.classList.contains('tab-btn') && !event.target.closest('.tab-btn')) {
-          targetBtn.focus();
-        }
+        // Focus target button unconditionally to maintain keyboard accessibility on programmatic triggers
+        targetBtn.focus();
       }
 
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
