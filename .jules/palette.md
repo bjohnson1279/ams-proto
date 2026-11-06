@@ -206,3 +206,7 @@
 ## 2026-10-24 - Playwright Event Triggers for Raw JS Listeners
 **Learning:** When using Playwright to verify frontend changes involving raw JavaScript `oninput` event listeners (e.g., on `#payload-editor`), `locator.fill()` might not trigger the event correctly or at all, causing tests to fail by seeing stale states.
 **Action:** When interacting with inputs that rely on custom native JS event listeners in Playwright scripts, always explicitly trigger the event after filling the value using `page.evaluate("document.getElementById('element-id').dispatchEvent(new Event('input'))")`.
+
+## 2026-11-05 - Enhance Empty State CTAs and Disable Initial Invalid Actions
+**Learning:** Global actions (like "Post All Commissions") were left enabled by default even before data was fetched, causing confusing interactions before the invalid state was realized.
+**Action:** Always disable action buttons initially if their validity relies on async data that hasn't been fetched yet, and add a tooltip explaining why. Avoid adding `aria-label`s to buttons that already have clear text, as it violates accessibility best practices and creates redundancy.
