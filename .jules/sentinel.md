@@ -170,3 +170,7 @@
 **Vulnerability:** The application was missing strict input validation on the `POST /api/v1/customers` endpoint, relying only on basic existence checks, which could allow malformed payloads to bypass business logic or cause downstream errors.
 **Learning:** Even if the downstream service handles data gracefully, the lack of explicit schema validation at the controller boundary violates defense in depth principles and opens the door for mass assignment or unexpected data structures.
 **Prevention:** Always use schema validation libraries like `zod` at the controller layer to strictly enforce data shapes, types, and constraints before passing requests to business logic services.
+## 2026-11-05 - Avoid Hardcoded Database Credentials in Compose
+**Vulnerability:** Default database username and password in `docker-compose.yml` were hardcoded without environment variable parameterization.
+**Learning:** Hardcoded database credentials in compose files can easily lead to production credential exposure or secrets leaks.
+**Prevention:** Always parameterize container credentials using environment variables with secure fallback patterns (`${POSTGRES_USER:-ams_admin}`).

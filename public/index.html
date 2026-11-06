@@ -849,7 +849,7 @@
       <div class="panel">
         <div class="panel-header">
           <span class="panel-title">Carrier Download Batches & Auto-Reconciliation Ledger</span>
-          <button id="btn-post-all-commissions" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="postSelectedBatchCommissions(event)"><span aria-hidden="true">💰</span> Post Direct Bill Commissions to GL</button>
+          <button id="btn-post-all-commissions" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="postSelectedBatchCommissions(event)" disabled title="No download batches available to post."><span aria-hidden="true">💰</span> Post Direct Bill Commissions to GL</button>
         </div>
         <div class="table-container">
           <table>
@@ -1094,7 +1094,7 @@
                   <div style="font-size: 2rem; margin-bottom: 0.5rem;" aria-hidden="true">⚖️</div>
                   <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No General Ledger entries found</div>
                   <div style="font-size: 0.9rem; margin-bottom: 1rem;">The trial balance is currently empty. Execute premium transactions or reconcile accounts to populate the ledger.</div>
-                  <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="switchTab('tab-workbench')"><span aria-hidden="true">⚡</span> Go to Migration Workbench</button>
+                  <button aria-label="Go to Migration Workbench" title="Go to Migration Workbench" class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="switchTab('tab-workbench')"><span aria-hidden="true">⚡</span> Go to Migration Workbench</button>
                 </td>
               </tr>
             `;
@@ -1126,7 +1126,7 @@
                   <div style="font-size: 2rem; margin-bottom: 0.5rem;" aria-hidden="true">🧾</div>
                   <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No agency bill invoices found</div>
                   <div style="font-size: 0.9rem; margin-bottom: 1rem;">Generate an invoice to start tracking premiums and commissions.</div>
-                  <button class="btn btn-primary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="openPaymentModal(event)">+ Receive Premium Payment</button>
+                  <button aria-label="Receive Premium Payment" title="Receive Premium Payment" class="btn btn-primary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="openPaymentModal(event)">+ Receive Premium Payment</button>
                 </td>
               </tr>
             `;
@@ -1291,7 +1291,7 @@
               <div style="font-size: 2rem; margin-bottom: 0.5rem;" aria-hidden="true">🔍</div>
               <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No customers found</div>
               <div style="font-size: 0.9rem; margin-bottom: 1rem;">Try adjusting your search criteria or clearing the search input.</div>
-              <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="document.getElementById('search-input').value = ''; debouncedFilterCustomers(); document.getElementById('search-input').focus();">Clear Search</button>
+              <button aria-label="Clear Search" title="Clear Search" class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="document.getElementById('search-input').value = ''; debouncedFilterCustomers(); document.getElementById('search-input').focus();">Clear Search</button>
             </td>
           </tr>
         `;
@@ -1411,7 +1411,7 @@
                 <div style="font-size: 2rem; margin-bottom: 0.5rem;" aria-hidden="true">🔀</div>
                 <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No crosswalk rules defined</div>
                 <div style="font-size: 0.9rem; margin-bottom: 1rem;">Configure format mapping rules in the Migration Workbench.</div>
-                <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="switchTab('tab-workbench')"><span aria-hidden="true">⚡</span> Go to Migration Workbench</button>
+                <button aria-label="Go to Migration Workbench" title="Go to Migration Workbench" class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="switchTab('tab-workbench')"><span aria-hidden="true">⚡</span> Go to Migration Workbench</button>
               </td>
             </tr>
           `;
@@ -1577,7 +1577,7 @@
               <div style="font-size: 2rem; margin-bottom: 0.5rem;" aria-hidden="true">📜</div>
               <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No certificates found</div>
               <div style="font-size: 0.9rem; margin-bottom: 1rem;">Generate a new ACORD 25 certificate to get started.</div>
-              <button class="btn btn-primary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="openCreateCertModal(event)">+ Generate Certificate</button>
+              <button aria-label="Generate Certificate" title="Generate Certificate" class="btn btn-primary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="openCreateCertModal(event)">+ Generate Certificate</button>
             </td>
           </tr>
         `;
@@ -1617,7 +1617,7 @@
               <div style="font-size: 2rem; margin-bottom: 0.5rem;" aria-hidden="true">🏢</div>
               <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No certificate holders found</div>
               <div style="font-size: 0.9rem; margin-bottom: 1rem;">Add a new certificate holder to the directory.</div>
-              <button class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="openNewHolderModal(event)">+ Add Certificate Holder</button>
+              <button aria-label="Add Certificate Holder" title="Add Certificate Holder" class="btn btn-secondary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="openNewHolderModal(event)">+ Add Certificate Holder</button>
             </td>
           </tr>
         `;
@@ -1875,7 +1875,7 @@
               <div style="font-size: 2rem; margin-bottom: 0.5rem;" aria-hidden="true">📥</div>
               <div style="font-weight: 600; font-size: 1.1rem; color: #fff; margin-bottom: 0.25rem;">No download batches found</div>
               <div style="font-size: 0.9rem; margin-bottom: 1rem;">Parse an AL3 message or simulate an incoming carrier batch to view downloads.</div>
-              <button class="btn btn-primary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="document.getElementById('al3-input-editor')?.scrollIntoView({ behavior: 'smooth' }); document.getElementById('al3-input-editor')?.focus();"><span aria-hidden="true">⚡</span> Parse AL3 Download</button>
+              <button aria-label="Parse AL3 Download" title="Parse AL3 Download" class="btn btn-primary" style="margin: 0 auto; padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="document.getElementById('al3-input-editor')?.scrollIntoView({ behavior: 'smooth' }); document.getElementById('al3-input-editor')?.focus();"><span aria-hidden="true">⚡</span> Parse AL3 Download</button>
             </td>
           </tr>
         `;

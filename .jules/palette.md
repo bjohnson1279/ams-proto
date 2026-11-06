@@ -206,3 +206,6 @@
 ## 2026-10-24 - Playwright Event Triggers for Raw JS Listeners
 **Learning:** When using Playwright to verify frontend changes involving raw JavaScript `oninput` event listeners (e.g., on `#payload-editor`), `locator.fill()` might not trigger the event correctly or at all, causing tests to fail by seeing stale states.
 **Action:** When interacting with inputs that rely on custom native JS event listeners in Playwright scripts, always explicitly trigger the event after filling the value using `page.evaluate("document.getElementById('element-id').dispatchEvent(new Event('input'))")`.
+## 2026-11-05 - Disable Invalid Actions in Empty States and Provide Tooltips
+**Learning:** Having action buttons enabled when no items are available to act on (e.g. "Post Commissions" when 0 batches exist) causes confusion. Adding `aria-label` and `title` tooltips improves screen reader accessibility.
+**Action:** Always disable batch action buttons when item count is zero and provide explanatory titles and aria-labels.

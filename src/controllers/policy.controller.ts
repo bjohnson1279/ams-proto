@@ -1,3 +1,4 @@
+import { Policy } from '../types/domain.js';
 import { Request, Response, NextFunction } from 'express';
 import { AmsService } from '../services/ams.service.js';
 import { TenantRequest } from '../middleware/tenant.middleware.js';
@@ -72,12 +73,12 @@ export class PolicyController {
         res.status(400).json({
           status: 'error',
           message: 'Invalid policy payload. Must specify customerId and lineOfBusiness.',
-          errors: validationResult.error.errors
+          errors: validationResult.error.issues
         });
         return;
       }
 
-      const created = await this.amsService.createPolicy(tenantId, validationResult.data);
+      const created = await this.amsService.createPolicy(tenantId, validationResult.data as Partial<Policy>);
       res.status(201).json({
         status: 'success',
         message: 'Policy created successfully.',
