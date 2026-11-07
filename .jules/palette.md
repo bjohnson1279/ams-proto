@@ -209,3 +209,10 @@
 ## 2026-11-05 - Disable Invalid Actions in Empty States and Provide Tooltips
 **Learning:** Having action buttons enabled when no items are available to act on (e.g. "Post Commissions" when 0 batches exist) causes confusion. Adding `aria-label` and `title` tooltips improves screen reader accessibility.
 **Action:** Always disable batch action buttons when item count is zero and provide explanatory titles and aria-labels.
+## 2026-11-21 - Provide Native Tooltips for Action Buttons
+**Learning:** Action buttons in tables (like "View ACORD 25", "View Dec-Page") and panel headers have visible text and `aria-label`s for screen readers, but lack native `title` tooltips. Providing a native tooltip gives sighted mouse users explicit context of the action they are about to take, especially in dense tables.
+**Action:** Always include a `title` attribute matching the `aria-label` or text content on action buttons to ensure a consistent experience for both screen reader and sighted mouse users.
+
+## 2026-11-21 - Embed Keyboard Shortcut Hints in Tooltips
+**Learning:** Keyboard shortcuts like "Esc" to close a modal are often hidden from sighted users who rely on visual hints.
+**Action:** Embed keyboard shortcut hints explicitly into the `title` tooltip of the associated action button (e.g., `title="Close modal (Esc)"`) to improve shortcut discoverability.
