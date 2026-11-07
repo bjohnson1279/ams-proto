@@ -656,9 +656,9 @@
         <div class="panel-header">
           <span class="panel-title"><span aria-hidden="true">📜</span> ACORD 25 Certificates of Liability Insurance</span>
           <div class="btn-group">
-            <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openCreateCertModal(event)">+ Generate ACORD 25 Certificate</button>
-            <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openNewHolderModal(event)"><span aria-hidden="true">🏢</span> Add Certificate Holder</button>
-            <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openBulkIssueModal(event)"><span aria-hidden="true">⚡</span> Bulk Issue COIs</button>
+            <button class="btn btn-primary" aria-label="Generate ACORD 25 Certificate" title="Generate ACORD 25 Certificate" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openCreateCertModal(event)">+ Generate ACORD 25 Certificate</button>
+            <button class="btn btn-secondary" aria-label="Add Certificate Holder" title="Add Certificate Holder" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openNewHolderModal(event)"><span aria-hidden="true">🏢</span> Add Certificate Holder</button>
+            <button class="btn btn-secondary" aria-label="Bulk Issue COIs" title="Bulk Issue COIs" style="padding: 0.5rem 1rem; font-size: 0.85rem;" onclick="openBulkIssueModal(event)"><span aria-hidden="true">⚡</span> Bulk Issue COIs</button>
           </div>
         </div>
         <div class="table-container">
@@ -762,7 +762,7 @@
         <div class="panel">
           <div class="panel-header">
             <span class="panel-title">Agency Bill Invoices</span>
-            <button class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="openPaymentModal(event)">+ Receive Premium Payment</button>
+            <button class="btn btn-primary" aria-label="Receive Premium Payment" title="Receive Premium Payment" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" onclick="openPaymentModal(event)">+ Receive Premium Payment</button>
           </div>
           <div class="table-container">
             <table>
@@ -905,7 +905,7 @@
           <h2 id="dec-title" style="font-family: var(--font-heading); font-size: 1.1rem; color: #fff;">ACORD 125/126 POLICY DECLARATION</h2>
           <p id="dec-acord-std" style="font-size: 0.75rem; color: var(--accent-cyan); font-weight: 600;">ACORD COMPLIANT</p>
         </div>
-        <button class="modal-close-btn" aria-label="Close modal" title="Close modal" onclick="closeModal()"><span aria-hidden="true">&times;</span></button>
+        <button class="modal-close-btn" aria-label="Close modal" title="Close modal (Esc)" onclick="closeModal()"><span aria-hidden="true">&times;</span></button>
       </div>
 
       <div class="dec-section">
@@ -1317,7 +1317,7 @@
           <td>${escapeHtml(locStr)}</td>
           <td>${lineageBadge}</td>
           <td><span style="color: var(--accent-emerald); font-weight: 600;">${escapeHtml(c.status)}</span></td>
-          <td><button aria-label="View Dec-Page for Customer ${escapeHtml(c.customerId)}" class="btn btn-secondary view-dec-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-customer-id="${escapeHtml(c.customerId)}">View Dec-Page</button></td>
+          <td><button aria-label="View Dec-Page for Customer ${escapeHtml(c.customerId)}" title="View Dec-Page for Customer ${escapeHtml(c.customerId)}" class="btn btn-secondary view-dec-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-customer-id="${escapeHtml(c.customerId)}">View Dec-Page</button></td>
         `;
         tbody.appendChild(tr);
       });
@@ -1593,7 +1593,7 @@
           <td><span class="badge badge-fmt-a">${escapeHtml(insurerLetters)}</span></td>
           <td><span style="color: var(--accent-emerald); font-weight: 600;">${escapeHtml(c.status)}</span></td>
           <td>
-            <button aria-label="View ACORD 25 for ${escapeHtml(c.insured.name)}" class="btn btn-secondary view-cert-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-cert-id="${escapeHtml(c.certificateId)}"><span aria-hidden="true">📄</span> View ACORD 25</button>
+            <button aria-label="View ACORD 25 for ${escapeHtml(c.insured.name)}" title="View ACORD 25 for ${escapeHtml(c.insured.name)}" class="btn btn-secondary view-cert-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-cert-id="${escapeHtml(c.certificateId)}"><span aria-hidden="true">📄</span> View ACORD 25</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -1895,7 +1895,7 @@
           <td>${statusBadge}</td>
           <td>
             ${b.status !== 'Commissions Posted' 
-              ? `<button aria-label="Post GL Commissions for Batch ${escapeHtml(b.batchId)}" class="btn btn-primary post-batch-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-batch-id="${escapeHtml(b.batchId)}"><span aria-hidden="true">💰</span> Post GL Comm</button>`
+              ? `<button aria-label="Post GL Commissions for Batch ${escapeHtml(b.batchId)}" title="Post GL Commissions for Batch ${escapeHtml(b.batchId)}" class="btn btn-primary post-batch-btn" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;" data-batch-id="${escapeHtml(b.batchId)}"><span aria-hidden="true">💰</span> Post GL Comm</button>`
               : `<span style="color: var(--accent-emerald); font-weight: 600; font-size: 0.8rem;"><span aria-hidden="true">✓</span> Posted to GL</span>`}
           </td>
         `;
