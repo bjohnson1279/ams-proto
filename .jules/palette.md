@@ -216,3 +216,6 @@
 ## 2026-11-21 - Embed Keyboard Shortcut Hints in Tooltips
 **Learning:** Keyboard shortcuts like "Esc" to close a modal are often hidden from sighted users who rely on visual hints.
 **Action:** Embed keyboard shortcut hints explicitly into the `title` tooltip of the associated action button (e.g., `title="Close modal (Esc)"`) to improve shortcut discoverability.
+## 2026-11-21 - Embed Keyboard Shortcut Hints in Tooltips (Search Inputs)
+**Learning:** Keyboard shortcuts like "/" to focus the search input are often hidden from sighted users who rely on visual hints. While the `<kbd>` element visually hints at the shortcut, embedding it explicitly into the `title` tooltip provides another layer of discoverability.
+**Action:** Embed keyboard shortcut hints explicitly into the `title` tooltip of search inputs (e.g., `title="Search customers (/)"`) to improve shortcut discoverability for both mouse and keyboard users.
