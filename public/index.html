@@ -583,8 +583,8 @@
             <div id="payload-error-msg" aria-live="polite" style="color: var(--accent-rose); font-size: 0.85rem; min-height: 1.2em;"></div>
           </div>
           <div class="btn-group">
-            <button id="btn-dry-run" class="btn btn-secondary" onclick="runDryRun()"><span aria-hidden="true">🔍</span> Run Dry-Run Audit</button>
-            <button id="btn-import" class="btn btn-primary" onclick="executeImport()"><span aria-hidden="true">🚀</span> Execute CoreAMS Import</button>
+            <button id="btn-dry-run" class="btn btn-secondary" onclick="runDryRun()" title="Run Dry-Run Audit"><span aria-hidden="true">🔍</span> Run Dry-Run Audit</button>
+            <button id="btn-import" class="btn btn-primary" onclick="executeImport()" title="Execute CoreAMS Import"><span aria-hidden="true">🚀</span> Execute CoreAMS Import</button>
           </div>
         </div>
 
@@ -604,7 +604,7 @@
     <div id="tab-customers" class="tab-content" role="tabpanel" aria-labelledby="nav-tab-customers">
       <div style="display: flex; gap: 1rem; align-items: center;">
         <div style="position: relative; width: 360px;">
-          <input type="search" id="search-input" aria-label="Search customers" placeholder="Search by customer name or policy number..."
+          <input type="search" id="search-input" aria-label="Search customers" title="Search customers (/)" placeholder="Search by customer name or policy number..."
             style="background: var(--bg-card); border: 1px solid var(--border-color); color: #fff; padding: 0.75rem 2.5rem 0.75rem 1rem; border-radius: 8px; width: 100%;"
             oninput="debouncedFilterCustomers()">
           <kbd id="search-kbd-hint" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 4px; padding: 0.1rem 0.4rem; font-size: 0.75rem; color: var(--text-muted); font-family: monospace; pointer-events: none; transition: opacity 0.2s;" aria-hidden="true">/</kbd>
@@ -819,8 +819,8 @@
 3TRGRENE12500.00
 2EOS0005</textarea>
           <div class="btn-group">
-            <button id="btn-parse-al3" class="btn btn-secondary" onclick="parseRawAl3Sim(event)"><span aria-hidden="true">⚡</span> Parse Raw AL3 Stream</button>
-            <button id="btn-ingest-al3" class="btn btn-primary" onclick="ingestAl3Batch(event)"><span aria-hidden="true">🚀</span> Ingest IVANS Download Batch</button>
+            <button id="btn-parse-al3" class="btn btn-secondary" onclick="parseRawAl3Sim(event)" title="Parse Raw AL3 Stream"><span aria-hidden="true">⚡</span> Parse Raw AL3 Stream</button>
+            <button id="btn-ingest-al3" class="btn btn-primary" onclick="ingestAl3Batch(event)" title="Ingest IVANS Download Batch"><span aria-hidden="true">🚀</span> Ingest IVANS Download Batch</button>
           </div>
           <div id="al3-output-box" class="output-box" style="max-height: 180px;">
             <div style="color: var(--text-muted); font-style: italic;">Decoded AL3 record groups will appear here...</div>
@@ -1473,8 +1473,8 @@
             JSON.parse(val);
             dryRunBtn.disabled = false;
             importBtn.disabled = false;
-            dryRunBtn.removeAttribute('title');
-            importBtn.removeAttribute('title');
+            dryRunBtn.title = "Run Dry-Run Audit";
+            importBtn.title = "Execute CoreAMS Import";
             editor.style.borderColor = "";
             editor.removeAttribute('aria-invalid');
             if (errorMsg) errorMsg.textContent = '';
@@ -1510,8 +1510,8 @@
         } else {
           parseBtn.disabled = false;
           ingestBtn.disabled = false;
-          parseBtn.removeAttribute('title');
-          ingestBtn.removeAttribute('title');
+          parseBtn.title = "Parse Raw AL3 Stream";
+          ingestBtn.title = "Ingest IVANS Download Batch";
         }
       }
     }
