@@ -220,3 +220,7 @@
 ## 2026-11-21 - Preserve Tooltips When Re-enabling Elements
 **Learning:** Dynamically removing tooltips (`removeAttribute('title')`) from buttons when they are re-enabled strips the button of its native tooltip, causing a usability regression for sighted mouse users who rely on the tooltip for context on action buttons. Furthermore, inputs often use visual shortcut hints (like `<kbd>`) which are invisible to screen readers or keyboard-only navigation users if not explicitly declared.
 **Action:** When toggling the disabled state of buttons with JS, always restore the original descriptive `title` attribute when re-enabling them, rather than simply removing the attribute. Additionally, embed keyboard shortcut hints directly into `title` tooltips for related action buttons and input fields (e.g., `title="Search customers (/)"`).
+
+## 2024-05-15 - Restore explicit tooltips on re-enabled buttons
+**Learning:** Removing a `title` attribute via `removeAttribute('title')` when dynamically re-enabling a disabled button permanently strips the native hover tooltip, degrading the experience for sighted mouse users.
+**Action:** When dynamically re-enabling an element in vanilla JavaScript, explicitly restore its original descriptive `title` attribute (e.g., `element.title = '...'`) instead of unconditionally stripping it.
