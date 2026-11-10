@@ -174,3 +174,8 @@
 **Vulnerability:** Default database username and password in `docker-compose.yml` were hardcoded without environment variable parameterization.
 **Learning:** Hardcoded database credentials in compose files can easily lead to production credential exposure or secrets leaks.
 **Prevention:** Always parameterize container credentials using environment variables with secure fallback patterns (`${POSTGRES_USER:-ams_admin}`).
+
+## 2024-05-24 - [Input Validation Hardening]
+**Vulnerability:** The \`DownloadController\` lacked input validation for \`parseAl3\` and \`ingestBatch\` endpoints, relying solely on basic truthiness checks.
+**Learning:** Missing schema validation exposes endpoints to malformed or excessively large inputs, leading to potential DoS vulnerabilities and unexpected behavior in downstream services.
+**Prevention:** Always implement explicit parameter and request body validation schemas using libraries like \`zod\` at the controller boundary.
