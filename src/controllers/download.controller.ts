@@ -1,20 +1,49 @@
 import { Request, Response, NextFunction } from 'express';
 import { CarrierDownloadService } from '../services/carrierDownload.service.js';
 import { Al3ParserService } from '../services/al3Parser.service.js';
+import { z } from 'zod';
 
 const downloadService = CarrierDownloadService.getInstance();
 const al3Parser = Al3ParserService.getInstance();
 
+
+const parseAl3Schema = z.object({
+  rawContent: z.string().trim().min(1, 'rawContent is required')
+});
+
+const ingestBatchSchema = z.object({
+  carrierCode: z.string().trim(),
+  carrierName: z.string().trim(),
+  source: z.enum(['IVANS Exchange', 'Direct Download', 'AL3 Upload Simulation']).optional(),
+  rawAl3Content: z.string().trim().optional(),
+  items: z.array(z.object({
+    policyNumber: z.string().trim(),
+    insuredName: z.string().trim(),
+    insuredFeinOrSsn: z.string().trim().optional(),
+    lineOfBusiness: z.string().trim(),
+    transactionType: z.enum(['NEWB', 'RENE', 'ENDO', 'CANC', 'REVT', 'DBST']),
+    effectiveDate: z.string().trim(),
+    grossPremium: z.number(),
+    commissionRate: z.number().optional()
+  })).optional()
+});
+
 export class DownloadController {
   public parseAl3(req: Request, res: Response, next: NextFunction): void {
     try {
-      const { rawContent } = req.body;
-      if (!rawContent) {
-        res.status(400).json({ error: 'rawContent is required' });
+      // 🛡️ Sentinel: Enforce strict input validation to prevent malformed data and injection attacks
+      const validationResult = parseAl3Schema.safeParse(req.body);
+
+      if (!validationResult.success) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Invalid AL3 payload.',
+          errors: validationResult.error.issues
+        });
         return;
       }
 
-      const result = al3Parser.parseAl3Content(rawContent);
+      const result = al3Parser.parseAl3Content(validationResult.data.rawContent);
       res.json(result);
     } catch (err: any) {
       next(err);
@@ -48,7 +77,20 @@ export class DownloadController {
   public ingestBatch = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const tenantId = (req as any).tenantId as string;
-      const payload = req.body;
+
+      // 🛡️ Sentinel: Enforce strict input validation to prevent malformed data and injection attacks
+      const validationResult = ingestBatchSchema.safeParse(req.body);
+
+      if (!validationResult.success) {
+        res.status(400).json({
+          status: 'error',
+          message: 'Invalid batch ingestion payload.',
+          errors: validationResult.error.issues
+        });
+        return;
+      }
+
+      const payload = validationResult.data;
       const batch = await downloadService.ingestDownloadBatch(tenantId, payload);
       res.status(201).json(batch);
     } catch (err: any) {
